@@ -8,9 +8,7 @@ const AssetsSection = () => {
 
   const handleViewDetail = (holding) => {
     // Navigate to property detail page
-    console.log("View detail for:", holding);
-    // TODO: Navigate to property detail page when created
-    // navigate(`/property/${holding.id}`);
+    navigate(`/property/${holding.propertyId}`);
   };
 
   const handleWithdraw = (holding) => {

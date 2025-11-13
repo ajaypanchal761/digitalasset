@@ -1,0 +1,349 @@
+.profile-page {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100vh;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 6rem; /* Add bottom padding for fixed navbar */
+}
+
+/* Header */
+.profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #ffffff;
+}
+
+.profile-header__back {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #0f172a;
+  padding: 0;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.profile-header__back:hover {
+  background: rgba(241, 245, 249, 0.8);
+}
+
+.profile-header__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  text-align: center;
+  flex: 1;
+}
+
+.profile-header__spacer {
+  width: 40px;
+  height: 40px;
+}
+
+/* Profile Information */
+.profile-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem 1.25rem;
+  background: #ffffff;
+}
+
+.profile-picture-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.profile-picture,
+.profile-picture-fallback {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.profile-picture__camera {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 3px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ffffff;
+  padding: 0;
+  border: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.profile-picture__camera:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.profile-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.profile-details__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.profile-details__name-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.profile-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.profile-username {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.profile-edit-btn {
+  padding: 0.65rem 1.25rem;
+  background: linear-gradient(135deg, #4338ca, #6366f1);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.25);
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+.profile-edit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(67, 56, 202, 0.35);
+}
+
+.profile-edit-btn:active {
+  transform: translateY(0);
+}
+
+/* Menu Items */
+.profile-menu {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0;
+  background: #ffffff;
+}
+
+.profile-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: #0f172a;
+  font-size: 1rem;
+  transition: background-color 0.2s ease;
+  position: relative;
+}
+
+.profile-menu__item:hover {
+  background: rgba(241, 245, 249, 0.5);
+}
+
+.profile-menu__item:active {
+  background: rgba(226, 232, 240, 0.8);
+}
+
+.profile-menu__icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #475569;
+}
+
+.profile-menu__item:hover .profile-menu__icon {
+  color: #0f172a;
+}
+
+.profile-menu__label {
+  flex: 1;
+  font-weight: 500;
+  color: inherit;
+}
+
+.profile-menu__arrow {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: #94a3b8;
+}
+
+.profile-menu__item:hover .profile-menu__arrow {
+  color: #64748b;
+}
+
+.profile-menu__item--destructive {
+  color: #ef4444;
+}
+
+.profile-menu__item--destructive .profile-menu__icon {
+  color: #ef4444;
+}
+
+.profile-menu__item--destructive:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.profile-menu__item--destructive:hover .profile-menu__icon {
+  color: #dc2626;
+}
+
+.profile-menu__item--destructive .profile-menu__arrow {
+  color: #ef4444;
+}
+
+/* Mobile specific adjustments */
+@media (max-width: 640px) {
+  .profile-page {
+    padding-bottom: 5.5rem; /* Space for bottom navigation */
+  }
+
+  .profile-header {
+    padding: 0.5rem 1rem;
+    min-height: 44px;
+  }
+
+  .profile-header__back {
+    width: 32px;
+    height: 32px;
+  }
+
+  .profile-header__back svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .profile-header__spacer {
+    width: 32px;
+    height: 32px;
+  }
+
+  .profile-header__title {
+    font-size: 0.95rem;
+  }
+
+  .profile-info {
+    padding: 1rem 1rem;
+    gap: 0.75rem;
+  }
+
+  .profile-picture,
+  .profile-picture-fallback {
+    width: 60px;
+    height: 60px;
+    font-size: 1.25rem;
+  }
+
+  .profile-picture__camera {
+    width: 22px;
+    height: 22px;
+    border-width: 2px;
+  }
+
+  .profile-picture__camera svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .profile-details__row {
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .profile-details__name-section {
+    gap: 0.2rem;
+  }
+
+  .profile-name {
+    font-size: 1.1rem;
+    line-height: 1.3;
+  }
+
+  .profile-username {
+    font-size: 0.8rem;
+    line-height: 1.3;
+  }
+
+  .profile-edit-btn {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.75rem;
+    align-self: center;
+  }
+
+  .profile-menu__item {
+    padding: 0.9rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  .profile-menu__icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .profile-menu__arrow {
+    width: 18px;
+    height: 18px;
+  }
+}
+

@@ -8,7 +8,10 @@ import Explore from "./pages/Explore/Explore.jsx";
 import Invest from "./pages/Invest/Invest.jsx";
 import Wallet from "./pages/Wallet/Wallet.jsx";
 import Profile from "./pages/Profile/Profile.jsx";
+import EditProfile from "./pages/EditProfile/EditProfile.jsx";
 import Kyc from "./pages/Kyc/Kyc.jsx";
+import PropertyDetail from "./pages/PropertyDetail/PropertyDetail.jsx";
+import Chat from "./pages/Chat/Chat.jsx";
 import Login from "./pages/Auth/Login.jsx";
 import Register from "./pages/Auth/Register.jsx";
 import ForgotPassword from "./pages/Auth/ForgotPassword.jsx";
@@ -27,10 +30,13 @@ function App() {
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="explore" element={<Explore />} />
+        <Route path="property/:id" element={<PropertyDetail />} />
         <Route path="invest" element={<Invest />} />
         <Route path="wallet" element={<Wallet />} />
         <Route path="kyc" element={<Kyc />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="profile/edit" element={<EditProfile />} />
+        <Route path="chat" element={<Chat />} />
       </Route>
 
       <Route path="/auth" element={<AuthLayout />}>

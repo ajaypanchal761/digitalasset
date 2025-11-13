@@ -6,43 +6,44 @@ const AssetCard = ({ holding, onViewDetail, onWithdraw }) => {
       maximumFractionDigits: 0,
     }).format(value);
 
-  const isMatured = () => {
-    if (!holding.maturityDate) return false;
+  const calculateDaysRemaining = () => {
+    if (!holding.maturityDate) return 0;
     const today = new Date();
     const maturity = new Date(holding.maturityDate);
-    return today >= maturity;
+    const diffTime = maturity - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
   };
 
-  const canWithdraw = isMatured() && holding.status !== "withdrawn";
-  const isProfit = holding.returnRate >= 0;
-  const returnValue = Math.abs(holding.returnRate);
+  const daysRemaining = holding.daysRemaining !== undefined ? holding.daysRemaining : calculateDaysRemaining();
+  const isMatured = holding.status === "matured" || daysRemaining === 0;
+  const canWithdraw = isMatured && holding.canWithdrawInvestment !== false;
 
   return (
     <div className="asset-card">
       <div className="asset-card__header">
         <span className="asset-card__name">{holding.name}</span>
-        <div className={`asset-card__return ${isProfit ? "asset-card__return--profit" : "asset-card__return--loss"}`}>
-          <span className="asset-card__return-value">
-            {isProfit ? "+" : "-"}
-            {returnValue.toFixed(2)}%
-          </span>
-          {isProfit ? (
-            <svg className="asset-card__arrow" width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M6 2L10 6H2L6 2Z" fill="currentColor" />
-            </svg>
-          ) : (
-            <svg className="asset-card__arrow" width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M6 10L2 6H10L6 10Z" fill="currentColor" />
-            </svg>
-          )}
-        </div>
+        <span className={`asset-card__status ${isMatured ? "asset-card__status--matured" : "asset-card__status--locked"}`}>
+          {isMatured ? "Matured" : "Locked"}
+        </span>
       </div>
       <div className="asset-card__body">
-        <span className="asset-card__amount">{formatCurrency(holding.amountInvested, "INR")}</span>
+        <div className="asset-card__amount-section">
+          <span className="asset-card__amount-label">Invested</span>
+          <span className="asset-card__amount">{formatCurrency(holding.amountInvested, "INR")}</span>
+        </div>
+        <div className="asset-card__earning-section">
+          <span className="asset-card__earning-label">Monthly Earning</span>
+          <span className="asset-card__earning">{formatCurrency(holding.monthlyEarning || holding.amountInvested * 0.005, "INR")}</span>
+        </div>
+        <div className="asset-card__days-section">
+          <span className="asset-card__days-label">Days Remaining</span>
+          <span className="asset-card__days">{isMatured ? "0" : daysRemaining}</span>
+        </div>
       </div>
       <div className="asset-card__footer">
         <button className="asset-card__btn asset-card__btn--view" onClick={() => onViewDetail(holding)}>
-          View
+          View Detail
         </button>
         <button 
           className="asset-card__btn asset-card__btn--withdraw" 

@@ -14,7 +14,7 @@ const desktopNavLinks = [
 
 const bottomNavLinks = [
   { to: "/dashboard", label: "Home", icon: HomeIcon },
-  { to: "/explore", label: "Search", icon: SearchIcon },
+  { to: "/chat", label: "Chat", icon: ChatIcon },
   { to: "/wallet", label: "Wallet", icon: WalletIcon },
   { to: "/profile", label: "Profile", icon: UserIcon },
 ];
@@ -107,18 +107,25 @@ function HomeIcon({ active }) {
   );
 }
 
-function SearchIcon({ active }) {
+function ChatIcon({ active }) {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
       <path
-        d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z"
+        d="M21 11.5C21 16.1944 17.1944 20 12.5 20C11.4514 20 10.4543 19.7762 9.5578 19.3764L4.5 21L6.12361 16.4422C5.72376 15.5457 5.5 14.5486 5.5 13.5C5.5 8.80558 9.30558 5 14 5C18.6944 5 22.5 8.80558 22.5 13.5"
         stroke={active ? "#2563eb" : "#475569"}
         strokeWidth="1.6"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M21 21L16.65 16.65"
+        d="M9 11.5C9 11.7761 9.22386 12 9.5 12H14.5C14.7761 12 15 11.7761 15 11.5V11.5C15 11.2239 14.7761 11 14.5 11H9.5C9.22386 11 9 11.2239 9 11.5V11.5Z"
+        stroke={active ? "#2563eb" : "#475569"}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9 14.5C9 14.7761 9.22386 15 9.5 15H12.5C12.7761 15 13 14.7761 13 14.5V14.5C13 14.2239 12.7761 14 12.5 14H9.5C9.22386 14 9 14.2239 9 14.5V14.5Z"
         stroke={active ? "#2563eb" : "#475569"}
         strokeWidth="1.6"
         strokeLinecap="round"
@@ -221,6 +228,9 @@ const MainLayout = () => {
   const { isAuthenticated, signOut } = useAuth();
   const isMobile = useIsMobile();
   const isKycPage = location.pathname.startsWith("/kyc");
+  const isPropertyDetailPage = location.pathname.startsWith("/property/");
+  const isEditProfilePage = location.pathname === "/profile/edit";
+  const isProfilePage = location.pathname === "/profile";
 
   const handleAuthAction = () => {
     if (isAuthenticated) {
@@ -233,12 +243,27 @@ const MainLayout = () => {
 
   const authButtonLabel = isAuthenticated ? "Logout" : "Login";
 
-  if (isMobile && isKycPage) {
+  const isExplorePage = location.pathname === "/explore";
+  const isChatPage = location.pathname === "/chat";
+
+  if (isMobile && (isKycPage || isPropertyDetailPage || isProfilePage || isEditProfilePage || isExplorePage || isChatPage)) {
     return (
       <div className="mobile-shell mobile-shell--plain">
         <main className="mobile-content mobile-content--plain">
           <Outlet />
         </main>
+        <nav className="mobile-bottom-nav" aria-label="Primary">
+          {bottomNavLinks.map(({ to, label, icon: Icon }) => (
+            <NavLink key={to} to={to} className="mobile-bottom-nav__link">
+              {({ isActive }) => (
+                <>
+                  <Icon active={isActive} />
+                  <span className="mobile-bottom-nav__label">{label}</span>
+                </>
+              )}
+            </NavLink>
+          ))}
+        </nav>
       </div>
     );
   }
@@ -248,22 +273,29 @@ const MainLayout = () => {
 
     return (
       <div className="mobile-shell">
-        <header className="mobile-header">
-          <div className="mobile-header__row">
-            <button type="button" className="icon-button" aria-label="Notifications">
-              <NotificationIcon active={notificationCount > 0} />
-              {notificationCount > 0 && <span className="icon-badge">{notificationCount}</span>}
-            </button>
-            <div className="mobile-header__welcome">
-              <span className="mobile-header__welcome-label">Welcome</span>
-              <span className="mobile-header__welcome-name">{user.name.split(" ")[0]}</span>
+        {!isPropertyDetailPage && !isEditProfilePage && !isExplorePage && !isChatPage && (
+          <header className="mobile-header">
+            <div className="mobile-header__row">
+              <button type="button" className="icon-button" aria-label="Notifications">
+                <NotificationIcon active={notificationCount > 0} />
+                {notificationCount > 0 && <span className="icon-badge">{notificationCount}</span>}
+              </button>
+              <div className="mobile-header__welcome">
+                <span className="mobile-header__welcome-label">Welcome</span>
+                <span className="mobile-header__welcome-name">{user.name.split(" ")[0]}</span>
+              </div>
+              <button
+                type="button"
+                className="avatar-button"
+                aria-label="User profile"
+                onClick={() => navigate("/profile")}
+              >
+                <Avatar name={user.name} avatarUrl={user.avatarUrl} initials={user.avatarInitials} />
+              </button>
             </div>
-            <button type="button" className="avatar-button" aria-label="User profile">
-              <Avatar name={user.name} avatarUrl={user.avatarUrl} initials={user.avatarInitials} />
-            </button>
-          </div>
-          <WalletSummaryCard wallet={wallet} />
-        </header>
+            {!isExplorePage && !isPropertyDetailPage && !isEditProfilePage && <WalletSummaryCard wallet={wallet} />}
+          </header>
+        )}
         <main className="mobile-content">
           <div className="mobile-scroll-area">
             <Outlet />
@@ -287,29 +319,31 @@ const MainLayout = () => {
 
   return (
     <div className="app-shell">
-      <header className="app-header">
-        <div className="brand">
-          <NavLink to="/dashboard">DigitalAssets</NavLink>
-        </div>
-        <nav className="nav-links">
-          {desktopNavLinks.map(({ to, label }) => (
-            <NavLink key={to} to={to} className="nav-link">
-              {label}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="app-header__profile">
-          <span className="app-header__welcome">Welcome back, {user.name}</span>
-          <div className="app-header__avatar">
-            <Avatar name={user.name} avatarUrl={user.avatarUrl} initials={user.avatarInitials} />
+      {!isPropertyDetailPage && !isEditProfilePage && !isExplorePage && !isChatPage && (
+        <header className="app-header">
+          <div className="brand">
+            <NavLink to="/dashboard">DigitalAssets</NavLink>
           </div>
-          <button type="button" className="app-header__auth-btn" onClick={handleAuthAction}>
-            {authButtonLabel}
-          </button>
-        </div>
-      </header>
+          <nav className="nav-links">
+            {desktopNavLinks.map(({ to, label }) => (
+              <NavLink key={to} to={to} className="nav-link">
+                {label}
+              </NavLink>
+            ))}
+          </nav>
+          <div className="app-header__profile">
+            <span className="app-header__welcome">Welcome back, {user.name}</span>
+            <div className="app-header__avatar">
+              <Avatar name={user.name} avatarUrl={user.avatarUrl} initials={user.avatarInitials} />
+            </div>
+            <button type="button" className="app-header__auth-btn" onClick={handleAuthAction}>
+              {authButtonLabel}
+            </button>
+          </div>
+        </header>
+      )}
       <main className="app-content">
-        {!isKycPage && <WalletSummaryCard wallet={wallet} />}
+        {!isKycPage && !isPropertyDetailPage && !isEditProfilePage && !isExplorePage && !isChatPage && <WalletSummaryCard wallet={wallet} />}
         <div className="app-content__page">
           <Outlet />
         </div>

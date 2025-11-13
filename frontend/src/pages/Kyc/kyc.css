@@ -1,7 +1,7 @@
 .kyc-wrapper {
   display: flex;
   justify-content: center;
-  padding: 2rem 1.25rem;
+  padding: 2rem 1.25rem 6rem; /* Add bottom padding for fixed navbar */
   min-height: 100vh;
   background: linear-gradient(180deg, rgba(241, 245, 249, 0.65) 0%, #ffffff 45%);
 }
@@ -269,31 +269,16 @@
     background: #ffffff;
     width: 100%;
     margin: 0;
-    height: 100vh;
-    max-height: 100vh;
-    overflow: hidden;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
   }
 
   .kyc-card {
     max-width: none;
     border-radius: 0;
     box-shadow: none;
-    height: 100vh;
-    max-height: 100vh;
     padding: 1rem 0.85rem 0.75rem;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    box-sizing: border-box;
   }
 
   .kyc-header {
-    flex-shrink: 0;
     margin-bottom: 0.65rem;
   }
 
@@ -313,7 +298,6 @@
     padding: 0.75rem;
     margin: 0 0 0.75rem;
     background: rgba(99, 102, 241, 0.07);
-    flex-shrink: 0;
   }
 
   .step-label {
@@ -334,18 +318,6 @@
 
   .kyc-form {
     gap: 0.6rem;
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    padding-right: 0.25rem;
-  }
-
-  .kyc-form > .form-group {
-    flex-shrink: 0;
   }
 
   .form-group {
@@ -373,9 +345,6 @@
     gap: 0.6rem;
     margin-top: 0.75rem;
     padding: 0.75rem 0 0;
-    flex-shrink: 0;
-    background: #ffffff;
-    border-top: 1px solid rgba(226, 232, 240, 0.5);
   }
 
   .primary-action,
@@ -389,7 +358,6 @@
   .kyc-status {
     margin: 0 0 0.85rem;
     padding: 1rem 0.85rem;
-    flex-shrink: 0;
   }
 
   /* When status is visible, make header more compact */
