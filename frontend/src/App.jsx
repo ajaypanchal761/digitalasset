@@ -23,8 +23,8 @@ import NotFound from "./pages/NotFound.jsx";
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/" element={<MainLayout />}>
+        <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="explore" element={<Explore />} />
         <Route path="invest" element={<Invest />} />

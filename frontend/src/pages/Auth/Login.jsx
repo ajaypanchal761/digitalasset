@@ -1,5 +1,5 @@
-﻿import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+﻿import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import AuthCard from "../../components/common/AuthCard.jsx";
 import { MailIcon, LockIcon } from "../../components/common/AuthIcons.jsx";
 import AuthInput from "../../components/forms/AuthInput.jsx";
@@ -12,11 +12,21 @@ const DEFAULT_CREDENTIALS = {
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { signIn } = useAuth();
 
   const [form, setForm] = useState(DEFAULT_CREDENTIALS);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      // Clear the message from location state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -42,7 +52,7 @@ const Login = () => {
         return;
       }
 
-      navigate("/kyc", { replace: true });
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       setError("Unexpected error. Please try again.");
       setSubmitting(false);
@@ -61,6 +71,9 @@ const Login = () => {
     >
       <form className="auth-form" noValidate onSubmit={handleSubmit}>
         {error ? <div className="auth-error">{error}</div> : null}
+        {successMessage ? (
+          <div className="auth-success">{successMessage}</div>
+        ) : null}
         <AuthInput
           icon={<MailIcon />}
           type="email"

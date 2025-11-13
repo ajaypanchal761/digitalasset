@@ -93,11 +93,41 @@ const Kyc = () => {
 
     const timer = setTimeout(() => {
       setStatusValue("approved");
-      navigate("/dashboard", { replace: true });
+      setTimeout(() => {
+        navigate("/auth/login", { 
+          replace: true,
+          state: { 
+            message: "KYC verification successful! Please login to continue." 
+          }
+        });
+      }, 2000);
     }, 5000);
 
     return () => clearTimeout(timer);
   }, [isStatusVisible, statusValue, navigate]);
+
+  useEffect(() => {
+    if (isStatusVisible && isMobileView) {
+      // Scroll status into view on mobile when it appears
+      const timer = setTimeout(() => {
+        const statusElement = document.getElementById("kyc-status");
+        const wrapperElement = document.querySelector(".kyc-wrapper");
+        if (statusElement && wrapperElement) {
+          // Calculate position relative to wrapper
+          const wrapperRect = wrapperElement.getBoundingClientRect();
+          const statusRect = statusElement.getBoundingClientRect();
+          const scrollTop = wrapperElement.scrollTop;
+          const targetScroll = scrollTop + (statusRect.top - wrapperRect.top) - 10;
+          
+          wrapperElement.scrollTo({
+            top: targetScroll,
+            behavior: "smooth",
+          });
+        }
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [isStatusVisible, isMobileView]);
 
   const handleBankChange = (event) => {
     const { name, value } = event.target;
@@ -194,7 +224,7 @@ const Kyc = () => {
         </header>
 
         {isStatusVisible && (
-          <div className="kyc-status">
+          <div className="kyc-status" id="kyc-status">
             <div className={`status-pill status-${statusValue}`}>{activeStatus.label}</div>
             <p className="status-helper">{activeStatus.helper}</p>
 
