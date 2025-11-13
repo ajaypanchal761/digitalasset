@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthCard from "../../components/common/AuthCard.jsx";
-import { UserIcon, MailIcon, PhoneIcon, LockIcon } from "../../components/common/AuthIcons.jsx";
+import { UserIcon, MailIcon, PhoneIcon } from "../../components/common/AuthIcons.jsx";
 import AuthInput from "../../components/forms/AuthInput.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 
@@ -11,14 +11,15 @@ const Register = () => {
 
   const [form, setForm] = useState({
     fullName: "",
-    contact: "",
+    phone: "",
     email: "",
-    password: "",
-    confirmPassword: "",
+    otp: "",
     acceptTerms: false,
   });
 
   const [errors, setErrors] = useState({});
+  const [otpSent, setOtpSent] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [verificationSuccess, setVerificationSuccess] = useState(false);
@@ -26,35 +27,34 @@ const Register = () => {
 
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    // Only allow numbers for phone and OTP
+    if (type === "checkbox") {
+      setForm((prev) => ({ ...prev, [name]: checked }));
+    } else if (name === "phone" || name === "otp") {
+      const numericValue = value.replace(/\D/g, "");
+      setForm((prev) => ({ ...prev, [name]: numericValue }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
-  const validate = () => {
+  const validateBasicInfo = () => {
     const nextErrors = {};
 
     if (!form.fullName.trim()) {
       nextErrors.fullName = "Full name is required.";
     }
 
-    if (!form.contact.trim()) {
-      nextErrors.contact = "Phone or email is required.";
+    if (!form.phone.trim()) {
+      nextErrors.phone = "Phone number is required.";
+    } else if (!/^[0-9]{10}$/.test(form.phone.trim())) {
+      nextErrors.phone = "Enter a valid 10-digit phone number.";
     }
 
     if (!form.email.trim()) {
       nextErrors.email = "Email is required.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       nextErrors.email = "Enter a valid email address.";
-    }
-
-    if (form.password.length < 8) {
-      nextErrors.password = "Password must be at least 8 characters.";
-    }
-
-    if (form.password !== form.confirmPassword) {
-      nextErrors.confirmPassword = "Passwords do not match.";
     }
 
     if (!form.acceptTerms) {
@@ -65,12 +65,49 @@ const Register = () => {
     return Object.keys(nextErrors).length === 0;
   };
 
+  const validateOtp = () => {
+    const nextErrors = {};
+
+    if (!form.otp.trim()) {
+      nextErrors.otp = "OTP is required.";
+    } else if (form.otp.length !== 6 || !/^[0-9]{6}$/.test(form.otp.trim())) {
+      nextErrors.otp = "OTP must be 6 digits.";
+    }
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleSendOtp = async () => {
+    setErrors({});
+    if (!validateBasicInfo()) {
+      return;
+    }
+
+    try {
+      setSendingOtp(true);
+      // Simulate OTP sending - in real app, call API to send OTP
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setOtpSent(true);
+      setErrors({});
+    } catch (err) {
+      setErrors({ form: "Failed to send OTP. Please try again." });
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setShowEmailVerification(false);
     setVerificationSuccess(false);
 
-    if (!validate()) {
+    if (!otpSent) {
+      handleSendOtp();
+      return;
+    }
+
+    if (!validateOtp()) {
       return;
     }
 
@@ -78,9 +115,9 @@ const Register = () => {
       setSubmitting(true);
       const result = await signUp({
         fullName: form.fullName,
-        contact: form.contact,
+        phone: form.phone,
         email: form.email,
-        password: form.password,
+        otp: form.otp,
       });
 
       if (result.success) {
@@ -183,13 +220,15 @@ const Register = () => {
 
         <AuthInput
           icon={<PhoneIcon />}
-          name="contact"
-          placeholder="Phone or Email"
-          value={form.contact}
+          type="tel"
+          name="phone"
+          placeholder="Phone number"
+          value={form.phone}
           onChange={handleChange}
           autoComplete="tel"
+          disabled={otpSent}
         />
-        {errors.contact ? <span className="auth-error-text">{errors.contact}</span> : null}
+        {errors.phone ? <span className="auth-error-text">{errors.phone}</span> : null}
 
         <AuthInput
           icon={<MailIcon />}
@@ -199,48 +238,68 @@ const Register = () => {
           value={form.email}
           onChange={handleChange}
           autoComplete="email"
+          disabled={otpSent}
         />
         {errors.email ? <span className="auth-error-text">{errors.email}</span> : null}
 
-        <AuthInput
-          icon={<LockIcon />}
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={handleChange}
-          autoComplete="new-password"
-        />
-        {errors.password ? <span className="auth-error-text">{errors.password}</span> : null}
+        {otpSent && (
+          <>
+            <AuthInput
+              icon={<MailIcon />}
+              type="text"
+              name="otp"
+              placeholder="Enter 6-digit OTP"
+              value={form.otp}
+              onChange={handleChange}
+              autoComplete="one-time-code"
+              maxLength={6}
+            />
+            {errors.otp ? <span className="auth-error-text">{errors.otp}</span> : null}
+            <div className="auth-meta">
+              <button
+                type="button"
+                onClick={handleSendOtp}
+                disabled={sendingOtp}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "#f8fafc",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                  padding: 0,
+                  fontSize: "0.95rem",
+                }}
+              >
+                {sendingOtp ? "Sending..." : "Resend OTP"}
+              </button>
+            </div>
+          </>
+        )}
 
-        <AuthInput
-          icon={<LockIcon />}
-          type="password"
-          name="confirmPassword"
-          placeholder="Confirm password"
-          value={form.confirmPassword}
-          onChange={handleChange}
-          autoComplete="new-password"
-        />
-        {errors.confirmPassword ? (
-          <span className="auth-error-text">{errors.confirmPassword}</span>
-        ) : null}
-
-        <label className="auth-terms">
-          <input
-            type="checkbox"
-            name="acceptTerms"
-            checked={form.acceptTerms}
-            onChange={handleChange}
-          />
-          <span>
-            I agree to the <Link to="/legal/terms">Terms & Conditions</Link>
-          </span>
-        </label>
+        {!otpSent && (
+          <label className="auth-terms">
+            <input
+              type="checkbox"
+              name="acceptTerms"
+              checked={form.acceptTerms}
+              onChange={handleChange}
+            />
+            <span>
+              I agree to the <Link to="/legal/terms">Terms & Conditions</Link>
+            </span>
+          </label>
+        )}
         {errors.acceptTerms ? <span className="auth-error-text">{errors.acceptTerms}</span> : null}
 
-        <button type="submit" className="auth-primary-btn" disabled={submitting}>
-          {submitting ? "Creating account..." : "Sign up"}
+        <button type="submit" className="auth-primary-btn" disabled={submitting || sendingOtp}>
+          {submitting
+            ? "Creating account..."
+            : otpSent
+              ? "Verify OTP & Sign up"
+              : sendingOtp
+                ? "Sending OTP..."
+                : "Send OTP"}
         </button>
       </form>
       )}

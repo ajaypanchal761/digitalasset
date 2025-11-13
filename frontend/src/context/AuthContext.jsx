@@ -15,12 +15,18 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = async (credentials) => {
     // TODO: Replace with API integration
-    const { email, password } = credentials;
-    if (email === 'demo@digitalassets.in' && password === 'Demo@123') {
-      setUser(DEFAULT_USER);
+    const { phoneOrEmail, otp } = credentials;
+    
+    // For now, accept any 6-digit OTP for demo purposes
+    // In production, verify OTP with backend
+    if (phoneOrEmail && otp && otp.length === 6) {
+      setUser({
+        ...DEFAULT_USER,
+        email: phoneOrEmail.includes('@') ? phoneOrEmail : DEFAULT_USER.email,
+      });
       return { success: true, user: DEFAULT_USER };
     }
-    return { success: false, error: 'Invalid credentials' };
+    return { success: false, error: 'Invalid OTP. Please try again.' };
   };
 
   const signUp = async (payload) => {
