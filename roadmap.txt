@@ -1,0 +1,153 @@
+🧭 Web Platform – Application Flow (Step-by-Step)
+🟩 1. User Onboarding & Authentication
+🔐 Login / Signup Page
+Login with Email + Password
+Forgot Password (via email reset)
+Sign up with:
+Name
+Email
+Password
+Confirm Password
+Accept Terms & Conditions
+✅ Security
+Email verification on registration
+reCAPTCHA for spam prevention
+🟩 2. KYC Verification (Mandatory Before Investing)
+Fields:
+Full Name (as per Aadhaar)
+PAN Card Number
+Aadhaar Number
+Bank Details:
+Account Number
+IFSC Code
+Account Holder Name
+KYC Status:
+Pending / Approved / Rejected (with reason)
+🟩 3. Main Dashboard (After Login)
+🔷 Top Section:
+Welcome message
+Wallet Balance (INR ₹)
+Total Investments
+Earnings Received
+Withdrawable Balance
+SCOPE OF WORK
+🔶 Middle Section:
+Your Assets (Current Holdings)
+For each property:
+Property Name
+Amount Invested
+Ownership % (e.g., 3.5%)
+Purchase Date
+Maturity Date
+Lock-in Countdown
+Return % (shown if applicable)
+Visual display with:
+Status Badge: Active / In Lock-in / Matured
+Action Buttons:
+"View Details"
+"Withdraw (when matured)"
+🟩 4. Explore Digital Properties (Investment Listings)
+Page View:
+Card grid of available properties
+Filters:
+Min investment range
+Lock-in period
+Return %
+Asset Type (Tech, Domain, NFT, etc.)
+Each property card shows:
+Name
+Total Value (e.g., ₹1 Cr)
+Available to Invest (e.g., ₹30L left)
+Lock-in Period
+Return Rate (%)
+Min Investment
+Deadline to buy
+“Invest Now” button
+SCOPE OF WORK
+5. Property Detail Page
+Full property description
+Legal docs to view/download
+ROI Calculator (e.g., ₹20,000 × 10% = ₹22,000 in 2 months)
+Breakdown of Ownership Structure
+FAQ on investment
+“Invest Now” action (goes to payment)
+🟩 6. Investment Flow
+Enter amount (within min-max limit)
+Show:
+Investment Amount
+Lock-in Duration
+Return %
+Total after maturity
+Maturity Date
+Accept Terms & Conditions
+Proceed to Payment
+🟩 7. Payment Gateway (Razorpay Integration)
+Accepted methods:
+UPI
+Debit/Credit Card
+Netbanking
+On successful payment:
+Wallet auto-updated
+Investment linked to user profile
+Lock-in period starts (countdown begins)
+🟩 8. Wallet System (Core Feature)
+💼 Wallet Overview:
+Current Wallet Balance (₹)
+Invested Amount (₹)
+Withdrawable Balance (After lock-in)
+Pending Returns
+Total Returns Received
+SCOPE OF WORK
+🧾 Wallet History Table:
+Date | Type | Amount | Description | Status
+Example:
+"Investment in Property ABC – ₹25,000 – Success"
+"Return from Property XYZ – ₹2,500 – Credited"
+"Withdrawal to Bank – ₹3,000 – Completed"
+🟩 9. Withdraw Funds (Post Maturity Only)
+Withdrawal Process:
+Show Withdrawable Balance
+Enter Amount to Withdraw
+Select Linked Bank Account
+Confirm withdrawal
+Status: Pending → Approved → Credited
+🟩 10. My Investments Section
+Table of investments:
+Property Name
+Amount Invested
+Interest %
+Lock-in Status (Days Left)
+Return Due
+Maturity Date
+Status: Locked / Matured / Withdrawn
+🟩 11. Profile & Settings
+User Profile:
+Name, Email
+Bank Details (Edit if not locked)
+Change Password
+🛠️ Admin Panel Flow
+🟧 1. Admin Login
+Secure login with email + password
+2FA via Email (optional)
+Roles: Super Admin / View-only Staff
+SCOPE OF WORK
+🟧 2. Dashboard
+Total Investments
+Number of Users
+Active Properties
+Payout Obligations
+Graphs: Daily Investment Trend / Asset-wise Interest Rate
+🟧 3. User Management
+Lock user account (fraud/suspicion)
+View user investment history
+Manually credit/debit wallet
+🟧 4. Property Management
+Add new property
+Title, Image, Description
+Total Property Value
+Min/Max Investment
+Lock-in Days
+Return %
+Property Documents (PDF)
+Edit/Delete property
+Track how much is sold/invested
