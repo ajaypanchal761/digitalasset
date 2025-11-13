@@ -85,6 +85,7 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  position: relative;
 }
 
 .form-group {
@@ -284,7 +285,7 @@
     box-shadow: none;
     height: 100vh;
     max-height: 100vh;
-    padding: 1rem 0.85rem 1rem;
+    padding: 1rem 0.85rem 0.75rem;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -293,24 +294,24 @@
 
   .kyc-header {
     flex-shrink: 0;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.65rem;
   }
 
   .kyc-header h1 {
-    font-size: 1.2rem;
-    margin-bottom: 0.25rem;
+    font-size: 1.15rem;
+    margin-bottom: 0.2rem;
   }
 
   .kyc-header p {
-    font-size: 0.8rem;
-    margin-bottom: 0.75rem;
+    font-size: 0.75rem;
+    margin-bottom: 0.65rem;
   }
 
   .kyc-progress {
     flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.85rem;
-    margin: 0 0 0.85rem;
+    gap: 0.45rem;
+    padding: 0.75rem;
+    margin: 0 0 0.75rem;
     background: rgba(99, 102, 241, 0.07);
     flex-shrink: 0;
   }
@@ -332,17 +333,23 @@
   }
 
   .kyc-form {
-    gap: 0.75rem;
+    gap: 0.6rem;
     flex: 1;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     padding-right: 0.25rem;
   }
 
+  .kyc-form > .form-group {
+    flex-shrink: 0;
+  }
+
   .form-group {
-    gap: 0.35rem;
+    gap: 0.3rem;
   }
 
   .form-group label {
@@ -364,9 +371,11 @@
     flex-direction: column;
     align-items: stretch;
     gap: 0.6rem;
-    margin-top: auto;
-    padding-top: 0.5rem;
+    margin-top: 0.75rem;
+    padding: 0.75rem 0 0;
     flex-shrink: 0;
+    background: #ffffff;
+    border-top: 1px solid rgba(226, 232, 240, 0.5);
   }
 
   .primary-action,

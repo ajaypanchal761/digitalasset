@@ -1,11 +1,11 @@
 import { forwardRef } from 'react';
 
 const AuthInput = forwardRef(function AuthInput(
-  { icon, type = 'text', placeholder, value, onChange, name, autoComplete, autoFocus },
+  { icon, type = 'text', placeholder, value, onChange, name, autoComplete, autoFocus, disabled, maxLength },
   ref,
 ) {
   return (
-    <label className="auth-field">
+    <label className={`auth-field ${disabled ? 'auth-field--disabled' : ''}`}>
       {icon ? <span className="auth-field-icon">{icon}</span> : null}
       <input
         ref={ref}
@@ -16,6 +16,8 @@ const AuthInput = forwardRef(function AuthInput(
         onChange={onChange}
         autoComplete={autoComplete}
         autoFocus={autoFocus}
+        disabled={disabled}
+        maxLength={maxLength}
       />
     </label>
   );
