@@ -1,0 +1,290 @@
+import { useParams, useNavigate } from "react-router-dom";
+import { useAppState } from "../../context/AppStateContext.jsx";
+import { useMemo, useState } from "react";
+import CertificateViewer from "../../components/CertificateViewer.jsx";
+
+const HoldingDetail = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { holdings, listings, user } = useAppState();
+  const [isCertificateOpen, setIsCertificateOpen] = useState(false);
+
+  const holding = holdings.find((h) => h.id === id);
+  const property = holding ? listings.find((p) => p.id === holding.propertyId) : null;
+
+  const formatCurrency = (value, currency = "INR") =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0,
+    }).format(value);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  };
+
+  const calculateDaysRemaining = useMemo(() => {
+    if (!holding?.maturityDate) return 0;
+    const today = new Date();
+    const maturity = new Date(holding.maturityDate);
+    const diffTime = maturity - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  }, [holding]);
+
+  const calculateMonthsSincePurchase = useMemo(() => {
+    if (!holding?.purchaseDate) return 0;
+    const today = new Date();
+    const purchase = new Date(holding.purchaseDate);
+    const diffTime = today - purchase;
+    const diffMonths = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 30));
+    return diffMonths;
+  }, [holding]);
+
+  const isMatured = holding?.status === "matured" || calculateDaysRemaining === 0;
+  const canWithdrawInvestment = isMatured && holding?.canWithdrawInvestment !== false;
+  const canWithdrawEarnings = holding?.canWithdrawEarnings !== false;
+
+  const totalExpectedEarnings = useMemo(() => {
+    if (!holding) return 0;
+    const monthsSincePurchase = calculateMonthsSincePurchase;
+    return (holding.monthlyEarning || holding.amountInvested * 0.005) * monthsSincePurchase;
+  }, [holding, calculateMonthsSincePurchase]);
+
+  if (!holding) {
+    return (
+      <div className="holding-detail">
+        <div className="holding-detail__not-found">
+          <h2>Holding Not Found</h2>
+          <p>The holding you are looking for does not exist.</p>
+          <button onClick={() => navigate("/dashboard")} className="holding-detail__btn holding-detail__btn--primary">
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="holding-detail">
+      {/* Header Section */}
+      <div className="holding-detail__header">
+        <div className="holding-detail__header-top">
+          <button onClick={() => navigate(-1)} className="holding-detail__back-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Back
+          </button>
+          <div className="holding-detail__header-actions">
+            <button onClick={() => setIsCertificateOpen(true)} className="holding-detail__certificate-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M16 13H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M16 17H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M10 9H9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Certificate
+            </button>
+            <span className={`holding-detail__status ${isMatured ? "holding-detail__status--matured" : "holding-detail__status--locked"}`}>
+              {isMatured ? "Matured" : "Locked"}
+            </span>
+          </div>
+        </div>
+        <div className="holding-detail__header-box">
+          <div className="holding-detail__header-content">
+            <div className="holding-detail__icon">
+              <svg width="48" height="48" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="32" height="32" rx="8" fill="#e0e7ff" />
+                <path
+                  d="M16 8L24 12V20L16 24L8 20V12L16 8Z"
+                  stroke="#6366f1"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <div className="holding-detail__header-info">
+              <h1 className="holding-detail__title">{holding.name}</h1>
+              <p className="holding-detail__type">Your Investment</p>
+              {property && (
+                <button onClick={() => navigate(`/property/${property.id}`)} className="holding-detail__property-link">
+                  View Property Details →
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Key Investment Info Card */}
+      <div className="holding-detail__info-card">
+        <div className="holding-detail__info-item">
+          <span className="holding-detail__info-label">Amount Invested</span>
+          <span className="holding-detail__info-value">{formatCurrency(holding.amountInvested, "INR")}</span>
+        </div>
+        <div className="holding-detail__info-item">
+          <span className="holding-detail__info-label">Monthly Earning</span>
+          <span className="holding-detail__info-value holding-detail__info-value--green">
+            {formatCurrency(holding.monthlyEarning || holding.amountInvested * 0.005, "INR")}
+          </span>
+        </div>
+        <div className="holding-detail__info-item">
+          <span className="holding-detail__info-label">Total Earnings</span>
+          <span className="holding-detail__info-value holding-detail__info-value--green">
+            {formatCurrency(holding.totalEarningsReceived || totalExpectedEarnings, "INR")}
+          </span>
+        </div>
+        <div className="holding-detail__info-item">
+          <span className="holding-detail__info-label">Days Remaining</span>
+          <span className="holding-detail__info-value">{isMatured ? "0" : calculateDaysRemaining}</span>
+        </div>
+      </div>
+
+      {/* Investment Details */}
+      <div className="holding-detail__section">
+        <h2 className="holding-detail__section-title">Investment Details</h2>
+        <div className="holding-detail__details-list">
+          <div className="holding-detail__detail-item">
+            <span className="holding-detail__detail-label">Purchase Date</span>
+            <span className="holding-detail__detail-value">{formatDate(holding.purchaseDate)}</span>
+          </div>
+          <div className="holding-detail__detail-item">
+            <span className="holding-detail__detail-label">Maturity Date</span>
+            <span className="holding-detail__detail-value">{formatDate(holding.maturityDate)}</span>
+          </div>
+          <div className="holding-detail__detail-item">
+            <span className="holding-detail__detail-label">Lock-in Period</span>
+            <span className="holding-detail__detail-value">{holding.lockInMonths || 3} months</span>
+          </div>
+          <div className="holding-detail__detail-item">
+            <span className="holding-detail__detail-label">Monthly Return Rate</span>
+            <span className="holding-detail__detail-value holding-detail__detail-value--green">0.5%</span>
+          </div>
+          <div className="holding-detail__detail-item">
+            <span className="holding-detail__detail-label">Months Since Purchase</span>
+            <span className="holding-detail__detail-value">{calculateMonthsSincePurchase} months</span>
+          </div>
+          <div className="holding-detail__detail-item">
+            <span className="holding-detail__detail-label">Investment Status</span>
+            <span className={`holding-detail__detail-value ${isMatured ? "holding-detail__detail-value--green" : "holding-detail__detail-value--orange"}`}>
+              {isMatured ? "Matured - Ready to Withdraw" : "In Lock-in Period"}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Earnings Breakdown */}
+      <div className="holding-detail__section">
+        <h2 className="holding-detail__section-title">Earnings Breakdown</h2>
+        <div className="holding-detail__earnings-card">
+          <div className="holding-detail__earnings-item">
+            <span className="holding-detail__earnings-label">Monthly Earning</span>
+            <span className="holding-detail__earnings-value">
+              {formatCurrency(holding.monthlyEarning || holding.amountInvested * 0.005, "INR")}
+            </span>
+            <span className="holding-detail__earnings-subtext">0.5% of investment amount</span>
+          </div>
+          <div className="holding-detail__earnings-item">
+            <span className="holding-detail__earnings-label">Total Earnings Received</span>
+            <span className="holding-detail__earnings-value holding-detail__earnings-value--green">
+              {formatCurrency(holding.totalEarningsReceived || totalExpectedEarnings, "INR")}
+            </span>
+            <span className="holding-detail__earnings-subtext">
+              From {calculateMonthsSincePurchase} months of investment
+            </span>
+          </div>
+          <div className="holding-detail__earnings-item holding-detail__earnings-item--total">
+            <span className="holding-detail__earnings-label">Total Value</span>
+            <span className="holding-detail__earnings-value holding-detail__earnings-value--highlight">
+              {formatCurrency(
+                holding.amountInvested + (holding.totalEarningsReceived || totalExpectedEarnings),
+                "INR"
+              )}
+            </span>
+            <span className="holding-detail__earnings-subtext">Investment + Earnings</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Withdrawal Options */}
+      <div className="holding-detail__section">
+        <h2 className="holding-detail__section-title">Withdrawal Options</h2>
+        <div className="holding-detail__withdrawal-card">
+          <div className="holding-detail__withdrawal-item">
+            <div className="holding-detail__withdrawal-info">
+              <span className="holding-detail__withdrawal-label">Investment Amount</span>
+              <span className="holding-detail__withdrawal-value">{formatCurrency(holding.amountInvested, "INR")}</span>
+            </div>
+            <button
+              className={`holding-detail__withdrawal-btn ${canWithdrawInvestment ? "holding-detail__withdrawal-btn--active" : "holding-detail__withdrawal-btn--disabled"}`}
+              disabled={!canWithdrawInvestment}
+              onClick={() => {
+                if (canWithdrawInvestment) {
+                  // Handle investment withdrawal
+                  console.log("Withdraw investment:", holding);
+                }
+              }}
+            >
+              {canWithdrawInvestment ? "Withdraw Investment" : "Locked"}
+            </button>
+          </div>
+          <div className="holding-detail__withdrawal-item">
+            <div className="holding-detail__withdrawal-info">
+              <span className="holding-detail__withdrawal-label">Available Earnings</span>
+              <span className="holding-detail__withdrawal-value holding-detail__withdrawal-value--green">
+                {formatCurrency(holding.totalEarningsReceived || totalExpectedEarnings, "INR")}
+              </span>
+            </div>
+            <button
+              className={`holding-detail__withdrawal-btn ${canWithdrawEarnings ? "holding-detail__withdrawal-btn--active" : "holding-detail__withdrawal-btn--disabled"}`}
+              disabled={!canWithdrawEarnings}
+              onClick={() => {
+                if (canWithdrawEarnings) {
+                  // Handle earnings withdrawal
+                  console.log("Withdraw earnings:", holding);
+                }
+              }}
+            >
+              {canWithdrawEarnings ? "Withdraw Earnings" : "Not Available"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Property Information */}
+      {property && (
+        <div className="holding-detail__section">
+          <h2 className="holding-detail__section-title">Property Information</h2>
+          <div className="holding-detail__property-card">
+            <div className="holding-detail__property-info">
+              <h3 className="holding-detail__property-title">{property.title}</h3>
+              <p className="holding-detail__property-description">{property.description || "Premium digital property investment"}</p>
+            </div>
+            <button onClick={() => navigate(`/property/${property.id}`)} className="holding-detail__btn holding-detail__btn--outline">
+              View Full Property Details
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Certificate Modal */}
+      {isCertificateOpen && (
+        <CertificateViewer holding={holding} user={user} onClose={() => setIsCertificateOpen(false)} />
+      )}
+    </div>
+  );
+};
+
+export default HoldingDetail;
+

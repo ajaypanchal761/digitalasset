@@ -248,12 +248,12 @@
 
   .edit-profile__input {
     padding: 0.75rem 0.85rem;
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
 
   .edit-profile__country-code {
     padding: 0.75rem 2rem 0.75rem 0.65rem;
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
 }
 

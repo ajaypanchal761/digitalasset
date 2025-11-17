@@ -63,6 +63,16 @@ const Profile = () => {
       onClick: () => navigate("/wallet"),
     },
     {
+      id: "sell",
+      label: "Sell Property",
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M3 10H21M7 15H12M16 19H21M3 5H21M3 15H21M3 19H12" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+      onClick: () => navigate("/withdraw-info"),
+    },
+    {
       id: "language",
       label: "Language",
       icon: (
@@ -84,17 +94,6 @@ const Profile = () => {
         </svg>
       ),
       onClick: () => alert("Location settings coming soon"),
-    },
-    {
-      id: "kyc",
-      label: "KYC Status",
-      icon: (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-          <path d="M9 12L11 14L15 10" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      ),
-      onClick: () => navigate("/kyc"),
     },
     {
       id: "clear-cache",

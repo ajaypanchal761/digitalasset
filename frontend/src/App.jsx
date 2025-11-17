@@ -6,16 +6,24 @@ import AuthLayout from "./layouts/AuthLayout.jsx";
 import Dashboard from "./pages/Dashboard/Dashboard.jsx";
 import Explore from "./pages/Explore/Explore.jsx";
 import Invest from "./pages/Invest/Invest.jsx";
+import Payment from "./pages/Payment/Payment.jsx";
 import Wallet from "./pages/Wallet/Wallet.jsx";
 import Profile from "./pages/Profile/Profile.jsx";
 import EditProfile from "./pages/EditProfile/EditProfile.jsx";
-import Kyc from "./pages/Kyc/Kyc.jsx";
 import PropertyDetail from "./pages/PropertyDetail/PropertyDetail.jsx";
+import HoldingDetail from "./pages/HoldingDetail/HoldingDetail.jsx";
+import WithdrawInfo from "./pages/WithdrawInfo/WithdrawInfo.jsx";
+import ContactOwner from "./pages/ContactOwner/ContactOwner.jsx";
+import PropertySaleOffline from "./pages/PropertySaleOffline/PropertySaleOffline.jsx";
+import TransferOwnership from "./pages/TransferOwnership/TransferOwnership.jsx";
 import Chat from "./pages/Chat/Chat.jsx";
+import Holdings from "./pages/Holdings/Holdings.jsx";
 import Login from "./pages/Auth/Login.jsx";
 import Register from "./pages/Auth/Register.jsx";
 import ForgotPassword from "./pages/Auth/ForgotPassword.jsx";
 import VerifyEmail from "./pages/Auth/VerifyEmail.jsx";
+import VerifyOtp from "./pages/Auth/VerifyOtp.jsx";
+import LoginOtp from "./pages/Auth/LoginOtp.jsx";
 import AdminDashboard from "./pages/Admin/Dashboard/AdminDashboard.jsx";
 import AdminUsers from "./pages/Admin/Users/AdminUsers.jsx";
 import AdminProperties from "./pages/Admin/Properties/AdminProperties.jsx";
@@ -31,12 +39,18 @@ function App() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="explore" element={<Explore />} />
         <Route path="property/:id" element={<PropertyDetail />} />
+        <Route path="holding/:id" element={<HoldingDetail />} />
         <Route path="invest" element={<Invest />} />
+        <Route path="payment" element={<Payment />} />
         <Route path="wallet" element={<Wallet />} />
-        <Route path="kyc" element={<Kyc />} />
+        <Route path="withdraw-info" element={<WithdrawInfo />} />
+        <Route path="contact-owner" element={<ContactOwner />} />
+        <Route path="property-sale/offline" element={<PropertySaleOffline />} />
+        <Route path="transfer-ownership" element={<TransferOwnership />} />
         <Route path="profile" element={<Profile />} />
         <Route path="profile/edit" element={<EditProfile />} />
         <Route path="chat" element={<Chat />} />
+        <Route path="holdings" element={<Holdings />} />
       </Route>
 
       <Route path="/auth" element={<AuthLayout />}>
@@ -45,6 +59,8 @@ function App() {
         <Route path="register" element={<Register />} />
         <Route path="forgot-password" element={<ForgotPassword />} />
         <Route path="verify-email" element={<VerifyEmail />} />
+        <Route path="verify-otp" element={<VerifyOtp />} />
+        <Route path="login-otp" element={<LoginOtp />} />
       </Route>
 
       <Route path="/admin" element={<AdminLayout />}>

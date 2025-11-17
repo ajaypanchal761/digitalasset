@@ -49,6 +49,51 @@ const defaultHoldings = [
     canWithdrawInvestment: true,
     canWithdrawEarnings: false,
   },
+  {
+    id: "holding-3",
+    propertyId: "listing-3",
+    name: "Co-working Hub Skyline",
+    amountInvested: 600000,
+    purchaseDate: "2024-02-01",
+    maturityDate: "2024-05-01", // 3 months from purchase
+    status: "lock-in",
+    monthlyEarning: 3000, // 0.5% of amountInvested
+    totalEarningsReceived: 3000,
+    daysRemaining: 30,
+    lockInMonths: 3,
+    canWithdrawInvestment: false,
+    canWithdrawEarnings: false,
+  },
+  {
+    id: "holding-4",
+    propertyId: "listing-4",
+    name: "Smart Office Complex",
+    amountInvested: 700000,
+    purchaseDate: "2023-12-15",
+    maturityDate: "2024-03-15", // Already matured
+    status: "matured",
+    monthlyEarning: 3500, // 0.5% of amountInvested
+    totalEarningsReceived: 10500,
+    daysRemaining: 0,
+    lockInMonths: 3,
+    canWithdrawInvestment: true,
+    canWithdrawEarnings: false,
+  },
+  {
+    id: "holding-5",
+    propertyId: "listing-5",
+    name: "Cloud Infrastructure Hub",
+    amountInvested: 550000,
+    purchaseDate: "2024-01-20",
+    maturityDate: "2024-04-20", // 3 months from purchase
+    status: "lock-in",
+    monthlyEarning: 2750, // 0.5% of amountInvested
+    totalEarningsReceived: 2750,
+    daysRemaining: 50,
+    lockInMonths: 3,
+    canWithdrawInvestment: false,
+    canWithdrawEarnings: false,
+  },
 ];
 
 const defaultListings = [

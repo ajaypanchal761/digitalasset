@@ -31,12 +31,18 @@ export const AuthProvider = ({ children }) => {
 
   const signUp = async (payload) => {
     // TODO: Replace with API integration
-    setUser({
-      ...DEFAULT_USER,
-      name: payload.fullName,
-      email: payload.email,
-    });
-    return { success: true };
+    // For now, accept any 6-digit OTP for demo purposes
+    // In production, verify OTP with backend
+    const { phone, otp } = payload;
+    
+    if (phone && otp && otp.length === 6) {
+      setUser({
+        ...DEFAULT_USER,
+        email: `user${phone.slice(-4)}@digitalassets.in`,
+      });
+      return { success: true };
+    }
+    return { success: false, error: 'Invalid OTP. Please try again.' };
   };
 
   const signOut = () => setUser(null);

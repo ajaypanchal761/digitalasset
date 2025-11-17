@@ -1,176 +1,139 @@
-﻿import { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import AuthCard from "../../components/common/AuthCard.jsx";
-import { MailIcon, PhoneIcon } from "../../components/common/AuthIcons.jsx";
-import AuthInput from "../../components/forms/AuthInput.jsx";
-import { useAuth } from "../../context/AuthContext.jsx";
-
-const DEFAULT_CREDENTIALS = {
-  phoneOrEmail: "demo@digitalassets.in",
-  otp: "",
-};
+﻿import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "./Login.css";
 
 const Login = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { signIn } = useAuth();
+  const [phone, setPhone] = useState("");
+  const [errors, setErrors] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [form, setForm] = useState(DEFAULT_CREDENTIALS);
-  const [otpSent, setOtpSent] = useState(false);
-  const [sendingOtp, setSendingOtp] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-
-  useEffect(() => {
-    if (location.state?.message) {
-      setSuccessMessage(location.state.message);
-      // Clear the message from location state
-      window.history.replaceState({}, document.title);
-    }
-  }, [location]);
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    // Only allow numbers for OTP
-    if (name === "otp") {
-      const numericValue = value.replace(/\D/g, "");
-      setForm((prev) => ({ ...prev, [name]: numericValue }));
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
+  const handlePhoneChange = (e) => {
+    const value = e.target.value.replace(/\D/g, "");
+    if (value.length <= 10) {
+      setPhone(value);
+      setErrors("");
     }
   };
 
-  const handleSendOtp = async () => {
-    setError("");
+  const formatPhone = (value) => {
+    if (value.length === 0) return "";
+    if (value.length <= 3) return value;
+    if (value.length <= 6) return `${value.slice(0, 3)} ${value.slice(3)}`;
+    return `${value.slice(0, 3)} ${value.slice(3, 6)} ${value.slice(6)}`;
+  };
 
-    if (!form.phoneOrEmail.trim()) {
-      setError("Please enter phone number or email.");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrors("");
+
+    if (!phone.trim()) {
+      setErrors("Phone number is required");
+      return;
+    }
+
+    if (phone.length !== 10) {
+      setErrors("Enter a valid 10-digit phone number");
       return;
     }
 
     try {
-      setSendingOtp(true);
-      // Simulate OTP sending - in real app, call API to send OTP
+      setIsSubmitting(true);
+      // Simulate API call to send OTP
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      setOtpSent(true);
-      setSuccessMessage("OTP has been sent to your phone/email.");
-    } catch (err) {
-      setError("Failed to send OTP. Please try again.");
-    } finally {
-      setSendingOtp(false);
-    }
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setError("");
-
-    if (!otpSent) {
-      handleSendOtp();
-      return;
-    }
-
-    if (!form.otp.trim()) {
-      setError("Please enter OTP.");
-      return;
-    }
-
-    if (form.otp.length !== 6) {
-      setError("OTP must be 6 digits.");
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      const result = await signIn({
-        phoneOrEmail: form.phoneOrEmail,
-        otp: form.otp,
+      
+      // Navigate to login OTP verification page with phone number
+      navigate("/auth/login-otp", {
+        state: { phone: `+91 ${formatPhone(phone)}` }
       });
-
-      if (!result.success) {
-        setError(result.error || "Invalid OTP. Please try again.");
-        setSubmitting(false);
-        return;
-      }
-
-      navigate("/dashboard", { replace: true });
     } catch (err) {
-      setError("Unexpected error. Please try again.");
-      setSubmitting(false);
+      setErrors("Failed to send OTP. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  const isValid = phone.length === 10;
 
   return (
-    <AuthCard
-      title="Hello, Sign in!"
-      subtitle="Enter your credentials to continue with your KYC verification"
-      footer={
-        <p>
-          Dont have an account? <Link to="/auth/register">Sign up</Link>
-        </p>
-      }
-    >
-      <form className="auth-form" noValidate onSubmit={handleSubmit}>
-        {error ? <div className="auth-error">{error}</div> : null}
-        {successMessage ? (
-          <div className="auth-success">{successMessage}</div>
-        ) : null}
-        <AuthInput
-          icon={<PhoneIcon />}
-          type="text"
-          name="phoneOrEmail"
-          placeholder="Enter phone number or email"
-          value={form.phoneOrEmail}
-          onChange={handleChange}
-          autoComplete="username"
-          autoFocus
-          disabled={otpSent}
-        />
-        {otpSent && (
-          <AuthInput
-            icon={<MailIcon />}
-            type="text"
-            name="otp"
-            placeholder="Enter 6-digit OTP"
-            value={form.otp}
-            onChange={handleChange}
-            autoComplete="one-time-code"
-            maxLength={6}
-          />
-        )}
-        {otpSent && (
-          <div className="auth-meta">
-            <button
-              type="button"
-              onClick={handleSendOtp}
-              disabled={sendingOtp}
-              style={{
-                background: "transparent",
-                border: "none",
-                color: "#f8fafc",
-                fontWeight: 600,
-                cursor: "pointer",
-                textDecoration: "underline",
-                padding: 0,
-                fontSize: "0.95rem",
-              }}
+    <div className="login-page">
+      <div className="login-container">
+        {/* Illustration */}
+        <div className="login-illustration">
+          <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Hand holding phone illustration */}
+            <g>
+              {/* Cloud shapes */}
+              <ellipse cx="50" cy="80" rx="30" ry="20" fill="#E5E7EB" opacity="0.5"/>
+              <ellipse cx="150" cy="100" rx="25" ry="15" fill="#E5E7EB" opacity="0.5"/>
+              <ellipse cx="80" cy="140" rx="20" ry="12" fill="#E5E7EB" opacity="0.5"/>
+              
+              {/* Stars */}
+              <circle cx="40" cy="60" r="2" fill="#FFFFFF"/>
+              <circle cx="160" cy="80" r="2" fill="#FFFFFF"/>
+              <circle cx="70" cy="120" r="2" fill="#FFFFFF"/>
+              
+              {/* Hand */}
+              <path d="M100 120 L90 140 L95 145 L105 145 L110 140 L100 120 Z" fill="#F3D2C1"/>
+              
+              {/* Phone */}
+              <rect x="95" y="60" width="30" height="50" rx="4" fill="#374151"/>
+              <rect x="98" y="63" width="24" height="35" rx="2" fill="#FFFFFF"/>
+              
+              {/* Checkmark circle on phone screen */}
+              <circle cx="110" cy="80" r="12" fill="#6366F1"/>
+              <path d="M105 80 L108 83 L115 76" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+            </g>
+          </svg>
+        </div>
+
+        {/* Content */}
+        <div className="login-content">
+          <h1 className="login-title">Sign in</h1>
+          <p className="login-subtitle">Enter your phone number to verify your account</p>
+
+          <form className="login-form" onSubmit={handleSubmit}>
+            {errors && <div className="login-error">{errors}</div>}
+
+            {/* Phone Input */}
+            <div className="login-phone-input">
+              <div className="phone-input-wrapper">
+                <div className="phone-flag">🇮🇳</div>
+                <span className="phone-code">+91</span>
+                <input
+                  type="tel"
+                  className="phone-input"
+                  placeholder="456 789 0"
+                  value={formatPhone(phone)}
+                  onChange={handlePhoneChange}
+                  maxLength={12}
+                />
+                {isValid && (
+                  <div className="phone-checkmark">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <circle cx="8" cy="8" r="8" fill="#10B981"/>
+                      <path d="M5 8 L7 10 L11 6" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <button 
+              type="submit" 
+              className="login-continue-btn"
+              disabled={isSubmitting || !isValid}
             >
-              {sendingOtp ? "Sending..." : "Resend OTP"}
+              {isSubmitting ? "Sending..." : "Continue"}
             </button>
-          </div>
-        )}
-        <button type="submit" className="auth-primary-btn" disabled={submitting || sendingOtp}>
-          {submitting
-            ? "Signing in..."
-            : otpSent
-              ? "Verify OTP & Sign in"
-              : sendingOtp
-                ? "Sending OTP..."
-                : "Send OTP"}
-        </button>
-      </form>
-    </AuthCard>
+          </form>
+
+          <p className="login-footer">
+            Don't have an account? <Link to="/auth/register">Sign up</Link>
+          </p>
+        </div>
+      </div>
+    </div>
   );
 };
 

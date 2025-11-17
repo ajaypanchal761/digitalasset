@@ -7,8 +7,8 @@ const AssetsSection = () => {
   const navigate = useNavigate();
 
   const handleViewDetail = (holding) => {
-    // Navigate to property detail page
-    navigate(`/property/${holding.propertyId}`);
+    // Navigate to holding detail page
+    navigate(`/holding/${holding.id}`);
   };
 
   const handleWithdraw = (holding) => {
@@ -29,12 +29,31 @@ const AssetsSection = () => {
     );
   }
 
+  const initialDisplayCount = 3;
+  const displayedHoldings = holdings.slice(0, initialDisplayCount);
+  const hasMoreHoldings = holdings.length > initialDisplayCount;
+
+  const handleViewAll = () => {
+    navigate("/holdings");
+  };
+
   return (
     <div className="assets-section">
-      <h2 className="assets-section__title">Current Holdings</h2>
+      <div className="assets-section__header">
+        <h2 className="assets-section__title">Current Holdings</h2>
+        {hasMoreHoldings && (
+          <button
+            type="button"
+            className="assets-section__view-all-btn"
+            onClick={handleViewAll}
+          >
+            View All
+          </button>
+        )}
+      </div>
       <div className="assets-section__container">
         <div className="assets-section__cards">
-          {holdings.map((holding) => (
+          {displayedHoldings.map((holding) => (
             <AssetCard
               key={holding.id}
               holding={holding}

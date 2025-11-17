@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext.jsx";
 import "./Chat.css";
 
 const Chat = () => {
+  const navigate = useNavigate();
   const { user } = useAppState();
   const [messages, setMessages] = useState([
     {
@@ -47,6 +49,15 @@ const Chat = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Prevent body scroll when chat page is mounted
+  useEffect(() => {
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
+
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (inputMessage.trim() === "") return;
@@ -85,14 +96,25 @@ const Chat = () => {
     <div className="chat-page">
       {/* Header */}
       <header className="chat-header">
+        <button 
+          type="button" 
+          className="chat-header__back-btn" 
+          onClick={() => navigate("/dashboard")}
+          aria-label="Go back to home"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19L5 12L12 5" />
+          </svg>
+        </button>
+        <div className="chat-header__spacer"></div>
+        <div className="chat-header__info">
+          <h1 className="chat-header__name">Admin</h1>
+          <p className="chat-header__status">Online</p>
+        </div>
         <div className="chat-header__avatar">
           <div className="chat-header__avatar-circle">
             <span className="chat-header__avatar-initials">A</span>
           </div>
-        </div>
-        <div className="chat-header__info">
-          <h1 className="chat-header__name">Admin</h1>
-          <p className="chat-header__status">Online</p>
         </div>
       </header>
 

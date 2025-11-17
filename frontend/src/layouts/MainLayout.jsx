@@ -2,12 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAppState } from "../context/AppStateContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import logoImage from "../assets/logo.png";
 
 const desktopNavLinks = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/explore", label: "Explore" },
-  { to: "/invest", label: "Invest" },
-  { to: "/kyc", label: "KYC" },
+  { to: "/chat", label: "Chat" },
   { to: "/wallet", label: "Wallet" },
   { to: "/profile", label: "Profile" },
 ];
@@ -227,8 +227,8 @@ const MainLayout = () => {
   const navigate = useNavigate();
   const { isAuthenticated, signOut } = useAuth();
   const isMobile = useIsMobile();
-  const isKycPage = location.pathname.startsWith("/kyc");
   const isPropertyDetailPage = location.pathname.startsWith("/property/");
+  const isHoldingDetailPage = location.pathname.startsWith("/holding/");
   const isEditProfilePage = location.pathname === "/profile/edit";
   const isProfilePage = location.pathname === "/profile";
 
@@ -245,25 +245,28 @@ const MainLayout = () => {
 
   const isExplorePage = location.pathname === "/explore";
   const isChatPage = location.pathname === "/chat";
+  const isHoldingsPage = location.pathname === "/holdings";
 
-  if (isMobile && (isKycPage || isPropertyDetailPage || isProfilePage || isEditProfilePage || isExplorePage || isChatPage)) {
+  if (isMobile && (isPropertyDetailPage || isHoldingDetailPage || isProfilePage || isEditProfilePage || isExplorePage || isChatPage || isHoldingsPage)) {
     return (
       <div className="mobile-shell mobile-shell--plain">
         <main className="mobile-content mobile-content--plain">
           <Outlet />
         </main>
-        <nav className="mobile-bottom-nav" aria-label="Primary">
-          {bottomNavLinks.map(({ to, label, icon: Icon }) => (
-            <NavLink key={to} to={to} className="mobile-bottom-nav__link">
-              {({ isActive }) => (
-                <>
-                  <Icon active={isActive} />
-                  <span className="mobile-bottom-nav__label">{label}</span>
-                </>
-              )}
-            </NavLink>
-          ))}
-        </nav>
+        {!isChatPage && (
+          <nav className="mobile-bottom-nav" aria-label="Primary">
+            {bottomNavLinks.map(({ to, label, icon: Icon }) => (
+              <NavLink key={to} to={to} className="mobile-bottom-nav__link">
+                {({ isActive }) => (
+                  <>
+                    <Icon active={isActive} />
+                    <span className="mobile-bottom-nav__label">{label}</span>
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </nav>
+        )}
       </div>
     );
   }
@@ -273,13 +276,12 @@ const MainLayout = () => {
 
     return (
       <div className="mobile-shell">
-        {!isPropertyDetailPage && !isEditProfilePage && !isExplorePage && !isChatPage && (
+        {!isPropertyDetailPage && !isHoldingDetailPage && !isEditProfilePage && !isExplorePage && !isChatPage && !isHoldingsPage && (
           <header className="mobile-header">
             <div className="mobile-header__row">
-              <button type="button" className="icon-button" aria-label="Notifications">
-                <NotificationIcon active={notificationCount > 0} />
-                {notificationCount > 0 && <span className="icon-badge">{notificationCount}</span>}
-              </button>
+              <NavLink to="/dashboard" className="mobile-header__logo">
+                <img src={logoImage} alt="DigitalAssets" className="mobile-header__logo-img" />
+              </NavLink>
               <div className="mobile-header__welcome">
                 <span className="mobile-header__welcome-label">Welcome</span>
                 <span className="mobile-header__welcome-name">{user.name.split(" ")[0]}</span>
@@ -293,7 +295,7 @@ const MainLayout = () => {
                 <Avatar name={user.name} avatarUrl={user.avatarUrl} initials={user.avatarInitials} />
               </button>
             </div>
-            {!isExplorePage && !isPropertyDetailPage && !isEditProfilePage && <WalletSummaryCard wallet={wallet} />}
+            {!isExplorePage && !isPropertyDetailPage && !isHoldingDetailPage && !isEditProfilePage && !isHoldingsPage && <WalletSummaryCard wallet={wallet} />}
           </header>
         )}
         <main className="mobile-content">
@@ -319,31 +321,31 @@ const MainLayout = () => {
 
   return (
     <div className="app-shell">
-      {!isPropertyDetailPage && !isEditProfilePage && !isExplorePage && !isChatPage && (
-        <header className="app-header">
-          <div className="brand">
-            <NavLink to="/dashboard">DigitalAssets</NavLink>
+      <header className="app-header">
+        <div className="brand">
+          <NavLink to="/dashboard" className="brand__link">
+            <img src={logoImage} alt="DigitalAssets" className="brand__logo" />
+          </NavLink>
+        </div>
+        <nav className="nav-links">
+          {desktopNavLinks.map(({ to, label }) => (
+            <NavLink key={to} to={to} className="nav-link">
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+        <div className="app-header__profile">
+          <span className="app-header__welcome">Welcome back, {user.name}</span>
+          <div className="app-header__avatar">
+            <Avatar name={user.name} avatarUrl={user.avatarUrl} initials={user.avatarInitials} />
           </div>
-          <nav className="nav-links">
-            {desktopNavLinks.map(({ to, label }) => (
-              <NavLink key={to} to={to} className="nav-link">
-                {label}
-              </NavLink>
-            ))}
-          </nav>
-          <div className="app-header__profile">
-            <span className="app-header__welcome">Welcome back, {user.name}</span>
-            <div className="app-header__avatar">
-              <Avatar name={user.name} avatarUrl={user.avatarUrl} initials={user.avatarInitials} />
-            </div>
-            <button type="button" className="app-header__auth-btn" onClick={handleAuthAction}>
-              {authButtonLabel}
-            </button>
-          </div>
-        </header>
-      )}
+          <button type="button" className="app-header__auth-btn" onClick={handleAuthAction}>
+            {authButtonLabel}
+          </button>
+        </div>
+      </header>
       <main className="app-content">
-        {!isKycPage && !isPropertyDetailPage && !isEditProfilePage && !isExplorePage && !isChatPage && <WalletSummaryCard wallet={wallet} />}
+        {!isPropertyDetailPage && !isHoldingDetailPage && !isEditProfilePage && !isExplorePage && !isChatPage && !isHoldingsPage && <WalletSummaryCard wallet={wallet} />}
         <div className="app-content__page">
           <Outlet />
         </div>

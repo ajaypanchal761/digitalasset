@@ -330,7 +330,7 @@
 
   .form-group input {
     height: 2.5rem;
-    font-size: 0.85rem;
+    font-size: 1rem;
     padding: 0 0.75rem;
   }
 
@@ -410,7 +410,7 @@
 
   .status-selector select {
     height: 2.5rem;
-    font-size: 0.85rem;
+    font-size: 1rem;
   }
 }
 
