@@ -66,7 +66,7 @@ const AdminHeader = ({ userName = 'Admin User', userAvatar = null }) => {
                 <div className="admin-header__notification-item">
                   <div className="admin-header__notification-icon">🔔</div>
                   <div className="admin-header__notification-content">
-                    <p className="admin-header__notification-title">New KYC submission</p>
+                    <p className="admin-header__notification-title">New user registered</p>
                     <p className="admin-header__notification-time">2 minutes ago</p>
                   </div>
                 </div>

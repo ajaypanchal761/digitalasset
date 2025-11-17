@@ -40,10 +40,6 @@ const UserDetail = ({ user, onClose }) => {
         {/* Quick Stats */}
         <div className="user-detail__quick-stats">
           <div className="user-detail__stat">
-            <span className="user-detail__stat-label">KYC Status</span>
-            <StatusBadge status={user.kycStatus} />
-          </div>
-          <div className="user-detail__stat">
             <span className="user-detail__stat-label">Account Status</span>
             <StatusBadge status={user.accountStatus} />
           </div>
@@ -107,55 +103,21 @@ const UserInfoTab = ({ user }) => {
         </div>
       </div>
 
-      <h3 className="user-detail-tab__title">KYC Details</h3>
-      <div className="user-detail-tab__section">
-        <div className="user-detail-tab__field">
-          <label>KYC Status</label>
-          <StatusBadge status={user.kycStatus} />
-        </div>
-        {user.kycData && (
-          <>
-            <div className="user-detail-tab__field">
-              <label>Full Name (as per Aadhaar)</label>
-              <p>{user.kycData.fullName || '-'}</p>
-            </div>
-            <div className="user-detail-tab__field">
-              <label>PAN Number</label>
-              <p>{user.kycData.panNumber || '-'}</p>
-            </div>
-            <div className="user-detail-tab__field">
-              <label>Aadhaar Number</label>
-              <p>{user.kycData.aadhaarNumber || '-'}</p>
-            </div>
-            <div className="user-detail-tab__field">
-              <label>Submitted Date</label>
-              <p>{user.kycData.submittedDate ? formatDate(user.kycData.submittedDate) : '-'}</p>
-            </div>
-            {user.kycData.rejectionReason && (
-              <div className="user-detail-tab__field">
-                <label>Rejection Reason</label>
-                <p className="user-detail-tab__error">{user.kycData.rejectionReason}</p>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
       <h3 className="user-detail-tab__title">Bank Details</h3>
       <div className="user-detail-tab__section">
-        {user.kycData?.bankDetails ? (
+        {user.bankDetails ? (
           <>
             <div className="user-detail-tab__field">
               <label>Account Holder Name</label>
-              <p>{user.kycData.bankDetails.accountHolderName || '-'}</p>
+              <p>{user.bankDetails.accountHolderName || '-'}</p>
             </div>
             <div className="user-detail-tab__field">
               <label>Account Number</label>
-              <p>{user.kycData.bankDetails.accountNumber || '-'}</p>
+              <p>{user.bankDetails.accountNumber || '-'}</p>
             </div>
             <div className="user-detail-tab__field">
               <label>IFSC Code</label>
-              <p>{user.kycData.bankDetails.ifscCode || '-'}</p>
+              <p>{user.bankDetails.ifscCode || '-'}</p>
             </div>
           </>
         ) : (

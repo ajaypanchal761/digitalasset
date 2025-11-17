@@ -5,8 +5,7 @@ const defaultUser = {
   avatarInitials: "YA",
   avatarUrl: "",
   notifications: [
-    { id: "n-1", message: "KYC verification pending", type: "kyc" },
-    { id: "n-2", message: "Welcome to DigitalAssets", type: "info" },
+    { id: "n-1", message: "Welcome to DigitalAssets", type: "info" },
   ],
 };
 

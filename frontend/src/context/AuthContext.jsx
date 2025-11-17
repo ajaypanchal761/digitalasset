@@ -7,7 +7,6 @@ const DEFAULT_USER = {
   name: 'Demo Investor',
   email: 'demo@digitalassets.in',
   role: 'investor',
-  kycStatus: 'pending',
 };
 
 export const AuthProvider = ({ children }) => {

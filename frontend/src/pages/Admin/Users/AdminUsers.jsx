@@ -7,7 +7,6 @@ import { formatCurrency, formatDate } from '../../../utils/formatters';
 const AdminUsers = () => {
   const { users, selectedUser, setSelectedUser } = useAdmin();
   const [searchQuery, setSearchQuery] = useState('');
-  const [kycFilter, setKycFilter] = useState('all');
   const [accountFilter, setAccountFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -20,12 +19,11 @@ const AdminUsers = () => {
         user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.phone.includes(searchQuery);
       
-      const matchesKyc = kycFilter === 'all' || user.kycStatus === kycFilter;
       const matchesAccount = accountFilter === 'all' || user.accountStatus === accountFilter;
       
-      return matchesSearch && matchesKyc && matchesAccount;
+      return matchesSearch && matchesAccount;
     });
-  }, [users, searchQuery, kycFilter, accountFilter]);
+  }, [users, searchQuery, accountFilter]);
 
   // Pagination
   const totalPages = Math.ceil(filteredUsers.length / pageSize);
@@ -35,7 +33,6 @@ const AdminUsers = () => {
 
   const handleClearFilters = () => {
     setSearchQuery('');
-    setKycFilter('all');
     setAccountFilter('all');
     setCurrentPage(1);
   };
@@ -86,23 +83,6 @@ const AdminUsers = () => {
         </div>
 
         <div className="admin-users__filter-group">
-          <label className="admin-users__filter-label">KYC Status</label>
-          <select
-            value={kycFilter}
-            onChange={(e) => {
-              setKycFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="admin-users__filter-select"
-          >
-            <option value="all">All</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
-        </div>
-
-        <div className="admin-users__filter-group">
           <label className="admin-users__filter-label">Account Status</label>
           <select
             value={accountFilter}
@@ -135,7 +115,6 @@ const AdminUsers = () => {
               <th>Name</th>
               <th>Email / Phone</th>
               <th>Registration Date</th>
-              <th>KYC Status</th>
               <th>Total Investments</th>
               <th>Wallet Balance</th>
               <th>Account Status</th>
@@ -145,7 +124,7 @@ const AdminUsers = () => {
           <tbody>
             {paginatedUsers.length === 0 ? (
               <tr>
-                <td colSpan="8" className="admin-users__empty">
+                <td colSpan="7" className="admin-users__empty">
                   No users found matching your criteria.
                 </td>
               </tr>
@@ -167,9 +146,6 @@ const AdminUsers = () => {
                     </div>
                   </td>
                   <td>{formatDate(user.registrationDate)}</td>
-                  <td>
-                    <StatusBadge status={user.kycStatus} />
-                  </td>
                   <td>{formatCurrency(user.wallet.totalInvestments)}</td>
                   <td>{formatCurrency(user.wallet.balance)}</td>
                   <td>

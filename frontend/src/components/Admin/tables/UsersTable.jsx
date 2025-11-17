@@ -17,7 +17,6 @@ const UsersTable = ({ users, onUserClick }) => {
           <tr>
             <th className="admin-table__th">User</th>
             <th className="admin-table__th">Registration Date</th>
-            <th className="admin-table__th">KYC Status</th>
             <th className="admin-table__th">Total Investments</th>
             <th className="admin-table__th">Wallet Balance</th>
             <th className="admin-table__th">Account Status</th>
@@ -45,9 +44,6 @@ const UsersTable = ({ users, onUserClick }) => {
               </td>
               <td className="admin-table__td">
                 {formatDate(user.registrationDate)}
-              </td>
-              <td className="admin-table__td">
-                <StatusBadge status={user.kycStatus} />
               </td>
               <td className="admin-table__td admin-table__td--amount">
                 {formatCurrency(user.totalInvestments)}

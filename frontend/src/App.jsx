@@ -27,7 +27,6 @@ import LoginOtp from "./pages/Auth/LoginOtp.jsx";
 import AdminDashboard from "./pages/Admin/Dashboard/AdminDashboard.jsx";
 import AdminUsers from "./pages/Admin/Users/AdminUsers.jsx";
 import AdminProperties from "./pages/Admin/Properties/AdminProperties.jsx";
-import AdminKyc from "./pages/Admin/Kyc/AdminKyc.jsx";
 import AdminWithdrawals from "./pages/Admin/Withdrawals/AdminWithdrawals.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
@@ -68,7 +67,6 @@ function App() {
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="users" element={<AdminUsers />} />
         <Route path="properties" element={<AdminProperties />} />
-        <Route path="kyc" element={<AdminKyc />} />
         <Route path="withdrawals" element={<AdminWithdrawals />} />
       </Route>
 

@@ -95,11 +95,6 @@ export const formatRelativeTime = (date) => {
  */
 export const getStatusColor = (status) => {
   const statusColors = {
-    // KYC Status
-    pending: { bg: '#fef3c7', text: '#92400e' },
-    approved: { bg: '#d1fae5', text: '#065f46' },
-    rejected: { bg: '#fee2e2', text: '#991b1b' },
-    
     // Account Status
     active: { bg: '#d1fae5', text: '#065f46' },
     locked: { bg: '#fee2e2', text: '#991b1b' },

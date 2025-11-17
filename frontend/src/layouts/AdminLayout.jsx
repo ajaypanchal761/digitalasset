@@ -6,7 +6,6 @@ const adminLinks = [
   { to: '/admin/dashboard', label: 'Overview', icon: '📊' },
   { to: '/admin/users', label: 'Users', icon: '👥' },
   { to: '/admin/properties', label: 'Properties', icon: '🏢' },
-  { to: '/admin/kyc', label: 'KYC Review', icon: '✅' },
   { to: '/admin/withdrawals', label: 'Withdrawals', icon: '💰' },
 ];
 

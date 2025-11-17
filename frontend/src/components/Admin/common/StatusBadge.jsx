@@ -1,10 +1,5 @@
 const StatusBadge = ({ status, variant = 'default' }) => {
   const statusConfig = {
-    // KYC Status
-    pending: { label: 'Pending', color: 'yellow', bg: '#fef3c7', text: '#92400e' },
-    approved: { label: 'Approved', color: 'green', bg: '#d1fae5', text: '#065f46' },
-    rejected: { label: 'Rejected', color: 'red', bg: '#fee2e2', text: '#991b1b' },
-    
     // Account Status
     active: { label: 'Active', color: 'green', bg: '#d1fae5', text: '#065f46' },
     locked: { label: 'Locked', color: 'red', bg: '#fee2e2', text: '#991b1b' },
@@ -24,7 +19,7 @@ const StatusBadge = ({ status, variant = 'default' }) => {
     closed: { label: 'Closed', color: 'red', bg: '#fee2e2', text: '#991b1b' },
   };
 
-  const config = statusConfig[status?.toLowerCase()] || statusConfig.pending;
+  const config = statusConfig[status?.toLowerCase()] || { label: status || 'Unknown', bg: '#f3f4f6', text: '#374151' };
   const customLabel = variant === 'custom' ? status : config.label;
 
   return (

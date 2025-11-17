@@ -13,12 +13,10 @@ const generateDummyUsers = () => {
     `${name.toLowerCase().replace(/\s+/g, '.')}${idx + 1}@example.com`
   );
 
-  const kycStatuses = ['pending', 'approved', 'rejected'];
   const accountStatuses = ['active', 'locked', 'suspended'];
   
   return names.map((name, index) => {
     const registrationDate = new Date(2024, 0, 1 + index * 5);
-    const kycStatus = kycStatuses[index % 3];
     const accountStatus = index % 10 === 0 ? 'locked' : index % 15 === 0 ? 'suspended' : 'active';
     
     // Generate wallet data
@@ -59,19 +57,11 @@ const generateDummyUsers = () => {
       });
     }
     
-    // Generate KYC data
-    const kycData = {
-      fullName: name,
-      panNumber: `ABCDE${String(index + 1000).slice(-4)}F`,
-      aadhaarNumber: `${String(index + 100000000000).slice(0, 12)}`,
-      bankDetails: {
-        accountHolderName: name,
-        accountNumber: `${String(index + 1000000000).slice(0, 12)}`,
-        ifscCode: `HDFC${String(index + 10000).slice(-6)}`,
-      },
-      submittedDate: new Date(registrationDate.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      status: kycStatus,
-      rejectionReason: kycStatus === 'rejected' ? 'Name on bank account does not match with provided documents.' : null,
+    // Generate bank details
+    const bankDetails = {
+      accountHolderName: name,
+      accountNumber: `${String(index + 1000000000).slice(0, 12)}`,
+      ifscCode: `HDFC${String(index + 10000).slice(-6)}`,
     };
     
     // Generate transaction history
@@ -104,7 +94,6 @@ const generateDummyUsers = () => {
       email: emails[index],
       phone: `+91 ${String(9000000000 + index).slice(0, 10)}`,
       registrationDate: registrationDate.toISOString().split('T')[0],
-      kycStatus,
       accountStatus,
       wallet: {
         balance,
@@ -115,8 +104,69 @@ const generateDummyUsers = () => {
         monthlyEarnings: Math.floor(totalInvestments * 0.005),
       },
       investments,
-      kycData,
+      bankDetails,
       transactions: transactions.sort((a, b) => new Date(b.date) - new Date(a.date)),
+    };
+  });
+};
+
+// Dummy Properties Data
+const generateDummyProperties = () => {
+  const propertyTitles = [
+    'Co-working Hub Skyline',
+    'Data Center Nova',
+    'Tech Park Alpha',
+    'Digital Mall Infinity',
+    'Smart Office Complex',
+    'Cloud Infrastructure Hub',
+    'AI Innovation Center',
+    'Blockchain Tech Plaza',
+    'Digital Commerce Tower',
+    'Smart City Hub'
+  ];
+
+  const descriptions = [
+    'A premium co-working space in the heart of the city',
+    'State-of-the-art data center facility',
+    'Modern technology park with premium facilities',
+    'Luxury digital shopping and entertainment complex',
+    'AI-powered smart office building with green technology',
+    'Advanced cloud computing and storage facility',
+    'Cutting-edge AI research and development center',
+    'Blockchain technology innovation hub',
+    'Modern e-commerce and digital business center',
+    'Integrated smart city infrastructure platform'
+  ];
+
+  const statuses = ['active', 'inactive', 'closed'];
+  
+  return propertyTitles.map((title, index) => {
+    const createdDate = new Date(2024, 0, 1 + index * 10);
+    const deadline = new Date(createdDate);
+    deadline.setMonth(deadline.getMonth() + 12 + Math.floor(Math.random() * 12));
+    
+    const totalInvested = Math.floor(Math.random() * 10000000) + 500000; // 5L to 1Cr
+    const availableToInvest = Math.floor(Math.random() * 5000000) + 1000000; // 10L to 50L
+    const investorCount = Math.floor(Math.random() * 20) + 3; // 3 to 23 investors
+    
+    const status = index % 10 === 0 ? 'closed' : index % 15 === 0 ? 'inactive' : 'active';
+    
+    return {
+      id: `property-${index + 1}`,
+      title,
+      description: descriptions[index % descriptions.length],
+      image: null, // Will be uploaded
+      propertyType: 'Digital Property',
+      minInvestment: 500000, // Fixed ₹5 lakh
+      lockInMonths: 3, // Fixed 3 months
+      monthlyReturnRate: 0.5, // Fixed 0.5%
+      deadline: deadline.toISOString().split('T')[0],
+      availableToInvest,
+      totalInvested,
+      investorCount,
+      status,
+      createdAt: createdDate.toISOString().split('T')[0],
+      documents: [], // Will store document URLs
     };
   });
 };
@@ -126,6 +176,8 @@ const AdminContext = createContext(null);
 export const AdminProvider = ({ children }) => {
   const [users, setUsers] = useState(generateDummyUsers());
   const [selectedUser, setSelectedUser] = useState(null);
+  const [properties, setProperties] = useState(generateDummyProperties());
+  const [selectedProperty, setSelectedProperty] = useState(null);
 
   // Update user function
   const updateUser = (userId, updates) => {
@@ -181,6 +233,42 @@ export const AdminProvider = ({ children }) => {
     );
   };
 
+  // Property Management Functions
+  const addProperty = (propertyData) => {
+    const newProperty = {
+      id: `property-${Date.now()}`,
+      ...propertyData,
+      totalInvested: 0,
+      investorCount: 0,
+      createdAt: new Date().toISOString().split('T')[0],
+      documents: propertyData.documents || [],
+    };
+    setProperties(prev => [newProperty, ...prev]);
+    return newProperty;
+  };
+
+  const updateProperty = (propertyId, updates) => {
+    setProperties(prevProperties =>
+      prevProperties.map(property =>
+        property.id === propertyId ? { ...property, ...updates } : property
+      )
+    );
+  };
+
+  const deleteProperty = (propertyId) => {
+    setProperties(prevProperties =>
+      prevProperties.filter(property => property.id !== propertyId)
+    );
+  };
+
+  const togglePropertyStatus = (propertyId, newStatus) => {
+    setProperties(prevProperties =>
+      prevProperties.map(property =>
+        property.id === propertyId ? { ...property, status: newStatus } : property
+      )
+    );
+  };
+
   const value = useMemo(
     () => ({
       users,
@@ -189,8 +277,15 @@ export const AdminProvider = ({ children }) => {
       updateUser,
       toggleUserAccountStatus,
       updateWallet,
+      properties,
+      selectedProperty,
+      setSelectedProperty,
+      addProperty,
+      updateProperty,
+      deleteProperty,
+      togglePropertyStatus,
     }),
-    [users, selectedUser]
+    [users, selectedUser, properties, selectedProperty]
   );
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
