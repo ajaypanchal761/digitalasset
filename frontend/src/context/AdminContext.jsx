@@ -171,6 +171,47 @@ const generateDummyProperties = () => {
   });
 };
 
+// Dummy Withdrawals Data
+const generateDummyWithdrawals = (users) => {
+  const withdrawals = [];
+  const statuses = ['pending', 'processing', 'completed', 'rejected'];
+  
+  // Generate withdrawals for some users
+  users.slice(0, 15).forEach((user, index) => {
+    const numWithdrawals = Math.floor(Math.random() * 3) + 1; // 1 to 3 withdrawals per user
+    
+    for (let i = 0; i < numWithdrawals; i++) {
+      const requestDate = new Date();
+      requestDate.setDate(requestDate.getDate() - Math.floor(Math.random() * 30)); // Last 30 days
+      
+      const status = statuses[Math.floor(Math.random() * statuses.length)];
+      let processedDate = null;
+      if (status === 'completed' || status === 'rejected') {
+        processedDate = new Date(requestDate);
+        processedDate.setDate(processedDate.getDate() + Math.floor(Math.random() * 5) + 1);
+      }
+      
+      const amount = Math.floor(Math.random() * 500000) + 10000; // ₹10K to ₹5L
+      
+      withdrawals.push({
+        id: `withdrawal-${index}-${i}`,
+        userId: user.id,
+        userName: user.name,
+        userEmail: user.email,
+        amount,
+        bankDetails: user.bankDetails,
+        requestDate: requestDate.toISOString().split('T')[0],
+        processedDate: processedDate ? processedDate.toISOString().split('T')[0] : null,
+        status,
+        rejectionReason: status === 'rejected' ? 'Bank account details mismatch' : null,
+        transactionId: status === 'completed' ? `TXN${Date.now()}${Math.floor(Math.random() * 1000)}` : null,
+      });
+    }
+  });
+  
+  return withdrawals.sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
+};
+
 const AdminContext = createContext(null);
 
 export const AdminProvider = ({ children }) => {
@@ -178,6 +219,8 @@ export const AdminProvider = ({ children }) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [properties, setProperties] = useState(generateDummyProperties());
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const [withdrawals, setWithdrawals] = useState(() => generateDummyWithdrawals(generateDummyUsers()));
+  const [selectedWithdrawal, setSelectedWithdrawal] = useState(null);
 
   // Update user function
   const updateUser = (userId, updates) => {
@@ -269,6 +312,49 @@ export const AdminProvider = ({ children }) => {
     );
   };
 
+  // Withdrawal Management Functions
+  const updateWithdrawalStatus = (withdrawalId, newStatus, rejectionReason = null) => {
+    setWithdrawals(prevWithdrawals =>
+      prevWithdrawals.map(withdrawal => {
+        if (withdrawal.id === withdrawalId) {
+          const updates = {
+            status: newStatus,
+            processedDate: newStatus === 'completed' || newStatus === 'rejected' 
+              ? new Date().toISOString().split('T')[0] 
+              : withdrawal.processedDate,
+            rejectionReason: rejectionReason || null,
+            transactionId: newStatus === 'completed' 
+              ? `TXN${Date.now()}${Math.floor(Math.random() * 1000)}` 
+              : withdrawal.transactionId,
+          };
+          return { ...withdrawal, ...updates };
+        }
+        return withdrawal;
+      })
+    );
+  };
+
+  const bulkUpdateWithdrawals = (withdrawalIds, newStatus, rejectionReason = null) => {
+    setWithdrawals(prevWithdrawals =>
+      prevWithdrawals.map(withdrawal => {
+        if (withdrawalIds.includes(withdrawal.id)) {
+          const updates = {
+            status: newStatus,
+            processedDate: newStatus === 'completed' || newStatus === 'rejected' 
+              ? new Date().toISOString().split('T')[0] 
+              : withdrawal.processedDate,
+            rejectionReason: rejectionReason || null,
+            transactionId: newStatus === 'completed' 
+              ? `TXN${Date.now()}${Math.floor(Math.random() * 1000)}` 
+              : withdrawal.transactionId,
+          };
+          return { ...withdrawal, ...updates };
+        }
+        return withdrawal;
+      })
+    );
+  };
+
   const value = useMemo(
     () => ({
       users,
@@ -284,8 +370,13 @@ export const AdminProvider = ({ children }) => {
       updateProperty,
       deleteProperty,
       togglePropertyStatus,
+      withdrawals,
+      selectedWithdrawal,
+      setSelectedWithdrawal,
+      updateWithdrawalStatus,
+      bulkUpdateWithdrawals,
     }),
-    [users, selectedUser, properties, selectedProperty]
+    [users, selectedUser, properties, selectedProperty, withdrawals, selectedWithdrawal]
   );
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
