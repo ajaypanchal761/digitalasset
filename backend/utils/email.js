@@ -1,18 +1,19 @@
 import nodemailer from 'nodemailer';
+import { env } from '../config/env.js';
 
 const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  secure: false, // true for 465, false for other ports
+  host: env.EMAIL_HOST,
+  port: env.EMAIL_PORT,
+  secure: env.EMAIL_PORT === 465, // true for 465, false for other ports
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: env.EMAIL_USER,
+    pass: env.EMAIL_PASS,
   },
 });
 
 export const sendOTPEmail = async (email, otp) => {
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: env.EMAIL_USER,
     to: email,
     subject: 'Your OTP for Digital Asset Platform',
     html: `
@@ -36,10 +37,10 @@ export const sendOTPEmail = async (email, otp) => {
 };
 
 export const sendPasswordResetEmail = async (email, resetToken) => {
-  const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password?token=${resetToken}`;
+  const resetUrl = `${env.FRONTEND_URL}/auth/reset-password?token=${resetToken}`;
   
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: env.EMAIL_USER,
     to: email,
     subject: 'Password Reset Request',
     html: `

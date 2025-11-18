@@ -1,14 +1,16 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { authAPI } from "../../services/api";
 import "./VerifyOtp.css";
 
 const VerifyOtp = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signUp } = useAuth();
   
   const phone = location.state?.phone || "+91 000 000 0000";
+  const phoneNumber = location.state?.phoneNumber || "";
+  const email = location.state?.email || "";
+  const name = location.state?.name || "";
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [errors, setErrors] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -16,9 +18,43 @@ const VerifyOtp = () => {
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null), useRef(null), useRef(null)];
 
   useEffect(() => {
+    // For registration, name and email are required
+    // For login, only phone is required
+    const isRegistration = name && email && phoneNumber;
+    const isLogin = phoneNumber && !name && !email;
+    
+    if (!isRegistration && !isLogin) {
+      navigate("/auth/register", { replace: true });
+      return;
+    }
     // Focus first input on mount
     inputRefs[0].current?.focus();
-  }, []);
+    // Enable resend after 30 seconds
+    setTimeout(() => setCanResend(true), 30000);
+  }, [name, email, phoneNumber, navigate]);
+
+  // Auto-submit when all 6 digits are entered
+  const autoSubmitRef = useRef(false);
+  
+  useEffect(() => {
+    const otpString = otp.join("");
+    if (otpString.length === 6 && !isSubmitting && !autoSubmitRef.current) {
+      autoSubmitRef.current = true;
+      // Small delay to ensure state is updated
+      const timer = setTimeout(() => {
+        const form = document.querySelector('.verify-otp-form');
+        if (form) {
+          form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+      }, 300);
+      return () => {
+        clearTimeout(timer);
+        autoSubmitRef.current = false;
+      };
+    } else if (otpString.length < 6) {
+      autoSubmitRef.current = false;
+    }
+  }, [otp, isSubmitting]);
 
   const handleOtpChange = (index, value) => {
     // Only allow numbers
@@ -61,16 +97,41 @@ const VerifyOtp = () => {
   const handleResend = async () => {
     setCanResend(false);
     setErrors("");
-    // Simulate resend OTP
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setOtp(["", "", "", "", "", ""]);
-    inputRefs[0].current?.focus();
-    // Enable resend after 30 seconds
-    setTimeout(() => setCanResend(true), 30000);
+    try {
+      setIsSubmitting(true);
+      // Resend OTP via API
+      const response = await authAPI.sendOTP({
+        email: email,
+        phone: phoneNumber,
+      });
+
+      if (response.success) {
+        setOtp(["", "", "", "", "", ""]);
+        inputRefs[0].current?.focus();
+        // Enable resend after 30 seconds
+        setTimeout(() => setCanResend(true), 30000);
+      } else {
+        setErrors(response.message || "Failed to resend OTP. Please try again.");
+        setTimeout(() => setCanResend(true), 5000);
+      }
+    } catch (err) {
+      setErrors(err.message || "Failed to resend OTP. Please try again.");
+      setTimeout(() => setCanResend(true), 5000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+    
+    // Prevent multiple submissions
+    if (isSubmitting) {
+      return;
+    }
+    
     setErrors("");
 
     const otpString = otp.join("");
@@ -86,25 +147,63 @@ const VerifyOtp = () => {
 
     try {
       setIsSubmitting(true);
-      // Verify OTP and sign up
-      const result = await signUp({
-        phone: phone.replace(/\D/g, ""),
-        otp: otpString,
-      });
-
-      if (result.success) {
-        // Navigate to login page after successful signup
-        navigate("/auth/login", { 
-          replace: true,
-          state: { message: "Registration successful! Please login to continue." }
+      
+      // Check if this is registration or login
+      const isRegistration = name && email && phoneNumber;
+      
+      if (isRegistration) {
+        // Registration flow: Register with OTP (backend will verify OTP)
+        const registerResponse = await authAPI.register({
+          name: name,
+          email: email,
+          phone: phoneNumber,
+          otp: otpString, // Pass OTP for verification during registration
         });
+
+        if (registerResponse.success && registerResponse.token) {
+          // Auto-login user after successful registration
+          localStorage.setItem('token', registerResponse.token);
+          // Navigate to dashboard
+          navigate("/dashboard", { 
+            replace: true,
+          });
+        } else {
+          setErrors(registerResponse.message || "Registration failed. Please try again.");
+        }
       } else {
-        setErrors(result.error || "Invalid OTP. Please try again.");
+        // Login flow: Login with OTP
+        const loginResponse = await authAPI.loginWithOTP({
+          phone: phoneNumber,
+          otp: otpString,
+        });
+
+        if (loginResponse.success && loginResponse.token) {
+          // Token is already set by loginWithOTP
+          // Navigate to dashboard
+          navigate("/dashboard", { 
+            replace: true,
+          });
+        } else {
+          setErrors(loginResponse.message || "Login failed. Please try again.");
+        }
       }
     } catch (err) {
-      setErrors("Unable to verify OTP. Please try again.");
+      // Safely extract error message
+      let errorMessage = "Unable to complete. Please try again.";
+      try {
+        if (err instanceof Error) {
+          const msg = err.message;
+          if (typeof msg === 'string' && msg && !msg.includes('query')) {
+            errorMessage = msg;
+          }
+        }
+      } catch (e) {
+        // Use default message
+      }
+      setErrors(errorMessage);
     } finally {
       setIsSubmitting(false);
+      autoSubmitRef.current = false;
     }
   };
 
@@ -141,9 +240,9 @@ const VerifyOtp = () => {
 
         {/* Content */}
         <div className="verify-otp-content">
-          <h1 className="verify-otp-title">Registration</h1>
+          <h1 className="verify-otp-title">Verify OTP</h1>
           <p className="verify-otp-subtitle">
-            Enter the Code sent to <span className="phone-number">{phone}</span>
+            Enter the code sent to {email ? <span className="phone-number">{email}</span> : <span className="phone-number">{phone}</span>}
           </p>
 
           <form className="verify-otp-form" onSubmit={handleSubmit}>

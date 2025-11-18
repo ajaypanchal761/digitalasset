@@ -8,7 +8,7 @@ Backend API for the Digital Asset Investment Platform built with Node.js, Expres
 - Property management (CRUD operations)
 - Investment and holdings management
 - Wallet operations and transaction tracking
-- Payment gateway integration (Razorpay)
+- Payment gateway integration (to be implemented)
 - Withdrawal request system
 - Admin panel API
 - File upload (images and documents)
@@ -20,7 +20,6 @@ Backend API for the Digital Asset Investment Platform built with Node.js, Expres
 - **MongoDB** - Database
 - **Mongoose** - ODM for MongoDB
 - **JWT** - Authentication
-- **Razorpay** - Payment gateway
 - **Cloudinary** - File storage
 - **Nodemailer** - Email service
 
@@ -96,16 +95,14 @@ npm start
 
 ```
 backend/
-├── src/
-│   ├── config/          # Configuration files
-│   ├── models/          # Database models
-│   ├── routes/          # API routes
-│   ├── controllers/     # Business logic
-│   ├── middleware/      # Middleware functions
-│   ├── utils/           # Utility functions
-│   ├── scripts/         # Utility scripts
-│   ├── app.js           # Express app
-│   └── server.js        # Server entry point
+├── config/              # Configuration files (db, jwt, cloudinary)
+├── models/              # Database models (User, Property, Holding, etc.)
+├── routes/              # API routes
+├── controllers/         # Business logic controllers
+├── middleware/          # Middleware functions (auth, admin, error handling)
+├── utils/               # Utility functions (email, otp, payment, calculate)
+├── app.js               # Express app configuration
+├── server.js            # Server entry point
 ├── .env.example         # Environment variables template
 └── package.json         # Dependencies
 ```

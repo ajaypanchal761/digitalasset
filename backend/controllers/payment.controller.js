@@ -2,7 +2,6 @@ import Holding from '../models/Holding.js';
 import Property from '../models/Property.js';
 import User from '../models/User.js';
 import Transaction from '../models/Transaction.js';
-import { createRazorpayOrder, verifyPayment as verifyPaymentSignature } from '../utils/payment.js';
 import { calculateMonthlyEarning, calculateMaturityDate } from '../utils/calculate.js';
 
 // @desc    Create payment order
@@ -32,31 +31,16 @@ export const createOrder = async (req, res) => {
     // Get user
     const user = await User.findById(req.user.id);
 
-    // Create Razorpay order
-    const orderResult = await createRazorpayOrder(
-      amountInvested,
-      'INR',
-      {
-        propertyId: propertyId.toString(),
-        userId: req.user.id.toString(),
-        timePeriod: timePeriod || property.lockInMonths,
-      }
-    );
-
-    if (!orderResult.success) {
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to create payment order',
-      });
-    }
-
+    // Payment gateway integration removed
+    // Return order details for manual payment processing
     res.json({
       success: true,
+      message: 'Payment gateway integration removed. Please implement your preferred payment gateway.',
       data: {
-        orderId: orderResult.orderId,
-        amount: orderResult.amount,
-        currency: orderResult.currency,
-        key: process.env.RAZORPAY_KEY_ID,
+        propertyId,
+        amountInvested,
+        currency: 'INR',
+        timePeriod: timePeriod || property.lockInMonths,
       },
     });
   } catch (error) {
@@ -72,20 +56,14 @@ export const createOrder = async (req, res) => {
 // @access  Private
 export const verifyPayment = async (req, res) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, propertyId, amountInvested, timePeriod } = req.body;
+    const { paymentId, propertyId, amountInvested, timePeriod } = req.body;
 
-    // Verify payment signature
-    const isValid = verifyPaymentSignature(
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-      process.env.RAZORPAY_KEY_SECRET
-    );
-
-    if (!isValid) {
+    // Payment gateway integration removed
+    // Implement your payment verification logic here
+    if (!paymentId) {
       return res.status(400).json({
         success: false,
-        message: 'Payment verification failed',
+        message: 'Payment ID is required',
       });
     }
 
@@ -141,7 +119,7 @@ export const verifyPayment = async (req, res) => {
       status: 'completed',
       holdingId: holding._id,
       propertyId: property._id,
-      paymentId: razorpay_payment_id,
+      paymentId: paymentId,
     });
 
     res.json({
@@ -162,14 +140,13 @@ export const verifyPayment = async (req, res) => {
 // @access  Public
 export const paymentWebhook = async (req, res) => {
   try {
-    // Handle Razorpay webhook events
-    // This is called by Razorpay when payment status changes
+    // Payment gateway webhook handler
+    // Implement your payment gateway webhook logic here
     const event = req.body;
 
-    // Verify webhook signature
-    // Process webhook event
+    // Process webhook event based on your payment gateway
 
-    res.json({ success: true });
+    res.json({ success: true, message: 'Webhook received' });
   } catch (error) {
     res.status(500).json({
       success: false,

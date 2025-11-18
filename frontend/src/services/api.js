@@ -31,8 +31,48 @@ const apiRequest = async (url, options = {}) => {
   };
 
   try {
-    const response = await fetch(`${API_URL}${url}`, config);
-    const data = await response.json();
+    let response;
+    try {
+      response = await fetch(`${API_URL}${url}`, config);
+    } catch (fetchError) {
+      // Network error - fetch failed completely
+      console.error('Network fetch error:', fetchError);
+      throw new Error('Network error. Please check your connection and try again.');
+    }
+    
+    // Parse response as text first, then JSON
+    let responseText = '';
+    try {
+      responseText = await response.text();
+    } catch (textError) {
+      // Safely extract message from textError
+      let textErrorMessage = 'Failed to read response';
+      try {
+        if (textError && typeof textError === 'object' && 'message' in textError) {
+          const msg = textError.message;
+          if (typeof msg === 'string') {
+            textErrorMessage = `Failed to read response: ${msg}`;
+          }
+        }
+      } catch (e) {
+        // Ignore extraction errors
+      }
+      throw new Error(textErrorMessage);
+    }
+
+    // Parse JSON from text
+    let data = {};
+    try {
+      if (responseText) {
+        data = JSON.parse(responseText);
+      }
+    } catch (parseError) {
+      // If not JSON, create error object from text
+      data = { 
+        success: false, 
+        message: responseText || `Server error: ${response.status}` 
+      };
+    }
 
     if (!response.ok) {
       // If unauthorized, remove token and redirect to login
@@ -40,13 +80,57 @@ const apiRequest = async (url, options = {}) => {
         removeToken();
         window.location.href = '/auth/login';
       }
-      throw new Error(data.message || 'Something went wrong');
+      
+      // Extract error message safely from response data
+      // Response data is already parsed JSON, so it's safe
+      let errorMessage = `Request failed with status ${response.status}`;
+      
+      try {
+        // data is already a plain object from JSON.parse, so it's safe to access
+        if (data && typeof data === 'object' && data !== null && !Array.isArray(data)) {
+          // Try multiple possible error message fields
+          if (data.message && typeof data.message === 'string' && data.message.trim()) {
+            errorMessage = data.message.trim();
+          } else if (data.error && typeof data.error === 'string' && data.error.trim()) {
+            errorMessage = data.error.trim();
+          } else if (data.msg && typeof data.msg === 'string' && data.msg.trim()) {
+            errorMessage = data.msg.trim();
+          }
+        }
+      } catch (e) {
+        // If extraction fails, use default message
+        console.warn('Error extracting message from response:', e);
+      }
+      
+      // Log the extracted error for debugging
+      if (process.env.NODE_ENV === 'development') {
+        console.log('API Error Response:', { status: response.status, data, errorMessage });
+      }
+      
+      // Throw simple error with just message string
+      // errorMessage is guaranteed to be a string at this point
+      throw new Error(errorMessage);
     }
 
     return data;
   } catch (error) {
-    console.error('API Error:', error);
-    throw error;
+    // If error was thrown from our code above, it already has the correct message
+    // Just re-throw it - our Error instances are safe to access
+    
+    // Check if it's an Error instance we created (safe to access)
+    if (error instanceof Error) {
+      const msg = error.message;
+      
+      // Log for debugging
+      console.error('API Error caught:', msg);
+      
+      // Re-throw the error with its message
+      throw error;
+    }
+    
+    // If it's not an Error instance, create one
+    console.error('API Error (non-Error object):', error);
+    throw new Error('An unexpected error occurred. Please try again.');
   }
 };
 

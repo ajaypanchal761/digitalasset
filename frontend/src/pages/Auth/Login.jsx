@@ -1,5 +1,6 @@
 ﻿import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { authAPI } from "../../services/api";
 import "./Login.css";
 
 const Login = () => {
@@ -39,15 +40,39 @@ const Login = () => {
 
     try {
       setIsSubmitting(true);
-      // Simulate API call to send OTP
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // Navigate to login OTP verification page with phone number
-      navigate("/auth/login-otp", {
-        state: { phone: `+91 ${formatPhone(phone)}` }
+      setErrors("");
+
+      // Send OTP via API
+      const response = await authAPI.sendOTP({
+        phone: phone,
+        purpose: 'login',
       });
+
+      if (response.success) {
+        // Navigate to login OTP verification page with phone number
+        navigate("/auth/login-otp", {
+          state: { 
+            phone: `+91 ${formatPhone(phone)}`,
+            phoneNumber: phone,
+          }
+        });
+      } else {
+        setErrors(response.message || "Failed to send OTP. Please try again.");
+      }
     } catch (err) {
-      setErrors("Failed to send OTP. Please try again.");
+      // Safely extract error message
+      let errorMessage = "Failed to send OTP. Please try again.";
+      try {
+        if (err instanceof Error) {
+          const msg = err.message;
+          if (typeof msg === 'string' && msg && !msg.includes('query')) {
+            errorMessage = msg;
+          }
+        }
+      } catch (e) {
+        // Use default message
+      }
+      setErrors(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -98,12 +123,11 @@ const Login = () => {
             {/* Phone Input */}
             <div className="login-phone-input">
               <div className="phone-input-wrapper">
-                <div className="phone-flag">🇮🇳</div>
                 <span className="phone-code">+91</span>
                 <input
                   type="tel"
                   className="phone-input"
-                  placeholder="456 789 0"
+                  placeholder="Enter the number"
                   value={formatPhone(phone)}
                   onChange={handlePhoneChange}
                   maxLength={12}

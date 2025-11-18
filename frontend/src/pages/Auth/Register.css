@@ -69,7 +69,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .register-error {
@@ -79,6 +79,33 @@
   border-radius: 0.75rem;
   font-size: 0.875rem;
   text-align: left;
+}
+
+.register-input-group {
+  width: 100%;
+}
+
+.register-input {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 1rem;
+  background: #ffffff;
+  font-size: 1rem;
+  color: #111827;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.register-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.register-input::placeholder {
+  color: #9ca3af;
 }
 
 .register-phone-input {

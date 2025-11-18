@@ -65,7 +65,7 @@ const Payment = () => {
 
           <div className="payment-page__message">
             <p>Payment gateway integration will be implemented here.</p>
-            <p>This would integrate with Razorpay or another payment provider.</p>
+            <p>Please implement your preferred payment gateway.</p>
           </div>
 
           <div className="payment-page__actions">

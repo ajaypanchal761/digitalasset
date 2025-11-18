@@ -33,7 +33,7 @@ const transactionSchema = new mongoose.Schema({
     ref: 'Property',
   },
   paymentId: {
-    type: String, // Razorpay payment ID
+    type: String, // Payment gateway transaction ID
   },
 }, {
   timestamps: true,

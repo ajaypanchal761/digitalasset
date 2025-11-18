@@ -81,7 +81,7 @@ Total after maturity
 Maturity Date
 Accept Terms & Conditions
 Proceed to Payment
-🟩 7. Payment Gateway (Razorpay Integration)
+🟩 7. Payment Gateway (To be implemented)
 Accepted methods:
 UPI
 Debit/Credit Card

@@ -10,8 +10,12 @@ import {
   resetPassword,
 } from '../controllers/auth.controller.js';
 import { protect } from '../middleware/auth.middleware.js';
+import { authLimiter } from '../middleware/security.js';
 
 const router = express.Router();
+
+// Apply rate limiting to all auth routes
+router.use(authLimiter);
 
 router.post('/register', register);
 router.post('/login', login);

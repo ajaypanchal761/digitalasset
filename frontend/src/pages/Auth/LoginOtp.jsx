@@ -1,14 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { authAPI } from "../../services/api";
 import "./VerifyOtp.css";
 
 const LoginOtp = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn } = useAuth();
   
   const phone = location.state?.phone || "+91 000 000 0000";
+  const phoneNumber = location.state?.phoneNumber || "";
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [errors, setErrors] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -16,11 +16,39 @@ const LoginOtp = () => {
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null), useRef(null), useRef(null)];
 
   useEffect(() => {
+    // Redirect to login if phone number is missing
+    if (!phoneNumber) {
+      navigate("/auth/login", { replace: true });
+      return;
+    }
     // Focus first input on mount
     inputRefs[0].current?.focus();
     // Enable resend after 30 seconds
     setTimeout(() => setCanResend(true), 30000);
-  }, []);
+  }, [phoneNumber, navigate]);
+
+  // Auto-submit when all 6 digits are entered
+  const autoSubmitRef = useRef(false);
+  
+  useEffect(() => {
+    const otpString = otp.join("");
+    if (otpString.length === 6 && !isSubmitting && !autoSubmitRef.current) {
+      autoSubmitRef.current = true;
+      // Small delay to ensure state is updated
+      const timer = setTimeout(() => {
+        const form = document.querySelector('.verify-otp-form');
+        if (form) {
+          form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+      }, 300);
+      return () => {
+        clearTimeout(timer);
+        autoSubmitRef.current = false;
+      };
+    } else if (otpString.length < 6) {
+      autoSubmitRef.current = false;
+    }
+  }, [otp, isSubmitting]);
 
   const handleOtpChange = (index, value) => {
     // Only allow numbers
@@ -63,16 +91,53 @@ const LoginOtp = () => {
   const handleResend = async () => {
     setCanResend(false);
     setErrors("");
-    // Simulate resend OTP
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setOtp(["", "", "", "", "", ""]);
-    inputRefs[0].current?.focus();
-    // Enable resend after 30 seconds
-    setTimeout(() => setCanResend(true), 30000);
+    try {
+      setIsSubmitting(true);
+      // Resend OTP via API
+      const response = await authAPI.sendOTP({
+        phone: phoneNumber,
+        purpose: 'login',
+      });
+
+      if (response.success) {
+        setOtp(["", "", "", "", "", ""]);
+        inputRefs[0].current?.focus();
+        // Enable resend after 30 seconds
+        setTimeout(() => setCanResend(true), 30000);
+      } else {
+        setErrors(response.message || "Failed to resend OTP. Please try again.");
+        setTimeout(() => setCanResend(true), 5000);
+      }
+    } catch (err) {
+      // Safely extract error message
+      let errorMessage = "Failed to resend OTP. Please try again.";
+      try {
+        if (err instanceof Error) {
+          const msg = err.message;
+          if (typeof msg === 'string' && msg && !msg.includes('query')) {
+            errorMessage = msg;
+          }
+        }
+      } catch (e) {
+        // Use default message
+      }
+      setErrors(errorMessage);
+      setTimeout(() => setCanResend(true), 5000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+    
+    // Prevent multiple submissions
+    if (isSubmitting) {
+      return;
+    }
+    
     setErrors("");
 
     const otpString = otp.join("");
@@ -88,23 +153,36 @@ const LoginOtp = () => {
 
     try {
       setIsSubmitting(true);
-      // Verify OTP and sign in
-      const phoneNumber = phone.replace(/\D/g, "");
-      const result = await signIn({
-        phoneOrEmail: phoneNumber,
+      // Login with OTP
+      const loginResponse = await authAPI.loginWithOTP({
+        phone: phoneNumber,
         otp: otpString,
       });
 
-      if (result.success) {
+      if (loginResponse.success && loginResponse.token) {
+        // Token is already set by loginWithOTP
         // Navigate to dashboard
         navigate("/dashboard", { replace: true });
       } else {
-        setErrors(result.error || "Invalid OTP. Please try again.");
+        setErrors(loginResponse.message || "Invalid OTP. Please try again.");
       }
     } catch (err) {
-      setErrors("Unable to verify OTP. Please try again.");
+      // Safely extract error message
+      let errorMessage = "Unable to verify OTP. Please try again.";
+      try {
+        if (err instanceof Error) {
+          const msg = err.message;
+          if (typeof msg === 'string' && msg && !msg.includes('query')) {
+            errorMessage = msg;
+          }
+        }
+      } catch (e) {
+        // Use default message
+      }
+      setErrors(errorMessage);
     } finally {
       setIsSubmitting(false);
+      autoSubmitRef.current = false;
     }
   };
 
