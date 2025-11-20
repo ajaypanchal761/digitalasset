@@ -12,10 +12,8 @@ const AssetsSection = () => {
   };
 
   const handleWithdraw = (holding) => {
-    // Handle withdraw action
-    console.log("Withdraw for:", holding);
-    // TODO: Implement withdraw functionality
-    // navigate(`/withdraw/${holding.id}`);
+    // Navigate to withdraw-info page with holding ID
+    navigate("/withdraw-info", { state: { holdingId: holding.id } });
   };
 
   if (!holdings || holdings.length === 0) {

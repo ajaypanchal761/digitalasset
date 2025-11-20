@@ -8,6 +8,10 @@ import Explore from "./pages/Explore/Explore.jsx";
 import Invest from "./pages/Invest/Invest.jsx";
 import Payment from "./pages/Payment/Payment.jsx";
 import Wallet from "./pages/Wallet/Wallet.jsx";
+import ActiveInvestments from "./pages/Wallet/ActiveInvestments.jsx";
+import MaturedInvestments from "./pages/Wallet/MaturedInvestments.jsx";
+import AllInvestments from "./pages/Wallet/AllInvestments.jsx";
+import Earnings from "./pages/Wallet/Earnings.jsx";
 import Profile from "./pages/Profile/Profile.jsx";
 import EditProfile from "./pages/EditProfile/EditProfile.jsx";
 import PropertyDetail from "./pages/PropertyDetail/PropertyDetail.jsx";
@@ -42,6 +46,10 @@ function App() {
         <Route path="invest" element={<Invest />} />
         <Route path="payment" element={<Payment />} />
         <Route path="wallet" element={<Wallet />} />
+        <Route path="wallet/active-investments" element={<ActiveInvestments />} />
+        <Route path="wallet/matured-investments" element={<MaturedInvestments />} />
+        <Route path="wallet/investments" element={<AllInvestments />} />
+        <Route path="wallet/earnings" element={<Earnings />} />
         <Route path="withdraw-info" element={<WithdrawInfo />} />
         <Route path="contact-owner" element={<ContactOwner />} />
         <Route path="property-sale/offline" element={<PropertySaleOffline />} />

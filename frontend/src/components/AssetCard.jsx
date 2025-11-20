@@ -46,9 +46,8 @@ const AssetCard = ({ holding, onViewDetail, onWithdraw }) => {
           View Detail
         </button>
         <button 
-          className="asset-card__btn asset-card__btn--withdraw" 
+          className={`asset-card__btn asset-card__btn--withdraw ${!canWithdraw ? 'asset-card__btn--withdraw-disabled' : ''}`}
           onClick={() => onWithdraw(holding)}
-          disabled={!canWithdraw}
         >
           Withdraw
         </button>

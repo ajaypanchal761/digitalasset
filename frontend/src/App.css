@@ -429,11 +429,17 @@
   transform: translateY(-1px);
 }
 
-.asset-card__btn--withdraw:disabled {
+.asset-card__btn--withdraw:disabled,
+.asset-card__btn--withdraw-disabled {
   background: #cbd5e1;
   color: #64748b;
-  cursor: not-allowed;
+  cursor: pointer;
   opacity: 0.6;
+}
+
+.asset-card__btn--withdraw-disabled:hover {
+  background: #94a3b8;
+  opacity: 0.8;
 }
 
 .dashboard {
@@ -1059,6 +1065,9 @@
 .admin-header__left {
   flex: 1;
   max-width: 600px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .admin-header__search {
@@ -1312,7 +1321,7 @@
 .admin-header__user-dropdown {
   position: absolute;
   top: calc(100% + 0.5rem);
-  right: 0;
+  left: 0;
   width: 280px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -1393,12 +1402,14 @@
 
   .admin-header__left {
     max-width: 100%;
-    order: 2;
+    order: 1;
     width: 100%;
+    flex-wrap: wrap;
+    gap: 0.75rem;
   }
 
   .admin-header__right {
-    order: 1;
+    order: 2;
   }
 
   .admin-header__search-input {
@@ -1409,9 +1420,14 @@
     display: none;
   }
 
-  .admin-header__notifications-dropdown,
-  .admin-header__user-dropdown {
+  .admin-header__notifications-dropdown {
     right: -1rem;
+    width: calc(100vw - 2rem);
+    max-width: 360px;
+  }
+
+  .admin-header__user-dropdown {
+    left: -1rem;
     width: calc(100vw - 2rem);
     max-width: 360px;
   }
@@ -8131,6 +8147,34 @@ section p {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  position: relative;
+}
+
+.wallet-page__back-btn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #f1f5f9;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #475569;
+  margin-bottom: 0.5rem;
+}
+
+.wallet-page__back-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.wallet-page__header > div {
+  padding-left: 3rem;
 }
 
 .wallet-page__title {
@@ -8276,6 +8320,17 @@ section p {
   display: flex;
   align-items: center;
   gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.wallet-page__stat-card--clickable {
+  cursor: pointer;
+}
+
+.wallet-page__stat-card--clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+  border-color: #cbd5e1;
 }
 
 .wallet-page__stat-icon {
@@ -8589,6 +8644,16 @@ section p {
 
   .wallet-page__subtitle {
     font-size: 0.875rem;
+  }
+
+  .wallet-page__back-btn {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 0.25rem;
+  }
+
+  .wallet-page__header > div {
+    padding-left: 2.5rem;
   }
 
   .wallet-page__balance-card {
