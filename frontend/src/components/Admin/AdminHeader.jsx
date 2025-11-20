@@ -1,22 +1,197 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { adminAuthAPI } from '../../services/api';
+import { createSocket, getSocketToken } from '../../utils/socket';
+import { formatRelativeTime } from '../../utils/timeUtils';
 
 const AdminHeader = ({ userName = 'Admin User', userAvatar = null }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [notifications, setNotifications] = useState([]);
+  const socketRef = useRef(null);
 
-  // Dummy notification count
-  const notificationCount = 5;
+  // Load notifications from localStorage on mount
+  useEffect(() => {
+    const savedNotifications = localStorage.getItem('adminNotifications');
+    if (savedNotifications) {
+      try {
+        const parsed = JSON.parse(savedNotifications);
+        setNotifications(parsed);
+      } catch (error) {
+        console.error('Error loading notifications from localStorage:', error);
+      }
+    }
+  }, []);
+
+  // Save notifications to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('adminNotifications', JSON.stringify(notifications));
+  }, [notifications]);
+
+  // Connect to Socket.io for real-time notifications
+  useEffect(() => {
+    const adminToken = localStorage.getItem('adminToken');
+    if (!adminToken) {
+      return;
+    }
+
+    const token = getSocketToken();
+    if (!token) {
+      return;
+    }
+
+    const socket = createSocket(token);
+    if (!socket) {
+      return;
+    }
+
+    socketRef.current = socket;
+
+    // Listen for new user registration
+    socket.on('new-user-registered', (notification) => {
+      console.log('📢 New user registration notification:', notification);
+      const newNotification = {
+        id: `user-${Date.now()}-${Math.random()}`,
+        ...notification,
+        isRead: false,
+      };
+      setNotifications((prev) => [newNotification, ...prev]);
+    });
+
+    // Listen for new withdrawal request
+    socket.on('new-withdrawal-request', (notification) => {
+      console.log('📢 New withdrawal request notification:', notification);
+      const newNotification = {
+        id: `withdrawal-${Date.now()}-${Math.random()}`,
+        ...notification,
+        isRead: false,
+      };
+      setNotifications((prev) => [newNotification, ...prev]);
+    });
+
+    // Listen for new chat message
+    socket.on('new-chat-message', (notification) => {
+      console.log('📢 New chat message notification:', notification);
+      const newNotification = {
+        id: `chat-${Date.now()}-${Math.random()}`,
+        ...notification,
+        isRead: false,
+      };
+      setNotifications((prev) => [newNotification, ...prev]);
+    });
+
+    socket.on('connect', () => {
+      console.log('✅ AdminHeader - Socket connected for notifications');
+    });
+
+    socket.on('disconnect', () => {
+      console.log('❌ AdminHeader - Socket disconnected');
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('❌ AdminHeader - Socket connection error:', error);
+    });
+
+    // Cleanup on unmount
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.off('new-user-registered');
+        socketRef.current.off('new-withdrawal-request');
+        socketRef.current.off('new-chat-message');
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+    };
+  }, []);
+
+  // Calculate unread notification count
+  const notificationCount = notifications.filter((n) => !n.isRead).length;
+
+  // Mark notifications as read when dropdown is opened
+  useEffect(() => {
+    if (showNotifications && notificationCount > 0) {
+      setNotifications((prev) =>
+        prev.map((n) => ({ ...n, isRead: true }))
+      );
+    }
+  }, [showNotifications]);
+
+  // Handle notification click - navigate to relevant page
+  const handleNotificationClick = (notification) => {
+    if (notification.link) {
+      navigate(notification.link);
+      setShowNotifications(false);
+    }
+  };
 
   const handleLogout = () => {
-    // TODO: Implement logout functionality
-    console.log('Logout clicked');
+    // Clear admin token
+    adminAuthAPI.logout();
+    // Close user menu
+    setShowUserMenu(false);
+    // Redirect to admin login
+    navigate('/admin-auth/login', { replace: true });
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // TODO: Implement search functionality
-    console.log('Search:', searchQuery);
+    
+    if (!searchQuery.trim()) {
+      return; // Don't search if query is empty
+    }
+
+    console.log('🔍 AdminHeader - Search triggered:', {
+      query: searchQuery,
+      currentPath: location.pathname,
+      timestamp: new Date().toISOString()
+    });
+
+    // Determine which page to navigate to based on current route or search query
+    const currentPath = location.pathname;
+    let targetPath = '/admin/users'; // Default to users page
+
+    // If already on a specific page, stay on that page
+    if (currentPath.startsWith('/admin/users')) {
+      targetPath = '/admin/users';
+    } else if (currentPath.startsWith('/admin/properties')) {
+      targetPath = '/admin/properties';
+    } else if (currentPath.startsWith('/admin/withdrawals')) {
+      targetPath = '/admin/withdrawals';
+    } else {
+      // If on dashboard or other pages, try to detect search intent
+      const query = searchQuery.toLowerCase();
+      if (query.includes('user') || query.includes('@') || /^\d{10}$/.test(query.replace(/\D/g, ''))) {
+        targetPath = '/admin/users';
+      } else if (query.includes('property') || query.includes('listing')) {
+        targetPath = '/admin/properties';
+      } else if (query.includes('withdrawal') || query.includes('transaction')) {
+        targetPath = '/admin/withdrawals';
+      }
+      // Default to users page
+    }
+
+    // If we're already on the target page, just update the search state
+    // Otherwise, navigate to the target page
+    if (currentPath === targetPath) {
+      // Trigger search on current page by dispatching a custom event
+      // The page component will listen for this event
+      window.dispatchEvent(new CustomEvent('adminSearch', {
+        detail: { searchQuery: searchQuery.trim() }
+      }));
+      console.log('🔍 AdminHeader - Dispatched search event for current page');
+    } else {
+      // Navigate to the target page with search query in state
+      navigate(targetPath, {
+        state: { searchQuery: searchQuery.trim() }
+      });
+      console.log('🔍 AdminHeader - Navigating to:', targetPath);
+    }
+
+    // Clear search input after search
+    setSearchQuery('');
   };
 
   return (
@@ -126,31 +301,50 @@ const AdminHeader = ({ userName = 'Admin User', userAvatar = null }) => {
                 <button onClick={() => setShowNotifications(false)}>✕</button>
               </div>
               <div className="admin-header__notifications-list">
-                <div className="admin-header__notification-item">
-                  <div className="admin-header__notification-icon">🔔</div>
-                  <div className="admin-header__notification-content">
-                    <p className="admin-header__notification-title">New user registered</p>
-                    <p className="admin-header__notification-time">2 minutes ago</p>
+                {notifications.length === 0 ? (
+                  <div className="admin-header__notification-item">
+                    <div className="admin-header__notification-content">
+                      <p className="admin-header__notification-title" style={{ textAlign: 'center', color: '#64748b' }}>
+                        No notifications
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="admin-header__notification-item">
-                  <div className="admin-header__notification-icon">💰</div>
-                  <div className="admin-header__notification-content">
-                    <p className="admin-header__notification-title">Withdrawal request pending</p>
-                    <p className="admin-header__notification-time">15 minutes ago</p>
-                  </div>
-                </div>
-                <div className="admin-header__notification-item">
-                  <div className="admin-header__notification-icon">👤</div>
-                  <div className="admin-header__notification-content">
-                    <p className="admin-header__notification-title">New user registered</p>
-                    <p className="admin-header__notification-time">1 hour ago</p>
-                  </div>
-                </div>
+                ) : (
+                  notifications.slice(0, 10).map((notification) => (
+                    <div
+                      key={notification.id}
+                      className={`admin-header__notification-item ${!notification.isRead ? 'admin-header__notification-item--unread' : ''}`}
+                      onClick={() => handleNotificationClick(notification)}
+                      style={{ cursor: notification.link ? 'pointer' : 'default' }}
+                    >
+                      <div className="admin-header__notification-icon">{notification.icon || '🔔'}</div>
+                      <div className="admin-header__notification-content">
+                        <p className="admin-header__notification-title">{notification.title}</p>
+                        {notification.message && (
+                          <p className="admin-header__notification-message" style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.25rem' }}>
+                            {notification.message}
+                          </p>
+                        )}
+                        <p className="admin-header__notification-time">
+                          {formatRelativeTime(notification.timestamp)}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
-              <div className="admin-header__notifications-footer">
-                <button>View all notifications</button>
-              </div>
+              {notifications.length > 0 && (
+                <div className="admin-header__notifications-footer">
+                  <button
+                    onClick={() => {
+                      setNotifications([]);
+                      localStorage.removeItem('adminNotifications');
+                    }}
+                  >
+                    Clear all notifications
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

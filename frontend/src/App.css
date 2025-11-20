@@ -1222,6 +1222,15 @@
   background: #f8fafc;
 }
 
+.admin-header__notification-item--unread {
+  background: #f0f9ff;
+  border-left: 3px solid #3b82f6;
+}
+
+.admin-header__notification-item--unread:hover {
+  background: #e0f2fe;
+}
+
 .admin-header__notification-item:last-child {
   border-bottom: none;
 }

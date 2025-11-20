@@ -11,7 +11,14 @@ export const createWithdrawal = async (req, res) => {
   try {
     const { amount, type, bankDetails } = req.body;
 
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).select('name email wallet');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     if (type === 'investment') {
       // Check if user has matured investments
@@ -44,6 +51,40 @@ export const createWithdrawal = async (req, res) => {
       bankDetails,
       status: 'pending',
     });
+
+    // Emit notification to all admins via Socket.io
+    try {
+      const { getSocketInstance } = await import('../utils/socketInstance.js');
+      const io = getSocketInstance();
+      
+      if (io) {
+        const notification = {
+          type: 'withdrawal-request',
+          title: 'Withdrawal request pending',
+          message: `${user.name} requested withdrawal of ₹${amount.toLocaleString('en-IN')} (${type === 'investment' ? 'Investment' : 'Earnings'})`,
+          userInfo: {
+            id: user._id.toString(),
+            name: user.name,
+            email: user.email,
+          },
+          withdrawalInfo: {
+            id: withdrawal._id.toString(),
+            amount,
+            type,
+            status: withdrawal.status,
+          },
+          timestamp: new Date().toISOString(),
+          icon: '💰',
+          link: `/admin/withdrawals`,
+        };
+        
+        io.to('admin-room').emit('new-withdrawal-request', notification);
+        console.log('📢 Notification sent to admins: New withdrawal request');
+      }
+    } catch (error) {
+      console.error('❌ Error emitting withdrawal notification:', error);
+      // Don't fail the withdrawal creation if notification fails
+    }
 
     res.status(201).json({
       success: true,

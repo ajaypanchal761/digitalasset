@@ -1,13 +1,39 @@
-﻿import { useState } from "react";
+﻿import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { authAPI } from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
 import "./Login.css";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, loading } = useAuth();
   const [phone, setPhone] = useState("");
   const [errors, setErrors] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      const userToken = localStorage.getItem('token');
+      if (userToken) {
+        console.log('✅ Login - User already authenticated, redirecting to dashboard');
+        navigate("/dashboard", { replace: true });
+      }
+    }
+  }, [isAuthenticated, loading, navigate]);
+
+  // Show loading while checking authentication
+  if (loading) {
+    return (
+      <div className="login-page">
+        <div className="login-container">
+          <div style={{ padding: '2rem', textAlign: 'center' }}>
+            <p>Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handlePhoneChange = (e) => {
     const value = e.target.value.replace(/\D/g, "");
@@ -152,9 +178,14 @@ const Login = () => {
             </button>
           </form>
 
-          <p className="login-footer">
-            Don't have an account? <Link to="/auth/register">Sign up</Link>
-          </p>
+          <div className="login-footer">
+            <p>
+              Don't have an account? <Link to="/auth/register">Sign up</Link>
+            </p>
+            <p className="login-switch">
+              <Link to="/admin-auth/login">Admin Login</Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

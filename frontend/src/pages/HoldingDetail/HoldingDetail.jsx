@@ -6,11 +6,14 @@ import CertificateViewer from "../../components/CertificateViewer.jsx";
 const HoldingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { holdings, listings, user } = useAppState();
+  const { holdings, listings, loading, error } = useAppState();
   const [isCertificateOpen, setIsCertificateOpen] = useState(false);
 
-  const holding = holdings.find((h) => h.id === id);
-  const property = holding ? listings.find((p) => p.id === holding.propertyId) : null;
+  const holding = holdings.find((h) => (h._id || h.id) === id);
+  const property = holding ? listings.find((p) => {
+    const propertyId = holding.propertyId?._id || holding.propertyId || holding.property;
+    return (p._id || p.id) === propertyId;
+  }) : null;
 
   const formatCurrency = (value, currency = "INR") =>
     new Intl.NumberFormat("en-IN", {
@@ -53,14 +56,40 @@ const HoldingDetail = () => {
     return (holding.monthlyEarning || holding.amountInvested * 0.005) * monthsSincePurchase;
   }, [holding, calculateMonthsSincePurchase]);
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="holding-detail">
+        <div style={{ padding: "2rem", textAlign: "center" }}>
+          <p>Loading holding details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="holding-detail">
+        <div style={{ padding: "2rem", textAlign: "center" }}>
+          <p>Error loading holding: {error}</p>
+          <button onClick={() => navigate("/holdings")} className="holding-detail__btn holding-detail__btn--primary" style={{ marginTop: "1rem" }}>
+            Back to Holdings
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show not found state
   if (!holding) {
     return (
       <div className="holding-detail">
         <div className="holding-detail__not-found">
           <h2>Holding Not Found</h2>
           <p>The holding you are looking for does not exist.</p>
-          <button onClick={() => navigate("/dashboard")} className="holding-detail__btn holding-detail__btn--primary">
-            Back to Dashboard
+          <button onClick={() => navigate("/holdings")} className="holding-detail__btn holding-detail__btn--primary">
+            Back to Holdings
           </button>
         </div>
       </div>

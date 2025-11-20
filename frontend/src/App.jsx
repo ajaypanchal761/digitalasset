@@ -32,13 +32,17 @@ import AdminDashboard from "./pages/Admin/Dashboard/AdminDashboard.jsx";
 import AdminUsers from "./pages/Admin/Users/AdminUsers.jsx";
 import AdminProperties from "./pages/Admin/Properties/AdminProperties.jsx";
 import AdminWithdrawals from "./pages/Admin/Withdrawals/AdminWithdrawals.jsx";
+import AdminChat from "./pages/Admin/Chat/AdminChat.jsx";
+import AdminLogin from "./pages/Admin/Auth/AdminLogin.jsx";
+import AdminRegister from "./pages/Admin/Auth/AdminRegister.jsx";
+import AdminVerifyOtp from "./pages/Admin/Auth/AdminVerifyOtp.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<MainLayout />}>
-        <Route index element={<Navigate to="/dashboard" replace />} />
+        <Route index element={<Navigate to="/auth/login" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="explore" element={<Explore />} />
         <Route path="property/:id" element={<PropertyDetail />} />
@@ -70,12 +74,21 @@ function App() {
         <Route path="login-otp" element={<LoginOtp />} />
       </Route>
 
+      {/* Admin Auth Routes */}
+      <Route path="/admin-auth" element={<AuthLayout />}>
+        <Route index element={<Navigate to="login" replace />} />
+        <Route path="login" element={<AdminLogin />} />
+        <Route path="register" element={<AdminRegister />} />
+        <Route path="verify-otp" element={<AdminVerifyOtp />} />
+      </Route>
+
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="users" element={<AdminUsers />} />
         <Route path="properties" element={<AdminProperties />} />
         <Route path="withdrawals" element={<AdminWithdrawals />} />
+        <Route path="chat" element={<AdminChat />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />

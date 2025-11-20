@@ -7,8 +7,11 @@ const ContactOwner = () => {
   const location = useLocation();
   const { holdings, listings } = useAppState();
   const holdingId = location.state?.holdingId;
-  const holding = holdings.find((h) => h.id === holdingId);
-  const property = listings.find((p) => p.id === holding?.propertyId);
+  const holding = holdings.find((h) => (h._id || h.id) === holdingId);
+  const property = holding ? listings.find((p) => {
+    const propertyId = holding.propertyId?._id || holding.propertyId || holding.property;
+    return (p._id || p.id) === propertyId;
+  }) : null;
 
   const [formData, setFormData] = useState({
     subject: "",

@@ -20,7 +20,9 @@ import paymentRoutes from './payment.routes.js';
 import withdrawalRoutes from './withdrawal.routes.js';
 import profileRoutes from './profile.routes.js';
 import adminRoutes from './admin.routes.js';
+import adminAuthRoutes from './adminAuth.routes.js';
 import uploadRoutes from './upload.routes.js';
+import chatRoutes from './chat.routes.js';
 
 router.use('/auth', authRoutes);
 router.use('/properties', propertyRoutes);
@@ -30,7 +32,9 @@ router.use('/payment', paymentRoutes);
 router.use('/withdrawals', withdrawalRoutes);
 router.use('/profile', profileRoutes);
 router.use('/admin', adminRoutes);
+router.use('/admin-auth', adminAuthRoutes);
 router.use('/upload', uploadRoutes);
+router.use('/', chatRoutes);
 
 export default router;
 

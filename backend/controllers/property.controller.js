@@ -7,6 +7,12 @@ export const getAllProperties = async (req, res) => {
   try {
     const { status, search } = req.query;
 
+    console.log('📋 Backend - getAllProperties called:', {
+      status,
+      search,
+      timestamp: new Date().toISOString()
+    });
+
     // Build query
     const query = {};
     if (status) {
@@ -21,12 +27,22 @@ export const getAllProperties = async (req, res) => {
 
     const properties = await Property.find(query).sort({ createdAt: -1 });
 
+    console.log('✅ Backend - Properties fetched:', {
+      count: properties.length,
+      propertyIds: properties.slice(0, 5).map(p => p._id),
+      timestamp: new Date().toISOString()
+    });
+
     res.json({
       success: true,
       count: properties.length,
       data: properties,
     });
   } catch (error) {
+    console.error('❌ Backend - Error fetching properties:', {
+      error: error.message,
+      stack: error.stack
+    });
     res.status(500).json({
       success: false,
       message: error.message,
@@ -65,9 +81,28 @@ export const getProperty = async (req, res) => {
 // @access  Private/Admin
 export const createProperty = async (req, res) => {
   try {
+    console.log('🏗️ Backend - createProperty called:', {
+      adminId: req.user?._id || req.user?.id,
+      adminEmail: req.user?.email,
+      propertyData: {
+        title: req.body?.title,
+        propertyType: req.body?.propertyType,
+        availableToInvest: req.body?.availableToInvest,
+        hasImage: !!req.body?.image,
+        documentCount: req.body?.documents?.length || 0
+      },
+      timestamp: new Date().toISOString()
+    });
+
     const property = await Property.create({
       ...req.body,
-      createdBy: req.user.id,
+      createdBy: req.user._id || req.user.id,
+    });
+
+    console.log('✅ Backend - Property created successfully:', {
+      propertyId: property._id,
+      propertyTitle: property.title,
+      timestamp: new Date().toISOString()
     });
 
     res.status(201).json({
@@ -75,6 +110,12 @@ export const createProperty = async (req, res) => {
       data: property,
     });
   } catch (error) {
+    console.error('❌ Backend - Error creating property:', {
+      error: error.message,
+      stack: error.stack,
+      name: error.name,
+      validationErrors: error.errors
+    });
     res.status(500).json({
       success: false,
       message: error.message,

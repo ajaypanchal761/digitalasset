@@ -1,45 +1,126 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAppState } from "../../context/AppStateContext.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { createSocket, getSocketToken } from "../../utils/socket.js";
+import { chatAPI } from "../../services/api.js";
 import "./Chat.css";
 
 const Chat = () => {
   const navigate = useNavigate();
-  const { user } = useAppState();
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: "admin",
-      text: "Fiqrih! How are you? It's been a long time since we last met.",
-      timestamp: "10:50 PM",
-    },
-    {
-      id: 2,
-      sender: "user",
-      text: "Oh, hi Admin! I have got a new job now and is going great. How about you?",
-      timestamp: "1:06 AM",
-    },
-    {
-      id: 3,
-      sender: "admin",
-      text: "I have been so busy with the new business that I have not had the time to do much else.",
-      timestamp: "11:10 AM",
-    },
-    {
-      id: 4,
-      sender: "user",
-      text: "What is that?",
-      timestamp: "11:20 AM",
-    },
-    {
-      id: 5,
-      sender: "admin",
-      text: "Small business, a coffee shop.",
-      timestamp: "12:09 PM",
-    },
-  ]);
+  const { user } = useAuth();
+  const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
+  const socketRef = useRef(null);
+  const adminIdRef = useRef(null);
+
+  const formatMessageTime = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    return d.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  // Initialize socket and fetch messages
+  useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    const initializeChat = async () => {
+      try {
+        // Fetch messages from API
+        const messagesResponse = await chatAPI.getMessages();
+        if (messagesResponse.success && messagesResponse.data) {
+          const formattedMessages = messagesResponse.data.messages.map(msg => ({
+            id: msg.id,
+            sender: msg.senderType === 'User' ? 'user' : 'admin',
+            text: msg.message,
+            timestamp: formatMessageTime(msg.createdAt),
+            createdAt: msg.createdAt,
+            senderType: msg.senderType,
+          }));
+          setMessages(formattedMessages);
+          
+          // Store admin ID if available
+          if (messagesResponse.data.admin?.id) {
+            adminIdRef.current = messagesResponse.data.admin.id;
+          }
+        }
+
+        // Initialize socket connection
+        const token = getSocketToken();
+        if (token) {
+          const socket = createSocket(token);
+          if (socket) {
+            socketRef.current = socket;
+
+            // Get admin ID from conversation if not already set
+            const convResponse = await chatAPI.getConversations();
+            if (convResponse.success && convResponse.data?.adminId) {
+              adminIdRef.current = convResponse.data.adminId;
+            }
+
+            // Join chat room if admin ID is available
+            if (adminIdRef.current && user.id) {
+              socket.emit('join-chat', {
+                userId: user.id,
+                adminId: adminIdRef.current,
+              });
+            }
+
+            // Listen for incoming messages
+            socket.on('receive-message', (data) => {
+              const { message } = data;
+              const formattedMessage = {
+                id: message.id,
+                sender: message.senderType === 'User' ? 'user' : 'admin',
+                text: message.message,
+                timestamp: formatMessageTime(message.createdAt),
+                createdAt: message.createdAt,
+                senderType: message.senderType,
+              };
+              
+              setMessages(prev => {
+                // Check if message already exists
+                const exists = prev.some(msg => 
+                  msg.id === formattedMessage.id || 
+                  (msg.id && msg.id.toString() === formattedMessage.id.toString())
+                );
+                if (exists) return prev;
+                return [...prev, formattedMessage];
+              });
+            });
+
+            // Listen for errors
+            socket.on('error', (error) => {
+              console.error('Socket error:', error);
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Failed to initialize chat:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeChat();
+
+    // Cleanup on unmount
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+    };
+  }, [user]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -58,38 +139,51 @@ const Chat = () => {
     };
   }, []);
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (inputMessage.trim() === "") return;
+    if (inputMessage.trim() === "" || sending || !socketRef.current) return;
 
-    const newMessage = {
-      id: messages.length + 1,
-      sender: "user",
-      text: inputMessage,
-      timestamp: new Date().toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      }),
-    };
-
-    setMessages([...messages, newMessage]);
+    const messageText = inputMessage.trim();
     setInputMessage("");
+    setSending(true);
 
-    // Simulate admin reply after 1 second
-    setTimeout(() => {
-      const adminReply = {
-        id: messages.length + 2,
-        sender: "admin",
-        text: "Thank you for your message. I'll get back to you soon.",
-        timestamp: new Date().toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        }),
-      };
-      setMessages((prev) => [...prev, adminReply]);
-    }, 1000);
+    // Optimistically add message
+    const tempMessage = {
+      id: `temp-${Date.now()}`,
+      sender: "user",
+      text: messageText,
+      timestamp: formatMessageTime(new Date()),
+      createdAt: new Date(),
+      senderType: 'User',
+    };
+    setMessages(prev => [...prev, tempMessage]);
+
+    try {
+      // Send message via socket
+      if (socketRef.current && user?.id && adminIdRef.current) {
+        socketRef.current.emit('send-message', {
+          message: messageText,
+          userId: user.id,
+          adminId: adminIdRef.current,
+        });
+
+        // Remove temp message after a short delay (socket response should replace it)
+        setTimeout(() => {
+          setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
+        }, 1000);
+      } else {
+        // Fallback to API if socket is not available
+        await chatAPI.sendMessage(messageText, adminIdRef.current);
+        setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
+      }
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      // Remove temp message on error
+      setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
+      alert('Failed to send message. Please try again.');
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -120,17 +214,27 @@ const Chat = () => {
 
       {/* Messages Container */}
       <div className="chat-messages">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`chat-message ${message.sender === "user" ? "chat-message--user" : "chat-message--admin"}`}
-          >
-            <div className={`chat-message__bubble ${message.sender === "user" ? "chat-message__bubble--user" : "chat-message__bubble--admin"}`}>
-              <p className="chat-message__text">{message.text}</p>
-            </div>
-            <span className="chat-message__timestamp">{message.timestamp}</span>
+        {loading ? (
+          <div className="chat-loading">
+            <p>Loading messages...</p>
           </div>
-        ))}
+        ) : messages.length === 0 ? (
+          <div className="chat-empty">
+            <p>No messages yet. Start the conversation!</p>
+          </div>
+        ) : (
+          messages.map((message) => (
+            <div
+              key={message.id}
+              className={`chat-message ${message.sender === "user" ? "chat-message--user" : "chat-message--admin"}`}
+            >
+              <div className={`chat-message__bubble ${message.sender === "user" ? "chat-message__bubble--user" : "chat-message__bubble--admin"}`}>
+                <p className="chat-message__text">{message.text}</p>
+              </div>
+              <span className="chat-message__timestamp">{message.timestamp}</span>
+            </div>
+          ))
+        )}
         <div ref={messagesEndRef} />
       </div>
 
@@ -149,6 +253,7 @@ const Chat = () => {
             placeholder="Type a Message..."
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
+            disabled={sending || loading}
           />
           <button type="button" className="chat-input__icon-btn chat-input__mic-btn" aria-label="Voice message">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

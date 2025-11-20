@@ -1,6 +1,19 @@
 import { useState } from 'react';
 import { useAdmin } from '../../context/AdminContext';
 
+// Helper function to convert data URL to File
+const dataURLtoFile = (dataurl, filename) => {
+  const arr = dataurl.split(',');
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new File([u8arr], filename, { type: mime });
+};
+
 const AddPropertyForm = ({ onClose, property = null }) => {
   const { addProperty, updateProperty } = useAdmin();
   const isEditMode = !!property;
@@ -17,12 +30,20 @@ const AddPropertyForm = ({ onClose, property = null }) => {
   });
 
   const [imagePreview, setImagePreview] = useState(property?.image || null);
+  const [imageFile, setImageFile] = useState(null); // Store actual File object
   const [uploadedDocuments, setUploadedDocuments] = useState(property?.documents || []);
+  const [documentFiles, setDocumentFiles] = useState([]); // Store File objects
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    console.log('📝 AddPropertyForm - Input changed:', {
+      field: name,
+      value: value,
+      timestamp: new Date().toISOString()
+    });
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -40,20 +61,29 @@ const AddPropertyForm = ({ onClose, property = null }) => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      console.log('🖼️ AddPropertyForm - Image selected:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        sizeInMB: (file.size / (1024 * 1024)).toFixed(2),
+        timestamp: new Date().toISOString()
+      });
       if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        console.error('❌ AddPropertyForm - Image too large:', {
+          fileSize: file.size,
+          maxSize: 5 * 1024 * 1024
+        });
         setErrors(prev => ({
           ...prev,
           image: 'Image size should be less than 5MB'
         }));
         return;
       }
+      setImageFile(file); // Store File object
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
-        setFormData(prev => ({
-          ...prev,
-          image: reader.result
-        }));
+        console.log('✅ AddPropertyForm - Image preview generated');
       };
       reader.readAsDataURL(file);
     }
@@ -61,21 +91,48 @@ const AddPropertyForm = ({ onClose, property = null }) => {
 
   const handleDocumentUpload = (e) => {
     const files = Array.from(e.target.files);
+    console.log('📄 AddPropertyForm - Documents selected:', {
+      count: files.length,
+      files: files.map(f => ({
+        name: f.name,
+        size: f.size,
+        type: f.type
+      })),
+      timestamp: new Date().toISOString()
+    });
     const newDocuments = files.map(file => ({
       id: `doc-${Date.now()}-${Math.random()}`,
       name: file.name,
-      url: URL.createObjectURL(file), // In real app, upload to server
+      file: file, // Store File object
       type: file.type,
       size: file.size,
     }));
     setUploadedDocuments(prev => [...prev, ...newDocuments]);
+    setDocumentFiles(prev => [...prev, ...files]);
   };
 
   const handleRemoveDocument = (docId) => {
+    const docToRemove = uploadedDocuments.find(doc => doc.id === docId);
+    if (docToRemove && docToRemove.file) {
+      setDocumentFiles(prev => prev.filter(f => f !== docToRemove.file));
+    }
     setUploadedDocuments(prev => prev.filter(doc => doc.id !== docId));
   };
 
   const validateForm = () => {
+    console.log('🔍 AddPropertyForm - Validating form:', {
+      formData: {
+        title: formData.title,
+        description: formData.description?.substring(0, 50) + '...',
+        propertyType: formData.propertyType,
+        deadline: formData.deadline,
+        availableToInvest: formData.availableToInvest,
+        status: formData.status,
+        hasImage: !!imageFile || !!imagePreview,
+        documentCount: uploadedDocuments.length
+      },
+      timestamp: new Date().toISOString()
+    });
     const newErrors = {};
     
     if (!formData.title.trim()) {
@@ -102,44 +159,142 @@ const AddPropertyForm = ({ onClose, property = null }) => {
     }
     
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const isValid = Object.keys(newErrors).length === 0;
+    console.log(isValid ? '✅ AddPropertyForm - Form validation passed' : '❌ AddPropertyForm - Form validation failed:', {
+      errors: newErrors,
+      isValid
+    });
+    return isValid;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('🚀 AddPropertyForm - Form submission started:', {
+      isEditMode,
+      timestamp: new Date().toISOString()
+    });
     
     if (!validateForm()) {
+      console.log('⏸️ AddPropertyForm - Form submission stopped due to validation errors');
       return;
     }
     
     setIsSubmitting(true);
+    setErrors({});
+    setSuccessMessage('');
     
     try {
+      // Prepare property data
       const propertyData = {
-        ...formData,
+        title: formData.title,
+        description: formData.description,
+        propertyType: formData.propertyType,
+        deadline: formData.deadline,
         availableToInvest: Number(formData.availableToInvest),
-        documents: uploadedDocuments,
+        status: formData.status,
         // Fixed fields
         minInvestment: 500000,
         lockInMonths: 3,
         monthlyReturnRate: 0.5,
       };
+
+      console.log('📦 AddPropertyForm - Preparing property data:', {
+        ...propertyData,
+        description: propertyData.description?.substring(0, 50) + '...',
+        hasImage: !!imageFile || !!imagePreview,
+        imageType: imageFile ? 'File' : (imagePreview ? 'URL/DataURL' : 'none'),
+        documentCount: uploadedDocuments.length
+      });
+
+      // Handle image - use File object if available, otherwise use existing URL
+      if (imageFile) {
+        console.log('🖼️ AddPropertyForm - Using image file:', {
+          fileName: imageFile.name,
+          fileSize: imageFile.size,
+          fileType: imageFile.type
+        });
+        propertyData.image = imageFile;
+      } else if (imagePreview && typeof imagePreview === 'string' && !imagePreview.startsWith('http')) {
+        console.log('🖼️ AddPropertyForm - Converting data URL to file');
+        // Convert data URL to File if needed
+        propertyData.image = dataURLtoFile(imagePreview, 'property-image.jpg');
+      } else if (imagePreview) {
+        console.log('🖼️ AddPropertyForm - Using existing image URL:', imagePreview.substring(0, 50) + '...');
+        propertyData.image = imagePreview; // Existing URL
+      } else {
+        console.log('ℹ️ AddPropertyForm - No image provided');
+      }
+
+      // Handle documents - extract File objects
+      const documentFilesToUpload = uploadedDocuments
+        .filter(doc => doc.file)
+        .map(doc => doc.file);
+      
+      if (documentFilesToUpload.length > 0) {
+        console.log('📄 AddPropertyForm - Uploading document files:', {
+          count: documentFilesToUpload.length,
+          files: documentFilesToUpload.map(f => ({ name: f.name, size: f.size }))
+        });
+        propertyData.documents = documentFilesToUpload;
+      } else if (uploadedDocuments.length > 0) {
+        console.log('📄 AddPropertyForm - Using existing document URLs:', {
+          count: uploadedDocuments.length
+        });
+        // Use existing document URLs
+        propertyData.documents = uploadedDocuments.map(doc => doc.url || doc);
+      } else {
+        console.log('ℹ️ AddPropertyForm - No documents provided');
+        propertyData.documents = [];
+      }
+      
+      console.log('📤 AddPropertyForm - Final property payload:', {
+        ...propertyData,
+        description: propertyData.description?.substring(0, 50) + '...',
+        image: propertyData.image instanceof File 
+          ? `File: ${propertyData.image.name}` 
+          : (typeof propertyData.image === 'string' 
+            ? propertyData.image.substring(0, 50) + '...' 
+            : 'none'),
+        documents: propertyData.documents.length > 0 
+          ? `${propertyData.documents.length} document(s)` 
+          : 'none'
+      });
       
       if (isEditMode) {
-        updateProperty(property.id, propertyData);
+        const propertyId = property._id || property.id;
+        console.log('✏️ AddPropertyForm - Updating property:', {
+          propertyId,
+          updates: propertyData
+        });
+        await updateProperty(propertyId, propertyData);
+        console.log('✅ AddPropertyForm - Property updated successfully');
+        setSuccessMessage('Property updated successfully!');
       } else {
-        addProperty(propertyData);
+        console.log('➕ AddPropertyForm - Creating new property');
+        const result = await addProperty(propertyData);
+        console.log('✅ AddPropertyForm - Property created successfully:', {
+          propertyId: result?._id || result?.id,
+          propertyTitle: result?.title
+        });
+        setSuccessMessage('Property created successfully!');
       }
       
       // Close form after successful submission
       setTimeout(() => {
+        console.log('🔒 AddPropertyForm - Closing form after successful submission');
         onClose();
-      }, 500);
+      }, 1500);
     } catch (error) {
-      console.error('Error saving property:', error);
-      setErrors({ submit: 'Failed to save property. Please try again.' });
+      console.error('❌ AddPropertyForm - Error saving property:', {
+        error: error.message,
+        stack: error.stack,
+        name: error.name,
+        fullError: error
+      });
+      setErrors({ submit: error.message || 'Failed to save property. Please try again.' });
     } finally {
       setIsSubmitting(false);
+      console.log('🏁 AddPropertyForm - Form submission completed');
     }
   };
 
@@ -228,6 +383,7 @@ const AddPropertyForm = ({ onClose, property = null }) => {
                       className="add-property-form__remove-image"
                       onClick={() => {
                         setImagePreview(null);
+                        setImageFile(null);
                         setFormData(prev => ({ ...prev, image: null }));
                       }}
                     >
@@ -404,8 +560,25 @@ const AddPropertyForm = ({ onClose, property = null }) => {
             </button>
           </div>
 
+          {successMessage && (
+            <div className="add-property-form__submit-success" style={{ 
+              padding: '0.75rem', 
+              backgroundColor: '#d1fae5', 
+              color: '#065f46', 
+              borderRadius: '0.5rem',
+              marginTop: '1rem'
+            }}>
+              {successMessage}
+            </div>
+          )}
           {errors.submit && (
-            <div className="add-property-form__submit-error">
+            <div className="add-property-form__submit-error" style={{ 
+              padding: '0.75rem', 
+              backgroundColor: '#fee2e2', 
+              color: '#991b1b', 
+              borderRadius: '0.5rem',
+              marginTop: '1rem'
+            }}>
               {errors.submit}
             </div>
           )}

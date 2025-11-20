@@ -34,11 +34,23 @@ const MetricItem = ({ label, value }) => (
 );
 
 const WalletSummaryCard = ({ wallet }) => {
+  // Handle wallet being null or undefined
+  if (!wallet) {
+    return (
+      <div className="wallet-summary-card">
+        <div className="wallet-summary-card__header">
+          <span className="wallet-summary-card__label">Wallet Balance</span>
+          <span className="wallet-summary-card__value">{formatCurrency(0, "INR")}</span>
+        </div>
+      </div>
+    );
+  }
+
   const metrics = useMemo(
     () => [
-      { label: "Total Investments", value: formatCurrency(wallet.totalInvestments, wallet.currency) },
-      { label: "Earnings Received", value: formatCurrency(wallet.earningsReceived, wallet.currency) },
-      { label: "Withdrawable Balance", value: formatCurrency(wallet.withdrawableBalance, wallet.currency) },
+      { label: "Total Investments", value: formatCurrency(wallet.totalInvestments || 0, wallet.currency || "INR") },
+      { label: "Earnings Received", value: formatCurrency(wallet.earningsReceived || 0, wallet.currency || "INR") },
+      { label: "Withdrawable Balance", value: formatCurrency(wallet.withdrawableBalance || 0, wallet.currency || "INR") },
     ],
     [wallet.currency, wallet.earningsReceived, wallet.totalInvestments, wallet.withdrawableBalance],
   );
@@ -47,7 +59,7 @@ const WalletSummaryCard = ({ wallet }) => {
     <div className="wallet-summary-card">
       <div className="wallet-summary-card__header">
         <span className="wallet-summary-card__label">Wallet Balance</span>
-        <span className="wallet-summary-card__value">{formatCurrency(wallet.balance, wallet.currency)}</span>
+        <span className="wallet-summary-card__value">{formatCurrency(wallet.balance || 0, wallet.currency || "INR")}</span>
       </div>
       <div className="wallet-summary-card__metrics">
         {metrics.map((metric) => (
@@ -222,19 +234,63 @@ const useIsMobile = () => {
 };
 
 const MainLayout = () => {
-  const { user, wallet } = useAppState();
+  const { wallet } = useAppState();
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated, signOut } = useAuth();
+  const { user: authUser, isAuthenticated, signOut, loading } = useAuth();
   const isMobile = useIsMobile();
   const isPropertyDetailPage = location.pathname.startsWith("/property/");
   const isHoldingDetailPage = location.pathname.startsWith("/holding/");
   const isEditProfilePage = location.pathname === "/profile/edit";
   const isProfilePage = location.pathname === "/profile";
 
+  // List of public routes that don't require authentication
+  const publicRoutes = ["/explore", "/property/"];
+  const isPublicRoute = publicRoutes.some(route => location.pathname.startsWith(route));
+
+  // Check authentication and redirect if needed
+  useEffect(() => {
+    // Don't redirect while loading
+    if (loading) {
+      return;
+    }
+
+    // Allow public routes without authentication
+    if (isPublicRoute) {
+      return;
+    }
+
+    // Check if user has a token
+    const userToken = localStorage.getItem('token');
+    const adminToken = localStorage.getItem('adminToken');
+
+    // If no token and not authenticated, redirect to login
+    if (!userToken && !adminToken && !isAuthenticated) {
+      console.log('🔒 MainLayout - No authentication, redirecting to login:', {
+        pathname: location.pathname,
+        isAuthenticated,
+        hasUserToken: !!userToken,
+        hasAdminToken: !!adminToken,
+        timestamp: new Date().toISOString()
+      });
+      navigate("/auth/login", { replace: true });
+      return;
+    }
+
+    // If admin token exists but user is on user routes, don't redirect (let them browse)
+    // But if they try to access protected routes, redirect to admin login
+    if (adminToken && !userToken && !isAuthenticated && !isPublicRoute) {
+      console.log('🔒 MainLayout - Admin token but accessing user route, redirecting to user login');
+      navigate("/auth/login", { replace: true });
+      return;
+    }
+  }, [location.pathname, isAuthenticated, loading, navigate, isPublicRoute]);
+
   const handleAuthAction = () => {
     if (isAuthenticated) {
       signOut();
+      // Clear any other app state
+      localStorage.clear();
       navigate("/auth/login", { replace: true });
       return;
     }
@@ -246,6 +302,34 @@ const MainLayout = () => {
   const isExplorePage = location.pathname === "/explore";
   const isChatPage = location.pathname === "/chat";
   const isHoldingsPage = location.pathname === "/holdings";
+  const isDashboardPage = location.pathname === "/dashboard";
+  const isWalletPage = location.pathname === "/wallet";
+  
+  // Show wallet balance box only on Dashboard and Wallet pages
+  const shouldShowWalletBalance = isDashboardPage || isWalletPage;
+
+  // Show loading while checking authentication
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        flexDirection: 'column',
+        gap: '1rem'
+      }}>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  // Don't render protected content if not authenticated (will redirect)
+  const userToken = localStorage.getItem('token');
+  const adminToken = localStorage.getItem('adminToken');
+  if (!isPublicRoute && !userToken && !adminToken && !isAuthenticated) {
+    return null; // Will redirect in useEffect
+  }
 
   if (isMobile && (isPropertyDetailPage || isHoldingDetailPage || isProfilePage || isEditProfilePage || isExplorePage || isChatPage || isHoldingsPage)) {
     return (
@@ -272,7 +356,7 @@ const MainLayout = () => {
   }
 
   if (isMobile) {
-    const notificationCount = user.notifications?.length ?? 0;
+    const notificationCount = authUser?.notifications?.length ?? 0;
 
     return (
       <div className="mobile-shell">
@@ -284,7 +368,9 @@ const MainLayout = () => {
               </NavLink>
               <div className="mobile-header__welcome">
                 <span className="mobile-header__welcome-label">Welcome</span>
-                <span className="mobile-header__welcome-name">{user.name.split(" ")[0]}</span>
+                <span className="mobile-header__welcome-name">
+                  {isAuthenticated && authUser ? authUser.name.split(" ")[0] : "Guest"}
+                </span>
               </div>
               <button
                 type="button"
@@ -292,10 +378,14 @@ const MainLayout = () => {
                 aria-label="User profile"
                 onClick={() => navigate("/profile")}
               >
-                <Avatar name={user.name} avatarUrl={user.avatarUrl} initials={user.avatarInitials} />
+                <Avatar 
+                  name={authUser?.name || "Guest"} 
+                  avatarUrl={authUser?.avatarUrl} 
+                  initials={authUser?.avatarInitials || "G"} 
+                />
               </button>
             </div>
-            {!isExplorePage && !isPropertyDetailPage && !isHoldingDetailPage && !isEditProfilePage && !isHoldingsPage && <WalletSummaryCard wallet={wallet} />}
+            {shouldShowWalletBalance && <WalletSummaryCard wallet={wallet} />}
           </header>
         )}
         <main className="mobile-content">
@@ -335,17 +425,23 @@ const MainLayout = () => {
           ))}
         </nav>
         <div className="app-header__profile">
-          <span className="app-header__welcome">Welcome back, {user.name}</span>
-          <div className="app-header__avatar">
-            <Avatar name={user.name} avatarUrl={user.avatarUrl} initials={user.avatarInitials} />
-          </div>
+          {isAuthenticated && authUser ? (
+            <>
+              <span className="app-header__welcome">Welcome back, {authUser.name}</span>
+              <div className="app-header__avatar">
+                <Avatar name={authUser.name} avatarUrl={authUser.avatarUrl} initials={authUser.avatarInitials} />
+              </div>
+            </>
+          ) : (
+            <span className="app-header__welcome">Welcome</span>
+          )}
           <button type="button" className="app-header__auth-btn" onClick={handleAuthAction}>
             {authButtonLabel}
           </button>
         </div>
       </header>
       <main className="app-content">
-        {!isPropertyDetailPage && !isHoldingDetailPage && !isEditProfilePage && !isExplorePage && !isChatPage && !isHoldingsPage && <WalletSummaryCard wallet={wallet} />}
+        {shouldShowWalletBalance && <WalletSummaryCard wallet={wallet} />}
         <div className="app-content__page">
           <Outlet />
         </div>

@@ -2,24 +2,98 @@
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// Get token from localStorage
+// Get token from localStorage (for regular users)
 const getToken = () => {
   return localStorage.getItem('token');
 };
 
-// Set token in localStorage
+// Set token in localStorage (for regular users)
 const setToken = (token) => {
   localStorage.setItem('token', token);
+  localStorage.removeItem('tokenTimestamp');
 };
 
-// Remove token from localStorage
+// Remove token from localStorage (for regular users)
 const removeToken = () => {
   localStorage.removeItem('token');
 };
 
+// Admin token management functions
+// Cache token to avoid multiple localStorage reads
+let cachedAdminToken = null;
+let tokenCacheTime = 0;
+const TOKEN_CACHE_DURATION = 1000; // Cache for 1 second
+
+const getAdminToken = () => {
+  // Use cached token if available and not expired
+  const now = Date.now();
+  if (cachedAdminToken !== null && (now - tokenCacheTime) < TOKEN_CACHE_DURATION) {
+    return cachedAdminToken;
+  }
+  
+  const token = localStorage.getItem('adminToken');
+  
+  // Only log in development mode or when there's an issue
+  if (process.env.NODE_ENV === 'development' && !token) {
+    console.log('🔑 getAdminToken() called: No token found');
+  }
+  
+  // Update cache
+  cachedAdminToken = token;
+  tokenCacheTime = now;
+  
+  return token;
+};
+
+const setAdminToken = (token) => {
+  if (!token) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('❌ setAdminToken: Cannot save null/undefined token');
+    }
+    return;
+  }
+  
+  localStorage.setItem('adminToken', token);
+  
+  // Update cache
+  cachedAdminToken = token;
+  tokenCacheTime = Date.now();
+  
+  if (process.env.NODE_ENV === 'development') {
+    console.log('✅ setAdminToken: Token saved successfully');
+  }
+};
+
+const removeAdminToken = () => {
+  localStorage.removeItem('adminToken');
+  
+  // Clear cache
+  cachedAdminToken = null;
+  tokenCacheTime = 0;
+  
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🗑️ removeAdminToken: Token removed successfully');
+  }
+};
+
 // Base fetch function with error handling
 const apiRequest = async (url, options = {}) => {
-  const token = getToken();
+  // Check if this is an admin route
+  // Property routes need admin token when creating/updating/deleting
+  const isAdminRoute = url.startsWith('/admin-auth') || 
+                       url.startsWith('/admin') ||
+                       (url.startsWith('/properties') && (options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE' || options.method === 'PATCH'));
+  
+  // Get tokens once (cached, so multiple calls are efficient)
+  const adminToken = getAdminToken();
+  const userToken = getToken();
+  const hasAdminToken = !!adminToken;
+  
+  const isPropertyAdminOp = url.startsWith('/properties') && 
+                            (options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE' || options.method === 'PATCH') &&
+                            hasAdminToken;
+  
+  const token = (isAdminRoute || isPropertyAdminOp) ? adminToken : userToken;
   
   const config = {
     ...options,
@@ -75,10 +149,39 @@ const apiRequest = async (url, options = {}) => {
     }
 
     if (!response.ok) {
-      // If unauthorized, remove token and redirect to login
+      // Handle rate limiting (429) - don't retry automatically
+      if (response.status === 429) {
+        let errorMessage = 'Too many requests. Please wait a moment and try again.';
+        
+        try {
+          if (data && typeof data === 'object' && data !== null && !Array.isArray(data)) {
+            if (data.message && typeof data.message === 'string' && data.message.trim()) {
+              errorMessage = data.message.trim();
+            } else if (data.error && typeof data.error === 'string' && data.error.trim()) {
+              errorMessage = data.error.trim();
+            }
+          }
+        } catch (e) {
+          // Use default message
+        }
+        
+        // Log rate limit error (but don't spam)
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('⚠️ Rate limit (429) error:', errorMessage);
+        }
+        
+        throw new Error(errorMessage);
+      }
+      
+      // If unauthorized, remove appropriate token and redirect
       if (response.status === 401) {
-        removeToken();
-        window.location.href = '/auth/login';
+        if (isAdminRoute || isPropertyAdminOp) {
+          removeAdminToken();
+          window.location.href = '/admin-auth/login';
+        } else {
+          removeToken();
+          window.location.href = '/auth/login';
+        }
       }
       
       // Extract error message safely from response data
@@ -99,11 +202,13 @@ const apiRequest = async (url, options = {}) => {
         }
       } catch (e) {
         // If extraction fails, use default message
-        console.warn('Error extracting message from response:', e);
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Error extracting message from response:', e);
+        }
       }
       
-      // Log the extracted error for debugging
-      if (process.env.NODE_ENV === 'development') {
+      // Log the extracted error for debugging (only in development)
+      if (process.env.NODE_ENV === 'development' && response.status !== 429) {
         console.log('API Error Response:', { status: response.status, data, errorMessage });
       }
       
@@ -233,6 +338,13 @@ export const propertyAPI = {
 
   // Create property (Admin only)
   create: async (propertyData) => {
+    console.log('📡 propertyAPI.create - Calling API:', {
+      hasAdminToken: !!getAdminToken(),
+      hasUserToken: !!getToken(),
+      propertyTitle: propertyData?.title,
+      propertyType: propertyData?.propertyType,
+      timestamp: new Date().toISOString()
+    });
     return apiRequest('/properties', {
       method: 'POST',
       body: JSON.stringify(propertyData),
@@ -241,6 +353,12 @@ export const propertyAPI = {
 
   // Update property (Admin only)
   update: async (id, propertyData) => {
+    console.log('📡 propertyAPI.update - Calling API:', {
+      propertyId: id,
+      hasAdminToken: !!getAdminToken(),
+      hasUserToken: !!getToken(),
+      timestamp: new Date().toISOString()
+    });
     return apiRequest(`/properties/${id}`, {
       method: 'PUT',
       body: JSON.stringify(propertyData),
@@ -249,6 +367,12 @@ export const propertyAPI = {
 
   // Delete property (Admin only)
   delete: async (id) => {
+    console.log('📡 propertyAPI.delete - Calling API:', {
+      propertyId: id,
+      hasAdminToken: !!getAdminToken(),
+      hasUserToken: !!getToken(),
+      timestamp: new Date().toISOString()
+    });
     return apiRequest(`/properties/${id}`, {
       method: 'DELETE',
     });
@@ -256,6 +380,13 @@ export const propertyAPI = {
 
   // Update property status (Admin only)
   updateStatus: async (id, status) => {
+    console.log('📡 propertyAPI.updateStatus - Calling API:', {
+      propertyId: id,
+      status,
+      hasAdminToken: !!getAdminToken(),
+      hasUserToken: !!getToken(),
+      timestamp: new Date().toISOString()
+    });
     return apiRequest(`/properties/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status }),
@@ -376,6 +507,28 @@ export const profileAPI = {
   },
 };
 
+// ==================== CHAT API ====================
+
+export const chatAPI = {
+  // Get user conversations
+  getConversations: async () => {
+    return apiRequest('/chat/conversations');
+  },
+
+  // Get chat messages (adminId is optional in body)
+  getMessages: async () => {
+    return apiRequest('/chat/messages');
+  },
+
+  // Send message to admin
+  sendMessage: async (message, adminId) => {
+    return apiRequest('/chat/messages', {
+      method: 'POST',
+      body: JSON.stringify({ message, adminId }),
+    });
+  },
+};
+
 // ==================== ADMIN API ====================
 
 export const adminAPI = {
@@ -420,6 +573,13 @@ export const adminAPI = {
     });
   },
 
+  // Delete user account
+  deleteUser: async (id) => {
+    return apiRequest(`/admin/users/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
   // Get all withdrawals
   getWithdrawals: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
@@ -442,6 +602,29 @@ export const adminAPI = {
       body: JSON.stringify({ adminNotes }),
     });
   },
+
+  // Get current admin
+  getMe: async () => {
+    return apiRequest('/admin-auth/me');
+  },
+
+  // Get admin chat conversations
+  getChatConversations: async () => {
+    return apiRequest('/admin/chat/conversations');
+  },
+
+  // Get chat messages with a user
+  getChatMessages: async (userId) => {
+    return apiRequest(`/admin/chat/messages/${userId}`);
+  },
+
+  // Send message to user
+  sendChatMessage: async (userId, message) => {
+    return apiRequest(`/admin/chat/messages/${userId}`, {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    });
+  },
 };
 
 // ==================== UPLOAD API ====================
@@ -452,7 +635,11 @@ export const uploadAPI = {
     const formData = new FormData();
     formData.append('image', file);
 
-    const token = getToken();
+    // Use adminToken if available (for admin operations), otherwise use regular token
+    const adminToken = getAdminToken();
+    const userToken = getToken();
+    const token = adminToken || userToken;
+    
     const response = await fetch(`${API_URL}/upload/image`, {
       method: 'POST',
       headers: {
@@ -479,7 +666,11 @@ export const uploadAPI = {
     const formData = new FormData();
     formData.append('document', file);
 
-    const token = getToken();
+    // Use adminToken if available (for admin operations), otherwise use regular token
+    const adminToken = getAdminToken();
+    const userToken = getToken();
+    const token = adminToken || userToken;
+    
     const response = await fetch(`${API_URL}/upload/document`, {
       method: 'POST',
       headers: {
@@ -502,6 +693,115 @@ export const uploadAPI = {
   },
 };
 
+// ==================== ADMIN AUTH API ====================
+
+export const adminAuthAPI = {
+  // Send OTP for admin (for registration)
+  sendOTP: async (data) => {
+    return apiRequest('/admin-auth/send-otp', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Register admin
+  register: async (userData) => {
+    const response = await apiRequest('/admin-auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+    
+    if (response.success && response.token) {
+      setAdminToken(response.token);
+    }
+    
+    return response;
+  },
+
+  // Login admin with password
+  login: async (data) => {
+    console.log('🔐 adminAuthAPI.login - Starting login request:', {
+      email: data.email,
+      hasPassword: !!data.password,
+      timestamp: new Date().toISOString()
+    });
+    
+    const response = await apiRequest('/admin-auth/login', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    
+    console.log('📥 adminAuthAPI.login - Response received:', {
+      success: response?.success,
+      hasToken: !!response?.token,
+      hasUser: !!response?.user,
+      message: response?.message,
+      responseKeys: response ? Object.keys(response) : null,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Check for token in response
+    const token = response?.token || response?.data?.token || response?.accessToken;
+    
+    console.log('🔍 adminAuthAPI.login - Token extraction:', {
+      hasResponse: !!response,
+      responseSuccess: response?.success,
+      hasToken: !!token,
+      hasResponseToken: !!response?.token,
+      hasDataToken: !!response?.data?.token,
+      tokenLength: token?.length,
+      tokenPreview: token ? token.substring(0, 50) + '...' : 'null'
+    });
+    
+    if (response && response.success && token) {
+      console.log('✅ adminAuthAPI.login - Valid response with token, saving to localStorage...');
+      // Save admin token to localStorage with key 'adminToken'
+      setAdminToken(token);
+      
+      // Verify token was saved
+      const verifyToken = localStorage.getItem('adminToken');
+      console.log('✅ adminAuthAPI.login - Token verification:', {
+        saved: !!verifyToken,
+        matches: verifyToken === token,
+        length: verifyToken?.length
+      });
+    } else {
+      console.warn('⚠️ adminAuthAPI.login - Response missing success or token:', {
+        success: response?.success,
+        hasToken: !!token,
+        message: response?.message,
+        error: response?.error
+      });
+    }
+    
+    return response;
+  },
+
+  // Login admin with OTP (kept for backward compatibility)
+  loginWithOTP: async (data) => {
+    const response = await apiRequest('/admin-auth/login-otp', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    
+    if (response.success && response.token) {
+      setAdminToken(response.token);
+    }
+    
+    return response;
+  },
+
+  // Get current admin user
+  getMe: async () => {
+    return apiRequest('/admin-auth/me');
+  },
+
+  // Logout (remove admin token)
+  logout: () => {
+    removeAdminToken();
+  },
+};
+
 // Export default API object
 export default {
   auth: authAPI,
@@ -512,5 +812,6 @@ export default {
   withdrawal: withdrawalAPI,
   profile: profileAPI,
   admin: adminAPI,
+  adminAuth: adminAuthAPI,
   upload: uploadAPI,
 };

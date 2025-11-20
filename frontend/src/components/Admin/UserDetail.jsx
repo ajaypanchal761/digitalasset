@@ -72,7 +72,7 @@ const UserDetail = ({ user, onClose }) => {
           {activeTab === 'info' && <UserInfoTab user={user} />}
           {activeTab === 'investments' && <InvestmentsTab user={user} />}
           {activeTab === 'wallet' && <WalletTab user={user} />}
-          {activeTab === 'actions' && <ActionsTab user={user} />}
+          {activeTab === 'actions' && <ActionsTab user={user} onClose={onClose} />}
         </div>
       </div>
     </div>
@@ -188,29 +188,90 @@ const InvestmentsTab = ({ user }) => {
 
 // Wallet Tab Component
 const WalletTab = ({ user }) => {
-  const { updateWallet } = useAdmin();
+  const { updateWallet, fetchUserDetail } = useAdmin();
   const [showCreditForm, setShowCreditForm] = useState(false);
   const [showDebitForm, setShowDebitForm] = useState(false);
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleCredit = (e) => {
+  const handleCredit = async (e) => {
     e.preventDefault();
-    if (amount && parseFloat(amount) > 0) {
-      updateWallet(user.id, 'credit', parseFloat(amount), reason);
+    setError('');
+    
+    if (!amount || parseFloat(amount) <= 0) {
+      setError('Please enter a valid amount');
+      return;
+    }
+
+    console.log('💰 UserDetail - Credit wallet:', {
+      userId: user.id || user._id,
+      amount: parseFloat(amount),
+      reason,
+      timestamp: new Date().toISOString()
+    });
+
+    try {
+      setIsSubmitting(true);
+      const userId = user.id || user._id;
+      await updateWallet(userId, 'credit', parseFloat(amount), reason);
+      console.log('✅ UserDetail - Wallet credited successfully');
+      
+      // Refresh user detail to get updated balance
+      await fetchUserDetail(userId);
+      
       setAmount('');
       setReason('');
       setShowCreditForm(false);
+    } catch (err) {
+      console.error('❌ UserDetail - Error crediting wallet:', err);
+      setError(err.message || 'Failed to credit wallet. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleDebit = (e) => {
+  const handleDebit = async (e) => {
     e.preventDefault();
-    if (amount && parseFloat(amount) > 0 && parseFloat(amount) <= user.wallet.balance) {
-      updateWallet(user.id, 'debit', parseFloat(amount), reason);
+    setError('');
+    
+    const debitAmount = parseFloat(amount);
+    if (!amount || debitAmount <= 0) {
+      setError('Please enter a valid amount');
+      return;
+    }
+
+    if (debitAmount > (user.wallet?.balance || 0)) {
+      setError('Insufficient balance');
+      return;
+    }
+
+    console.log('💰 UserDetail - Debit wallet:', {
+      userId: user.id || user._id,
+      amount: debitAmount,
+      reason,
+      currentBalance: user.wallet?.balance || 0,
+      timestamp: new Date().toISOString()
+    });
+
+    try {
+      setIsSubmitting(true);
+      const userId = user.id || user._id;
+      await updateWallet(userId, 'debit', debitAmount, reason);
+      console.log('✅ UserDetail - Wallet debited successfully');
+      
+      // Refresh user detail to get updated balance
+      await fetchUserDetail(userId);
+      
       setAmount('');
       setReason('');
       setShowDebitForm(false);
+    } catch (err) {
+      console.error('❌ UserDetail - Error debiting wallet:', err);
+      setError(err.message || 'Failed to debit wallet. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -261,15 +322,20 @@ const WalletTab = ({ user }) => {
       {showCreditForm && (
         <form className="user-detail-tab__form" onSubmit={handleCredit}>
           <h4>Credit Wallet</h4>
+          {error && <div style={{ color: '#dc2626', marginBottom: '1rem' }}>{error}</div>}
           <div className="user-detail-tab__form-group">
             <label>Amount (₹)</label>
             <input
               type="number"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => {
+                setAmount(e.target.value);
+                setError('');
+              }}
               placeholder="Enter amount"
               required
               min="1"
+              disabled={isSubmitting}
             />
           </div>
           <div className="user-detail-tab__form-group">
@@ -279,11 +345,25 @@ const WalletTab = ({ user }) => {
               onChange={(e) => setReason(e.target.value)}
               placeholder="Enter reason for credit"
               rows="3"
+              disabled={isSubmitting}
             />
           </div>
           <div className="user-detail-tab__form-actions">
-            <button type="button" onClick={() => setShowCreditForm(false)}>Cancel</button>
-            <button type="submit">Credit</button>
+            <button 
+              type="button" 
+              onClick={() => {
+                setShowCreditForm(false);
+                setError('');
+                setAmount('');
+                setReason('');
+              }}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+            <button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Processing...' : 'Credit'}
+            </button>
           </div>
         </form>
       )}
@@ -292,18 +372,23 @@ const WalletTab = ({ user }) => {
       {showDebitForm && (
         <form className="user-detail-tab__form" onSubmit={handleDebit}>
           <h4>Debit Wallet</h4>
+          {error && <div style={{ color: '#dc2626', marginBottom: '1rem' }}>{error}</div>}
           <div className="user-detail-tab__form-group">
             <label>Amount (₹)</label>
             <input
               type="number"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => {
+                setAmount(e.target.value);
+                setError('');
+              }}
               placeholder="Enter amount"
               required
               min="1"
-              max={user.wallet.balance}
+              max={user.wallet?.balance || 0}
+              disabled={isSubmitting}
             />
-            <small>Available: {formatCurrency(user.wallet.balance)}</small>
+            <small>Available: {formatCurrency(user.wallet?.balance || 0)}</small>
           </div>
           <div className="user-detail-tab__form-group">
             <label>Reason/Notes</label>
@@ -313,11 +398,25 @@ const WalletTab = ({ user }) => {
               placeholder="Enter reason for debit"
               rows="3"
               required
+              disabled={isSubmitting}
             />
           </div>
           <div className="user-detail-tab__form-actions">
-            <button type="button" onClick={() => setShowDebitForm(false)}>Cancel</button>
-            <button type="submit">Debit</button>
+            <button 
+              type="button" 
+              onClick={() => {
+                setShowDebitForm(false);
+                setError('');
+                setAmount('');
+                setReason('');
+              }}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+            <button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Processing...' : 'Debit'}
+            </button>
           </div>
         </form>
       )}
@@ -365,21 +464,61 @@ const WalletTab = ({ user }) => {
 };
 
 // Actions Tab Component
-const ActionsTab = ({ user }) => {
-  const { toggleUserAccountStatus } = useAdmin();
+const ActionsTab = ({ user, onClose }) => {
+  const { toggleUserAccountStatus, fetchUserDetail, refreshUsers } = useAdmin();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [actionType, setActionType] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const handleAction = (type) => {
+    console.log('⚙️ UserDetail - Action clicked:', {
+      action: type,
+      userId: user.id || user._id,
+      currentStatus: user.accountStatus,
+      timestamp: new Date().toISOString()
+    });
     setActionType(type);
     setShowConfirmDialog(true);
+    setError('');
   };
 
-  const confirmAction = () => {
-    if (actionType) {
-      toggleUserAccountStatus(user.id, actionType);
-      setShowConfirmDialog(false);
-      setActionType(null);
+  const confirmAction = async () => {
+    if (!actionType) return;
+
+    console.log('✅ UserDetail - Confirming action:', {
+      action: actionType,
+      userId: user.id || user._id,
+      timestamp: new Date().toISOString()
+    });
+
+    try {
+      setIsSubmitting(true);
+      setError('');
+      const userId = user.id || user._id;
+      await toggleUserAccountStatus(userId, actionType);
+      console.log('✅ UserDetail - Action completed successfully');
+      
+      // Handle delete action differently
+      if (actionType === 'delete') {
+        // Close modal and refresh users list
+        setShowConfirmDialog(false);
+        setActionType(null);
+        await refreshUsers();
+        if (onClose) {
+          onClose();
+        }
+      } else {
+        // For other actions, refresh user detail to get updated status
+        await fetchUserDetail(userId);
+        setShowConfirmDialog(false);
+        setActionType(null);
+      }
+    } catch (err) {
+      console.error('❌ UserDetail - Error performing action:', err);
+      setError(err.message || `Failed to ${actionType} account. Please try again.`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -440,13 +579,24 @@ const ActionsTab = ({ user }) => {
           <div className="user-detail-tab__confirm-dialog">
             <h4>Confirm Action</h4>
             <p>Are you sure you want to {getActionLabel(actionType).toLowerCase()} for {user.name}?</p>
+            {error && <div style={{ color: '#dc2626', marginBottom: '1rem' }}>{error}</div>}
             <div className="user-detail-tab__confirm-actions">
-              <button onClick={() => setShowConfirmDialog(false)}>Cancel</button>
+              <button 
+                onClick={() => {
+                  setShowConfirmDialog(false);
+                  setError('');
+                  setActionType(null);
+                }}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
               <button
                 className={actionType === 'delete' ? 'user-detail-tab__confirm-btn--danger' : ''}
                 onClick={confirmAction}
+                disabled={isSubmitting}
               >
-                Confirm
+                {isSubmitting ? 'Processing...' : 'Confirm'}
               </button>
             </div>
           </div>

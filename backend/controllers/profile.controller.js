@@ -14,6 +14,7 @@ export const getProfile = async (req, res) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
+        avatarUrl: user.avatarUrl,
         wallet: user.wallet,
         kycStatus: user.kycStatus,
         bankDetails: user.bankDetails,
@@ -32,13 +33,14 @@ export const getProfile = async (req, res) => {
 // @access  Private
 export const updateProfile = async (req, res) => {
   try {
-    const { name, email, phone } = req.body;
+    const { name, email, phone, avatarUrl } = req.body;
 
     const user = await User.findById(req.user.id);
 
     if (name) user.name = name;
     if (email) user.email = email;
     if (phone) user.phone = phone;
+    if (avatarUrl !== undefined) user.avatarUrl = avatarUrl; // Allow null to remove avatar
 
     await user.save();
 
@@ -49,6 +51,7 @@ export const updateProfile = async (req, res) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
+        avatarUrl: user.avatarUrl,
       },
     });
   } catch (error) {

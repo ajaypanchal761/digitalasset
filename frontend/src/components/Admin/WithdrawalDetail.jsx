@@ -12,27 +12,37 @@ const WithdrawalDetail = ({ withdrawal, onClose }) => {
 
   if (!withdrawal) return null;
 
-  const handleApprove = () => {
-    updateWithdrawalStatus(withdrawal.id, 'processing');
-    // Simulate processing delay
-    setTimeout(() => {
-      updateWithdrawalStatus(withdrawal.id, 'completed');
+  const handleApprove = async () => {
+    try {
+      // Backend uses 'approved' status, frontend maps it to 'completed'
+      await updateWithdrawalStatus(withdrawal.id || withdrawal._id, 'approved');
       setShowApproveDialog(false);
       onClose();
-    }, 1000);
+    } catch (error) {
+      console.error('❌ WithdrawalDetail - Error approving withdrawal:', error);
+      alert(`Failed to approve withdrawal: ${error.message}`);
+    }
   };
 
-  const handleReject = () => {
-    updateWithdrawalStatus(withdrawal.id, 'rejected', rejectionReason || 'Rejected by admin');
-    setShowRejectDialog(false);
-    setRejectionReason('');
-    setTimeout(() => {
+  const handleReject = async () => {
+    if (!rejectionReason.trim()) {
+      alert('Please provide a rejection reason');
+      return;
+    }
+    
+    try {
+      await updateWithdrawalStatus(withdrawal.id || withdrawal._id, 'rejected', rejectionReason);
+      setShowRejectDialog(false);
+      setRejectionReason('');
       onClose();
-    }, 500);
+    } catch (error) {
+      console.error('❌ WithdrawalDetail - Error rejecting withdrawal:', error);
+      alert(`Failed to reject withdrawal: ${error.message}`);
+    }
   };
 
   const canApprove = withdrawal.status === 'pending';
-  const canReject = withdrawal.status === 'pending' || withdrawal.status === 'processing';
+  const canReject = withdrawal.status === 'pending' || withdrawal.status === 'processing' || withdrawal.status === 'approved';
 
   return (
     <>
@@ -41,7 +51,7 @@ const WithdrawalDetail = ({ withdrawal, onClose }) => {
           <header className="withdrawal-detail__header">
             <div>
               <h2 className="withdrawal-detail__title">Withdrawal Details</h2>
-              <p className="withdrawal-detail__id">ID: {withdrawal.id}</p>
+              <p className="withdrawal-detail__id">ID: {withdrawal.id || withdrawal._id}</p>
             </div>
             <button className="withdrawal-detail__close" onClick={onClose} aria-label="Close">
               ✕
@@ -83,15 +93,17 @@ const WithdrawalDetail = ({ withdrawal, onClose }) => {
               <div className="withdrawal-detail__info-grid">
                 <div className="withdrawal-detail__info-item">
                   <label className="withdrawal-detail__info-label">Name</label>
-                  <p className="withdrawal-detail__info-value">{withdrawal.userName}</p>
+                  <p className="withdrawal-detail__info-value">{withdrawal.userName || 'Unknown User'}</p>
                 </div>
                 <div className="withdrawal-detail__info-item">
                   <label className="withdrawal-detail__info-label">Email</label>
-                  <p className="withdrawal-detail__info-value">{withdrawal.userEmail}</p>
+                  <p className="withdrawal-detail__info-value">{withdrawal.userEmail || 'N/A'}</p>
                 </div>
                 <div className="withdrawal-detail__info-item">
                   <label className="withdrawal-detail__info-label">User ID</label>
-                  <p className="withdrawal-detail__info-value">{withdrawal.userId}</p>
+                  <p className="withdrawal-detail__info-value">
+                    {typeof withdrawal.userId === 'object' ? (withdrawal.userId?._id || withdrawal.userId?.id || 'N/A') : (withdrawal.userId || 'N/A')}
+                  </p>
                 </div>
               </div>
             </section>
@@ -103,19 +115,19 @@ const WithdrawalDetail = ({ withdrawal, onClose }) => {
                 <div className="withdrawal-detail__info-item">
                   <label className="withdrawal-detail__info-label">Account Holder Name</label>
                   <p className="withdrawal-detail__info-value">
-                    {withdrawal.bankDetails.accountHolderName}
+                    {withdrawal.bankDetails?.accountHolderName || 'N/A'}
                   </p>
                 </div>
                 <div className="withdrawal-detail__info-item">
                   <label className="withdrawal-detail__info-label">Account Number</label>
                   <p className="withdrawal-detail__info-value">
-                    {withdrawal.bankDetails.accountNumber}
+                    {withdrawal.bankDetails?.accountNumber || 'N/A'}
                   </p>
                 </div>
                 <div className="withdrawal-detail__info-item">
                   <label className="withdrawal-detail__info-label">IFSC Code</label>
                   <p className="withdrawal-detail__info-value">
-                    {withdrawal.bankDetails.ifscCode}
+                    {withdrawal.bankDetails?.ifscCode || 'N/A'}
                   </p>
                 </div>
               </div>
@@ -128,7 +140,7 @@ const WithdrawalDetail = ({ withdrawal, onClose }) => {
                 <div className="withdrawal-detail__info-item">
                   <label className="withdrawal-detail__info-label">Request Date</label>
                   <p className="withdrawal-detail__info-value">
-                    {formatDate(withdrawal.requestDate)}
+                    {formatDate(withdrawal.requestDate || withdrawal.createdAt)}
                   </p>
                 </div>
                 {withdrawal.processedDate && (

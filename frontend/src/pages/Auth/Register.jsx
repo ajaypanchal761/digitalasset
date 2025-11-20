@@ -230,9 +230,14 @@ const Register = () => {
             </button>
           </form>
 
-          <p className="register-footer">
-            Already have an account? <Link to="/auth/login">Sign in</Link>
-          </p>
+          <div className="register-footer">
+            <p>
+              Already have an account? <Link to="/auth/login">Sign in</Link>
+            </p>
+            <p className="register-switch">
+              <Link to="/admin-auth/register">Admin Registration</Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
