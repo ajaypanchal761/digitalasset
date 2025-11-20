@@ -51,13 +51,8 @@
   height: 20px;
 }
 
-.chat-header__spacer {
-  flex: 1;
-}
-
 .chat-header__avatar {
   flex-shrink: 0;
-  order: 3;
 }
 
 .chat-header__avatar-circle {
@@ -87,8 +82,11 @@
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
-  align-items: flex-end;
-  order: 2;
+  align-items: flex-start;
+}
+
+.chat-header__spacer {
+  flex: 1;
 }
 
 .chat-header__name {

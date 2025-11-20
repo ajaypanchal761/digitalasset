@@ -200,16 +200,16 @@ const Chat = () => {
             <path d="M19 12H5M12 19L5 12L12 5" />
           </svg>
         </button>
-        <div className="chat-header__spacer"></div>
-        <div className="chat-header__info">
-          <h1 className="chat-header__name">Admin</h1>
-          <p className="chat-header__status">Online</p>
-        </div>
         <div className="chat-header__avatar">
           <div className="chat-header__avatar-circle">
             <span className="chat-header__avatar-initials">A</span>
           </div>
         </div>
+        <div className="chat-header__info">
+          <h1 className="chat-header__name">Admin</h1>
+          <p className="chat-header__status">Online</p>
+        </div>
+        <div className="chat-header__spacer"></div>
       </header>
 
       {/* Messages Container */}
