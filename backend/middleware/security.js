@@ -31,16 +31,17 @@ export const apiLimiter = rateLimit({
 });
 
 // Rate limiting - Auth routes (stricter)
+// Increased from 5 to 30 to allow more login attempts during development and normal usage
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 requests per windowMs
+  max: env.NODE_ENV === 'production' ? 20 : 30, // 20 in production, 30 in development
   message: {
     success: false,
     error: 'Too many authentication attempts, please try again later.',
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skipSuccessfulRequests: true,
+  skipSuccessfulRequests: true, // Don't count successful logins
 });
 
 // Rate limiting - Payment routes (very strict)

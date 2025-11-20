@@ -12,13 +12,23 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Redirect to dashboard if already authenticated
+  // Also ensure admin token doesn't interfere with user login
   useEffect(() => {
-    if (!loading && isAuthenticated) {
-      const userToken = localStorage.getItem('token');
-      if (userToken) {
-        console.log('✅ Login - User already authenticated, redirecting to dashboard');
-        navigate("/dashboard", { replace: true });
-      }
+    // On user login page, we should only check for user token, not admin token
+    // Admin token should not prevent user from logging in
+    const userToken = localStorage.getItem('token');
+    const adminToken = localStorage.getItem('adminToken');
+    
+    if (adminToken && !userToken) {
+      // Admin token exists but no user token - this is fine, allow user to login
+      // Don't do anything, just let the login flow proceed
+      console.log('ℹ️ Login - Admin token exists but allowing user login flow');
+    }
+    
+    if (!loading && isAuthenticated && userToken) {
+      // Only redirect if user is actually authenticated with user token
+      console.log('✅ Login - User already authenticated, redirecting to dashboard');
+      navigate("/dashboard", { replace: true });
     }
   }, [isAuthenticated, loading, navigate]);
 

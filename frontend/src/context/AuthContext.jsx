@@ -17,9 +17,14 @@ export const AuthProvider = ({ children }) => {
     
     // Determine route type first - this is the key to fixing cross-tab issues
     const isAdminRoute = location.pathname.startsWith('/admin') || location.pathname.startsWith('/admin-auth');
+    const isAuthRoute = location.pathname.startsWith('/auth/login') || 
+                       location.pathname.startsWith('/auth/register') ||
+                       location.pathname.startsWith('/auth/login-otp') ||
+                       location.pathname.startsWith('/auth/verify-otp');
     
     // Select token based on route, not on token existence
     // This allows different tabs to have different logins
+    // IMPORTANT: On auth routes (login/register), completely ignore admin token
     let token = null;
     
     if (isAdminRoute) {
@@ -27,6 +32,15 @@ export const AuthProvider = ({ children }) => {
       token = adminToken || null;
       if (token) {
         console.log('🔐 AuthContext.fetchUser - Using adminToken for admin route');
+      }
+    } else if (isAuthRoute) {
+      // On auth routes (login/register), ONLY use userToken, completely ignore adminToken
+      // This prevents admin token from interfering with user login flow
+      token = userToken || null;
+      if (token) {
+        console.log('👤 AuthContext.fetchUser - Using userToken for auth route (ignoring adminToken)');
+      } else {
+        console.log('👤 AuthContext.fetchUser - No userToken on auth route, skipping fetch (adminToken ignored)');
       }
     } else {
       // On regular routes, use userToken if available

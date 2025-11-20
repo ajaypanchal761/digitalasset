@@ -277,10 +277,19 @@ const MainLayout = () => {
       return;
     }
 
-    // If admin token exists but user is on user routes, don't redirect (let them browse)
-    // But if they try to access protected routes, redirect to admin login
-    if (adminToken && !userToken && !isAuthenticated && !isPublicRoute) {
-      console.log('🔒 MainLayout - Admin token but accessing user route, redirecting to user login');
+    // If admin token exists but user is on user routes, allow them to proceed
+    // Don't redirect - let user login flow work normally
+    // Only redirect if they're trying to access protected routes without proper user authentication
+    // Exception: If they're explicitly on login/register pages, allow them to proceed
+    const isAuthRoute = location.pathname.startsWith('/auth/login') || 
+                       location.pathname.startsWith('/auth/register') ||
+                       location.pathname.startsWith('/auth/login-otp') ||
+                       location.pathname.startsWith('/auth/verify-otp');
+    
+    if (adminToken && !userToken && !isAuthenticated && !isPublicRoute && !isAuthRoute) {
+      // Only redirect if NOT on auth routes (login/register pages)
+      // This allows users to login even if admin token exists
+      console.log('🔒 MainLayout - Admin token but accessing protected user route, redirecting to user login');
       navigate("/auth/login", { replace: true });
       return;
     }
