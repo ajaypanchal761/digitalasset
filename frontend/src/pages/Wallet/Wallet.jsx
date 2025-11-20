@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext.jsx";
 
 const Wallet = () => {
-  const { wallet, holdings, listings } = useAppState();
+  const { wallet, holdings, listings, loading, error } = useAppState();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview"); // overview, transactions, investments
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -32,37 +32,42 @@ const Wallet = () => {
 
   // Generate transactions from holdings
   const transactions = useMemo(() => {
+    if (!holdings || holdings.length === 0) return [];
+    
     const txs = [];
     holdings.forEach((holding) => {
-      const property = listings.find((p) => p.id === holding.propertyId);
+      const holdingId = holding._id || holding.id;
+      const propertyId = holding.propertyId?._id || holding.propertyId || holding.property;
+      const property = listings.find((p) => (p._id || p.id) === propertyId);
+      const propertyName = holding.name || property?.title || "Property";
       
       // Investment transaction
       txs.push({
-        id: `inv-${holding.id}`,
+        id: `inv-${holdingId}`,
         date: holding.purchaseDate,
         type: "investment",
-        amount: holding.amountInvested,
-        description: `Investment in ${holding.name}`,
+        amount: holding.amountInvested || 0,
+        description: `Investment in ${propertyName}`,
         status: "completed",
-        propertyId: holding.propertyId,
-        holdingId: holding.id,
+        propertyId: propertyId,
+        holdingId: holdingId,
       });
 
       // Earnings transactions (monthly)
       if (holding.totalEarningsReceived > 0) {
         const monthsSincePurchase = Math.floor((new Date() - new Date(holding.purchaseDate)) / (1000 * 60 * 60 * 24 * 30));
-        for (let i = 1; i <= monthsSincePurchase && i <= holding.lockInMonths; i++) {
+        for (let i = 1; i <= monthsSincePurchase && i <= (holding.lockInMonths || 3); i++) {
           const earningDate = new Date(holding.purchaseDate);
           earningDate.setMonth(earningDate.getMonth() + i);
           txs.push({
-            id: `earn-${holding.id}-${i}`,
+            id: `earn-${holdingId}-${i}`,
             date: earningDate.toISOString().split("T")[0],
             type: "earning",
-            amount: holding.monthlyEarning || holding.amountInvested * 0.005,
-            description: `Monthly earning from ${holding.name}`,
+            amount: holding.monthlyEarning || (holding.amountInvested || 0) * 0.005,
+            description: `Monthly earning from ${propertyName}`,
             status: "completed",
-            propertyId: holding.propertyId,
-            holdingId: holding.id,
+            propertyId: propertyId,
+            holdingId: holdingId,
           });
         }
       }
@@ -74,8 +79,17 @@ const Wallet = () => {
 
   // Calculate summary stats
   const stats = useMemo(() => {
+    if (!holdings || holdings.length === 0) {
+      return {
+        totalEarnings: 0,
+        totalInvested: 0,
+        maturedInvestments: 0,
+        activeInvestments: 0,
+      };
+    }
+    
     const totalEarnings = holdings.reduce((sum, h) => sum + (h.totalEarningsReceived || 0), 0);
-    const totalInvested = holdings.reduce((sum, h) => sum + h.amountInvested, 0);
+    const totalInvested = holdings.reduce((sum, h) => sum + (h.amountInvested || 0), 0);
     const maturedInvestments = holdings.filter((h) => h.status === "matured").length;
     
     return {
@@ -85,6 +99,50 @@ const Wallet = () => {
       activeInvestments: holdings.length - maturedInvestments,
     };
   }, [holdings]);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="wallet-page">
+        <div className="wallet-page__container">
+          <div className="wallet-page__header">
+            <h1 className="wallet-page__title">My Wallet</h1>
+            <p className="wallet-page__subtitle">Manage your investments and transactions</p>
+          </div>
+          <div style={{ padding: "2rem", textAlign: "center" }}>
+            <p>Loading wallet data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="wallet-page">
+        <div className="wallet-page__container">
+          <div className="wallet-page__header">
+            <h1 className="wallet-page__title">My Wallet</h1>
+            <p className="wallet-page__subtitle">Manage your investments and transactions</p>
+          </div>
+          <div style={{ padding: "2rem", textAlign: "center" }}>
+            <p>Error loading wallet: {error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Ensure wallet has default values
+  const walletData = wallet || {
+    currency: "INR",
+    balance: 0,
+    totalInvestments: 0,
+    earningsReceived: 0,
+    withdrawableBalance: 0,
+    lockedAmount: 0,
+  };
 
   return (
     <div className="wallet-page">
@@ -156,7 +214,7 @@ const Wallet = () => {
                 </div>
                 <div className="wallet-page__stat-info">
                   <span className="wallet-page__stat-label">Total Invested</span>
-                  <span className="wallet-page__stat-value">{formatCurrency(stats.totalInvested, wallet.currency)}</span>
+                  <span className="wallet-page__stat-value">{formatCurrency(stats.totalInvested, walletData.currency)}</span>
                 </div>
               </div>
 
@@ -169,7 +227,7 @@ const Wallet = () => {
                 <div className="wallet-page__stat-info">
                   <span className="wallet-page__stat-label">Total Earnings</span>
                   <span className="wallet-page__stat-value wallet-page__stat-value--green">
-                    {formatCurrency(stats.totalEarnings, wallet.currency)}
+                    {formatCurrency(stats.totalEarnings, walletData.currency)}
                   </span>
                 </div>
               </div>
@@ -220,7 +278,7 @@ const Wallet = () => {
                       <span className="wallet-page__table-cell wallet-page__table-cell--description" data-label="Description">{tx.description}</span>
                       <span className={`wallet-page__table-cell wallet-page__table-cell--amount ${tx.type === "earning" ? "wallet-page__table-cell--green" : ""}`} data-label="Amount">
                         {tx.type === "earning" ? "+" : "-"}
-                        {formatCurrency(tx.amount, wallet.currency)}
+                        {formatCurrency(tx.amount, walletData.currency)}
                       </span>
                       <span className="wallet-page__table-cell" data-label="Status">
                         <span className={`wallet-page__status-badge wallet-page__status-badge--${tx.status}`}>
@@ -259,13 +317,13 @@ const Wallet = () => {
                   holdings.map((holding) => {
                     const isMatured = holding.status === "matured" || holding.daysRemaining === 0;
                     return (
-                      <div key={holding.id} className="wallet-page__table-row wallet-page__table-row--clickable wallet-page__table-row--investments" onClick={() => navigate(`/holding/${holding.id}`)}>
+                      <div key={holding._id || holding.id} className="wallet-page__table-row wallet-page__table-row--clickable wallet-page__table-row--investments" onClick={() => navigate(`/holding/${holding._id || holding.id}`)}>
                         <span className="wallet-page__table-cell wallet-page__table-cell--property" data-label="Property">
                           <span className="wallet-page__property-name">{holding.name}</span>
                         </span>
-                        <span className="wallet-page__table-cell" data-label="Invested">{formatCurrency(holding.amountInvested, wallet.currency)}</span>
+                        <span className="wallet-page__table-cell" data-label="Invested">{formatCurrency(holding.amountInvested || 0, walletData.currency)}</span>
                         <span className="wallet-page__table-cell wallet-page__table-cell--green" data-label="Earnings">
-                          {formatCurrency(holding.totalEarningsReceived || 0, wallet.currency)}
+                          {formatCurrency(holding.totalEarningsReceived || 0, walletData.currency)}
                         </span>
                         <span className="wallet-page__table-cell" data-label="Status">
                           <span className={`wallet-page__status-badge ${isMatured ? "wallet-page__status-badge--matured" : "wallet-page__status-badge--locked"}`}>
@@ -311,12 +369,12 @@ const Wallet = () => {
                 <div className="withdraw-modal__balance-info">
                   <div className="withdraw-modal__balance-item">
                     <span className="withdraw-modal__balance-label">Available Balance</span>
-                    <span className="withdraw-modal__balance-value">{formatCurrency(wallet.balance, wallet.currency)}</span>
+                    <span className="withdraw-modal__balance-value">{formatCurrency(walletData.balance, walletData.currency)}</span>
                   </div>
                   <div className="withdraw-modal__balance-item">
                     <span className="withdraw-modal__balance-label">Withdrawable Amount</span>
                     <span className="withdraw-modal__balance-value withdraw-modal__balance-value--green">
-                      {formatCurrency(wallet.withdrawableBalance, wallet.currency)}
+                      {formatCurrency(walletData.withdrawableBalance, walletData.currency)}
                     </span>
                   </div>
                 </div>
@@ -330,8 +388,8 @@ const Wallet = () => {
                     const errors = {};
                     if (!withdrawForm.amount || withdrawForm.amount <= 0) {
                       errors.amount = "Please enter a valid amount";
-                    } else if (withdrawForm.amount > wallet.withdrawableBalance) {
-                      errors.amount = `Maximum withdrawable amount is ${formatCurrency(wallet.withdrawableBalance, wallet.currency)}`;
+                    } else if (withdrawForm.amount > walletData.withdrawableBalance) {
+                      errors.amount = `Maximum withdrawable amount is ${formatCurrency(walletData.withdrawableBalance, walletData.currency)}`;
                     }
                     if (!withdrawForm.accountNumber) {
                       errors.accountNumber = "Account number is required";
@@ -373,7 +431,7 @@ const Wallet = () => {
                       id="withdraw-amount"
                       type="number"
                       min="1"
-                      max={wallet.withdrawableBalance}
+                      max={walletData.withdrawableBalance}
                       step="100"
                       value={withdrawForm.amount}
                       onChange={(e) => {
@@ -388,7 +446,7 @@ const Wallet = () => {
                     />
                     {withdrawErrors.amount && <span className="withdraw-modal__error">{withdrawErrors.amount}</span>}
                     <span className="withdraw-modal__hint">
-                      Maximum: {formatCurrency(wallet.withdrawableBalance, wallet.currency)}
+                      Maximum: {formatCurrency(walletData.withdrawableBalance, walletData.currency)}
                     </span>
                   </div>
 
@@ -494,7 +552,7 @@ const Wallet = () => {
                     <div className="withdraw-modal__summary-item">
                       <span className="withdraw-modal__summary-label">Withdrawal Amount</span>
                       <span className="withdraw-modal__summary-value">
-                        {withdrawForm.amount > 0 ? formatCurrency(withdrawForm.amount, wallet.currency) : "₹0"}
+                        {withdrawForm.amount > 0 ? formatCurrency(withdrawForm.amount, walletData.currency) : "₹0"}
                       </span>
                     </div>
                     <div className="withdraw-modal__summary-item">
@@ -504,7 +562,7 @@ const Wallet = () => {
                     <div className="withdraw-modal__summary-item withdraw-modal__summary-item--total">
                       <span className="withdraw-modal__summary-label">Amount to be Credited</span>
                       <span className="withdraw-modal__summary-value withdraw-modal__summary-value--highlight">
-                        {withdrawForm.amount > 0 ? formatCurrency(withdrawForm.amount, wallet.currency) : "₹0"}
+                        {withdrawForm.amount > 0 ? formatCurrency(withdrawForm.amount, walletData.currency) : "₹0"}
                       </span>
                     </div>
                     <div className="withdraw-modal__summary-note">

@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAdmin } from '../../../context/AdminContext';
 import StatusBadge from '../../../components/Admin/common/StatusBadge';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
@@ -6,7 +7,15 @@ import AddPropertyForm from '../../../components/Admin/AddPropertyForm';
 import PropertyDetail from '../../../components/Admin/PropertyDetail';
 
 const AdminProperties = () => {
-  const { properties, selectedProperty, setSelectedProperty } = useAdmin();
+  const location = useLocation();
+  const { 
+    properties, 
+    propertiesLoading, 
+    propertiesError,
+    selectedProperty, 
+    setSelectedProperty,
+    refreshProperties 
+  } = useAdmin();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -15,12 +24,48 @@ const AdminProperties = () => {
   const [editingProperty, setEditingProperty] = useState(null);
   const [showPropertyDetail, setShowPropertyDetail] = useState(false);
 
-  // Filter properties
+  // Check for search query from navigation state (from header search)
+  useEffect(() => {
+    if (location.state?.searchQuery) {
+      console.log('🔍 AdminProperties - Received search query from navigation:', {
+        query: location.state.searchQuery,
+        timestamp: new Date().toISOString()
+      });
+      setSearchQuery(location.state.searchQuery);
+      setCurrentPage(1); // Reset to first page
+      // Clear the state to prevent re-applying on re-renders
+      window.history.replaceState({ ...location.state, searchQuery: undefined }, '');
+    }
+  }, [location.state]);
+
+  // Listen for search events from header (when already on this page)
+  useEffect(() => {
+    const handleSearchEvent = (event) => {
+      const query = event.detail?.searchQuery;
+      if (query) {
+        console.log('🔍 AdminProperties - Received search event from header:', {
+          query,
+          timestamp: new Date().toISOString()
+        });
+        setSearchQuery(query);
+        setCurrentPage(1);
+      }
+    };
+
+    window.addEventListener('adminSearch', handleSearchEvent);
+    return () => {
+      window.removeEventListener('adminSearch', handleSearchEvent);
+    };
+  }, []);
+
+  // Filter properties (client-side filtering for now, can be moved to backend later)
   const filteredProperties = useMemo(() => {
+    if (!properties || properties.length === 0) return [];
+    
     return properties.filter(property => {
       const matchesSearch = 
-        property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        property.description.toLowerCase().includes(searchQuery.toLowerCase());
+        property.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        property.description?.toLowerCase().includes(searchQuery.toLowerCase());
       
       const matchesStatus = statusFilter === 'all' || property.status === statusFilter;
       
@@ -46,8 +91,65 @@ const AdminProperties = () => {
   };
 
   const handleAddProperty = () => {
+    console.log('➕ AdminProperties - Add Property button clicked:', {
+      timestamp: new Date().toISOString()
+    });
     setShowAddForm(true);
   };
+
+  // Log component state changes
+  React.useEffect(() => {
+    console.log('📊 AdminProperties - Component state:', {
+      propertiesCount: properties.length,
+      loading: propertiesLoading,
+      error: propertiesError,
+      hasProperties: properties.length > 0,
+      timestamp: new Date().toISOString()
+    });
+  }, [properties, propertiesLoading, propertiesError]);
+
+  // Show loading state
+  if (propertiesLoading) {
+    console.log('⏳ AdminProperties - Showing loading state');
+    return (
+      <div className="admin-properties">
+        <div style={{ padding: '2rem', textAlign: 'center' }}>
+          <p>Loading properties...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (propertiesError) {
+    console.error('❌ AdminProperties - Showing error state:', {
+      error: propertiesError,
+      timestamp: new Date().toISOString()
+    });
+    return (
+      <div className="admin-properties">
+        <div style={{ padding: '2rem', textAlign: 'center' }}>
+          <p style={{ color: '#dc2626', marginBottom: '1rem' }}>Error: {propertiesError}</p>
+          <button 
+            onClick={() => {
+              console.log('🔄 AdminProperties - Retry button clicked');
+              refreshProperties();
+            }}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#6366f1',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.5rem',
+              cursor: 'pointer'
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-properties">
@@ -166,7 +268,7 @@ const AdminProperties = () => {
               </tr>
             ) : (
               paginatedProperties.map((property) => (
-                <tr key={property.id}>
+                <tr key={property._id || property.id}>
                   <td>
                     <div className="admin-properties__property-info">
                       <div className="admin-properties__property-image">
@@ -200,6 +302,7 @@ const AdminProperties = () => {
                         className="admin-properties__action-btn admin-properties__action-btn--view"
                         onClick={() => handleViewProperty(property)}
                         title="View Details"
+                        disabled={propertiesLoading}
                       >
                         View
                       </button>
@@ -210,6 +313,7 @@ const AdminProperties = () => {
                           setEditingProperty(property);
                           setShowAddForm(true);
                         }}
+                        disabled={propertiesLoading}
                       >
                         Edit
                       </button>

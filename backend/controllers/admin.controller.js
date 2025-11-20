@@ -90,6 +90,13 @@ export const updateUserStatus = async (req, res) => {
   try {
     const { status } = req.body; // active, locked, suspended
 
+    if (!['active', 'locked', 'suspended'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status. Must be one of: active, locked, suspended',
+      });
+    }
+
     const user = await User.findById(req.params.id);
     if (!user) {
       return res.status(404).json({
@@ -98,15 +105,34 @@ export const updateUserStatus = async (req, res) => {
       });
     }
 
-    // TODO: Implement status field in User model if needed
-    // For now, we can use a custom field or implement account locking
+    user.accountStatus = status;
+    await user.save();
+
+    console.log('✅ Admin - User status updated:', {
+      userId: user._id,
+      email: user.email,
+      oldStatus: user.accountStatus,
+      newStatus: status,
+      timestamp: new Date().toISOString()
+    });
 
     res.json({
       success: true,
-      message: 'User status updated',
-      data: user,
+      message: 'User status updated successfully',
+      data: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        accountStatus: user.accountStatus,
+      },
     });
   } catch (error) {
+    console.error('❌ Admin - Error updating user status:', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.params.id,
+      timestamp: new Date().toISOString()
+    });
     res.status(500).json({
       success: false,
       message: error.message,
@@ -198,6 +224,79 @@ export const debitWallet = async (req, res) => {
       },
     });
   } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// @desc    Delete user account (soft delete)
+// @route   DELETE /api/admin/users/:id
+// @access  Private/Admin
+export const deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    // Check if user has active holdings (lock-in status)
+    const activeHoldings = await Holding.find({
+      userId: user._id,
+      status: 'lock-in',
+    });
+
+    if (activeHoldings.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot delete user with active investments. User has ${activeHoldings.length} active holding(s).`,
+      });
+    }
+
+    // Check if user has pending withdrawals
+    const pendingWithdrawals = await Withdrawal.find({
+      userId: user._id,
+      status: 'pending',
+    });
+
+    if (pendingWithdrawals.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot delete user with pending withdrawals. User has ${pendingWithdrawals.length} pending withdrawal(s).`,
+      });
+    }
+
+    // Perform soft delete by setting accountStatus to 'deleted'
+    user.accountStatus = 'deleted';
+    await user.save();
+
+    console.log('✅ Admin - User deleted (soft delete):', {
+      userId: user._id,
+      email: user.email,
+      timestamp: new Date().toISOString(),
+    });
+
+    res.json({
+      success: true,
+      message: 'User account deleted successfully',
+      data: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        accountStatus: user.accountStatus,
+      },
+    });
+  } catch (error) {
+    console.error('❌ Admin - Error deleting user:', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.params.id,
+      timestamp: new Date().toISOString(),
+    });
     res.status(500).json({
       success: false,
       message: error.message,

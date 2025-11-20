@@ -20,6 +20,10 @@ const userSchema = new mongoose.Schema({
     unique: true,
     trim: true,
   },
+  avatarUrl: {
+    type: String,
+    default: null,
+  },
   password: {
     type: String,
     required: [true, 'Please provide a password'],
@@ -30,6 +34,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['investor', 'admin'],
     default: 'investor',
+  },
+  accountStatus: {
+    type: String,
+    enum: ['active', 'locked', 'suspended', 'deleted'],
+    default: 'active',
   },
   isEmailVerified: {
     type: Boolean,

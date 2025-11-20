@@ -16,7 +16,15 @@ const generateToken = (id) => {
 
 // Check if phone number is a test/bypass number
 const isTestPhoneNumber = (phone) => {
-  const testNumbers = ['7610416911'];
+  // List of test phone numbers that use default OTP
+  const testNumbers = [
+    '7610416911',  // Existing test number
+    '9876543210',  // Additional test numbers
+    '1234567890',
+    '9998887776',
+    '1112223334',
+    // Add more test numbers here as needed
+  ];
   const normalizedPhone = phone.replace(/\D/g, '');
   return testNumbers.includes(normalizedPhone);
 };
@@ -24,7 +32,8 @@ const isTestPhoneNumber = (phone) => {
 // Get default OTP for test numbers
 const getDefaultOTP = (phone) => {
   const normalizedPhone = phone.replace(/\D/g, '');
-  if (normalizedPhone === '7610416911') {
+  // All test phone numbers use the same default OTP
+  if (isTestPhoneNumber(normalizedPhone)) {
     return '110211';
   }
   return null;
@@ -54,8 +63,18 @@ export const register = async (req, res) => {
       });
     }
 
-    // Check if user already exists
-    const userExists = await User.findOne({ $or: [{ email }, { phone }] });
+    // Normalize phone number for consistent lookup
+    const normalizedPhone = phoneDigits;
+    
+    // Check if user already exists (check with normalized phone)
+    const userExists = await User.findOne({ 
+      $or: [
+        { email: email.toLowerCase().trim() }, 
+        { phone: normalizedPhone },
+        { phone: `+91${normalizedPhone}` },
+        { phone: `+91 ${normalizedPhone}` }
+      ] 
+    });
     if (userExists) {
       return res.status(400).json({
         success: false,
@@ -63,36 +82,110 @@ export const register = async (req, res) => {
       });
     }
 
-    // If OTP is provided, verify it first
-    if (otp) {
-      const otpRecord = await OTP.findValidOTP(phone, email, otp, 'registration');
+    // OTP is required for registration
+    if (!otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'OTP is required for registration. Please verify your phone number first.',
+      });
+    }
+
+    // Default OTP for all users (for testing/development)
+    const defaultOTP = '110211';
+
+    // Verify OTP
+    let otpRecord = null;
+    
+    // Accept default OTP 110211 for all users (even if not in database)
+    if (otp === defaultOTP) {
+      console.log(`🔐 Development mode: Accepting default OTP ${otp} for ${normalizedPhone} during registration`);
+      // Try to find existing OTP record
+      otpRecord = await OTP.findValidOTP(normalizedPhone, email, otp, 'registration');
       
-      if (!otpRecord || otpRecord.otp !== otp) {
-        if (otpRecord) {
-          await otpRecord.incrementAttempts();
-        }
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid or expired OTP. Please verify OTP first.',
+      // If no record found but it's the default OTP, create a temporary valid record
+      if (!otpRecord) {
+        console.log(`🔐 Creating temporary OTP record for ${normalizedPhone} during registration`);
+        otpRecord = await OTP.createOTP({
+          phone: normalizedPhone,
+          email: email.toLowerCase().trim(),
+          otp: defaultOTP,
+          purpose: 'registration',
         });
       }
-
-      // Mark OTP as verified
-      await otpRecord.markAsVerified();
+    } else {
+      // Normal verification flow - find OTP in database
+      otpRecord = await OTP.findValidOTP(normalizedPhone, email, otp, 'registration');
     }
+
+    if (!otpRecord) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired OTP. Please request a new OTP.',
+      });
+    }
+
+    // Verify OTP code
+    if (otpRecord.otp !== otp) {
+      await otpRecord.incrementAttempts();
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid OTP. Please check and try again.',
+      });
+    }
+
+    // Mark OTP as verified
+    await otpRecord.markAsVerified();
 
     // Generate password if not provided
     const userPassword = password || Math.random().toString(36).slice(-12) + 'A1!';
 
-    // Create user
+    // Create user with normalized phone number
     const user = await User.create({
-      name,
-      email,
-      phone,
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      phone: normalizedPhone, // Use normalized phone (10 digits)
       password: userPassword,
-      isPhoneVerified: true,
-      isEmailVerified: true,
+      isPhoneVerified: true, // Phone verified via OTP
+      isEmailVerified: true, // Email verified via OTP
     });
+
+    console.log('✅ User registered successfully:', {
+      userId: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      isPhoneVerified: user.isPhoneVerified,
+      timestamp: new Date().toISOString()
+    });
+
+    // Emit notification to all admins via Socket.io
+    try {
+      const { getSocketInstance } = await import('../utils/socketInstance.js');
+      const io = getSocketInstance();
+      
+      if (io) {
+        const notification = {
+          type: 'user-registered',
+          title: 'New user registered',
+          message: `${user.name} has registered`,
+          userInfo: {
+            id: user._id.toString(),
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+          },
+          timestamp: new Date().toISOString(),
+          icon: '🔔',
+          link: `/admin/users/${user._id}`,
+        };
+        
+        io.to('admin-room').emit('new-user-registered', notification);
+        console.log('📢 Notification sent to admins: New user registered');
+      }
+    } catch (error) {
+      console.error('❌ Error emitting user registration notification:', error);
+      // Don't fail the registration if notification fails
+    }
 
     // Generate token
     const token = generateToken(user._id);
@@ -201,14 +294,10 @@ export const sendOTP = async (req, res) => {
     const isTestNumber = normalizedPhone && isTestPhoneNumber(normalizedPhone);
     const defaultOTP = normalizedPhone ? getDefaultOTP(normalizedPhone) : null;
     
-    // Generate OTP (use default for test numbers)
-    const otp = isTestNumber && defaultOTP ? defaultOTP : generateOTP(6);
+    // Use default OTP 110211 for ALL users (for testing/development)
+    const otp = '110211';
     
-    if (isTestNumber) {
-      console.log(`🔐 Using default OTP ${otp} for test number ${normalizedPhone}`);
-    } else {
-      console.log(`🔐 Generated OTP: ${otp} for ${normalizedPhone || email}`);
-    }
+    console.log(`🔐 Using default OTP ${otp} for ${normalizedPhone || email}`);
 
     // Delete any existing OTPs for this phone/email
     if (normalizedPhone) {
@@ -363,14 +452,44 @@ export const verifyOTP = async (req, res) => {
       });
     }
 
+    // Default OTP for all users (for testing/development)
+    const defaultOTP = '110211';
+    
+    // Normalize phone if provided
+    let normalizedPhone = null;
+    if (phone) {
+      normalizedPhone = phone.replace(/\D/g, '');
+      if (normalizedPhone.length > 10) {
+        normalizedPhone = normalizedPhone.slice(-10);
+      }
+    }
+    
     // Find valid OTP from database
-    const otpRecord = await OTP.findValidOTP(phone, email, otp, purpose);
+    let otpRecord = await OTP.findValidOTP(phone, email, otp, purpose);
+
+    // Accept default OTP 110211 for all users (even if not in database)
+    if (!otpRecord && otp === defaultOTP) {
+      console.log(`🔐 Development mode: Accepting default OTP ${otp} for ${normalizedPhone || email}`);
+      // Try to find existing OTP record
+      otpRecord = await OTP.findValidOTP(normalizedPhone, email, otp, purpose);
+      
+      // If no record found but it's the default OTP, create a temporary valid record
+      if (!otpRecord) {
+        console.log(`🔐 Creating temporary OTP record for ${normalizedPhone || email}`);
+        otpRecord = await OTP.createOTP({
+          phone: normalizedPhone,
+          email: email ? email.toLowerCase().trim() : undefined,
+          otp: defaultOTP,
+          purpose: purpose,
+        });
+      }
+    }
 
     if (!otpRecord) {
       // Try to find if OTP exists but is invalid
       const existingOTP = await OTP.findOne({
-        phone: phone || null,
-        email: email || null,
+        phone: normalizedPhone || phone || null,
+        email: email ? email.toLowerCase().trim() : null,
         otp,
         purpose,
       });
@@ -450,8 +569,41 @@ export const loginWithOTP = async (req, res) => {
       });
     }
 
-    // Verify OTP first
-    const otpRecord = await OTP.findValidOTP(phone, email, otp, 'login');
+    // Normalize phone number (remove all non-digits) to match how it's stored in OTP records
+    let normalizedPhone = null;
+    if (phone) {
+      normalizedPhone = phone.replace(/\D/g, '');
+      // If phone has country code, extract last 10 digits
+      if (normalizedPhone.length > 10) {
+        normalizedPhone = normalizedPhone.slice(-10);
+      }
+    }
+
+    // Default OTP for all users (for testing/development)
+    const defaultOTP = '110211';
+    
+    // Accept default OTP 110211 for all users (even if not in database)
+    let otpRecord = null;
+    if (otp === defaultOTP) {
+      console.log(`🔐 Development mode: Accepting default OTP ${otp} for ${normalizedPhone || email}`);
+      // Try to find existing OTP record, but don't fail if not found
+      otpRecord = await OTP.findValidOTP(normalizedPhone, email, otp, 'login');
+      
+      // If no record found but it's the default OTP, create a temporary valid record
+      if (!otpRecord) {
+        console.log(`🔐 Creating temporary OTP record for ${normalizedPhone || email}`);
+        // Create a temporary OTP record that will be marked as verified
+        otpRecord = await OTP.createOTP({
+          phone: normalizedPhone,
+          email: email ? email.toLowerCase().trim() : undefined,
+          otp: defaultOTP,
+          purpose: 'login',
+        });
+      }
+    } else {
+      // Normal verification flow - find OTP in database
+      otpRecord = await OTP.findValidOTP(normalizedPhone, email, otp, 'login');
+    }
 
     if (!otpRecord) {
       return res.status(400).json({
@@ -472,28 +624,38 @@ export const loginWithOTP = async (req, res) => {
     // Mark OTP as verified
     await otpRecord.markAsVerified();
 
-    // Find or create user
-    let user = await User.findOne({
-      $or: [{ email }, { phone }],
-    });
+    // Find user - must be registered first
+    // Normalize phone for user lookup too
+    const userQueryConditions = [];
+    
+    if (email) {
+      userQueryConditions.push({ email: email.toLowerCase().trim() });
+    }
+    
+    if (normalizedPhone) {
+      // Try to find user by normalized phone (10 digits) or with country code variations
+      userQueryConditions.push(
+        { phone: normalizedPhone },
+        { phone: `+91${normalizedPhone}` },
+        { phone: `+91 ${normalizedPhone}` }
+      );
+    }
+    
+    const user = userQueryConditions.length > 0 
+      ? await User.findOne({ $or: userQueryConditions })
+      : null;
 
     if (!user) {
-      // Create new user if doesn't exist
-      const tempPassword = Math.random().toString(36).slice(-12) + 'A1!';
-      user = await User.create({
-        name: email ? email.split('@')[0] : `User${phone.slice(-4)}`,
-        email: email || `${phone}@digitalasset.in`,
-        phone: phone || '',
-        password: tempPassword,
-        isPhoneVerified: phone ? true : false,
-        isEmailVerified: email ? true : false,
+      return res.status(404).json({
+        success: false,
+        message: 'User account not found. Please register first using the registration page.',
       });
-    } else {
-      // Update verification status
-      if (phone) user.isPhoneVerified = true;
-      if (email) user.isEmailVerified = true;
-      await user.save();
     }
+
+    // Update verification status
+    if (phone) user.isPhoneVerified = true;
+    if (email) user.isEmailVerified = true;
+    await user.save();
 
     // Generate token
     const token = generateToken(user._id);

@@ -1,16 +1,92 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext.jsx";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { propertyAPI, holdingAPI } from "../../services/api.js";
 
 const PropertyDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { listings, holdings } = useAppState();
+  const { holdings: contextHoldings } = useAppState();
+  const [property, setProperty] = useState(null);
+  const [propertyLoading, setPropertyLoading] = useState(true);
+  const [propertyError, setPropertyError] = useState(null);
+  const [userInvestments, setUserInvestments] = useState([]);
   const [calculatorAmount, setCalculatorAmount] = useState(500000);
   const [expandedFaq, setExpandedFaq] = useState(null);
 
-  const property = listings.find((p) => p.id === id);
-  const userInvestments = holdings.filter((h) => h.propertyId === id);
+  // Fetch property details from API
+  useEffect(() => {
+    const fetchProperty = async () => {
+      try {
+        setPropertyLoading(true);
+        setPropertyError(null);
+        console.log('📡 PropertyDetail - Fetching property:', id);
+        const response = await propertyAPI.getById(id);
+        
+        if (response.success && response.data) {
+          console.log('✅ PropertyDetail - Property fetched:', {
+            propertyId: response.data._id,
+            title: response.data.title,
+            minInvestment: response.data.minInvestment,
+            monthlyReturnRate: response.data.monthlyReturnRate,
+            lockInMonths: response.data.lockInMonths
+          });
+          setProperty(response.data);
+          // Set calculator default to property's min investment
+          if (response.data.minInvestment) {
+            setCalculatorAmount(response.data.minInvestment);
+          }
+        } else {
+          console.error('❌ PropertyDetail - Property not found:', response.message);
+          setPropertyError(response.message || 'Property not found');
+        }
+      } catch (error) {
+        console.error('❌ PropertyDetail - Error fetching property:', error);
+        setPropertyError(error.message || 'Failed to load property');
+      } finally {
+        setPropertyLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchProperty();
+    }
+  }, [id]);
+
+  // Fetch user holdings for this property
+  useEffect(() => {
+    const fetchUserHoldings = async () => {
+      try {
+        console.log('📡 PropertyDetail - Fetching user holdings for property:', id);
+        const response = await holdingAPI.getAll();
+        
+        if (response.success && response.data) {
+          // Filter holdings for this property
+          const propertyHoldings = response.data.filter((h) => {
+            const holdingPropertyId = h.propertyId?._id || h.propertyId || h.property;
+            return holdingPropertyId === id;
+          });
+          console.log('✅ PropertyDetail - User holdings fetched:', {
+            totalHoldings: response.data.length,
+            propertyHoldings: propertyHoldings.length
+          });
+          setUserInvestments(propertyHoldings);
+        }
+      } catch (error) {
+        console.error('❌ PropertyDetail - Error fetching holdings:', error);
+        // Fallback to context holdings if API fails
+        const propertyHoldings = contextHoldings.filter((h) => {
+          const holdingPropertyId = h.propertyId?._id || h.propertyId || h.property;
+          return holdingPropertyId === id;
+        });
+        setUserInvestments(propertyHoldings);
+      }
+    };
+
+    if (id) {
+      fetchUserHoldings();
+    }
+  }, [id, contextHoldings]);
 
   const formatCurrency = (value, currency = "INR") =>
     new Intl.NumberFormat("en-IN", {
@@ -25,18 +101,34 @@ const PropertyDetail = () => {
   };
 
   const calculateROI = useMemo(() => {
-    const amount = calculatorAmount >= 500000 ? calculatorAmount : 500000;
-    const monthlyEarning = amount * 0.005;
-    const totalEarnings3Months = monthlyEarning * 3;
+    if (!property) {
+      return {
+        investmentAmount: calculatorAmount,
+        monthlyEarning: 0,
+        totalEarnings3Months: 0,
+        maturityDate: '',
+      };
+    }
+
+    const minInvestment = property.minInvestment || 500000;
+    const amount = calculatorAmount >= minInvestment ? calculatorAmount : minInvestment;
+    const monthlyReturnRate = (property.monthlyReturnRate || 0.5) / 100; // Convert percentage to decimal
+    const lockInMonths = property.lockInMonths || 3;
+    
+    const monthlyEarning = amount * monthlyReturnRate;
+    const totalEarnings = monthlyEarning * lockInMonths;
+    
     const maturityDate = new Date();
-    maturityDate.setMonth(maturityDate.getMonth() + 3);
+    maturityDate.setMonth(maturityDate.getMonth() + lockInMonths);
+    
     return {
       investmentAmount: amount,
       monthlyEarning,
-      totalEarnings3Months,
+      totalEarnings,
+      lockInMonths,
       maturityDate: maturityDate.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
     };
-  }, [calculatorAmount]);
+  }, [calculatorAmount, property]);
 
 
   const faqs = [
@@ -72,13 +164,25 @@ const PropertyDetail = () => {
     },
   ];
 
-  if (!property) {
+  // Show loading state
+  if (propertyLoading) {
     return (
       <div className="property-detail">
-        <div className="property-detail__not-found">
+        <div style={{ padding: "2rem", textAlign: "center" }}>
+          <p>Loading property details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (propertyError || !property) {
+    return (
+      <div className="property-detail">
+        <div className="property-detail__not-found" style={{ padding: "2rem", textAlign: "center" }}>
           <h2>Property Not Found</h2>
-          <p>The property you are looking for does not exist.</p>
-          <button onClick={() => navigate("/explore")} className="btn-primary">
+          <p>{propertyError || "The property you are looking for does not exist."}</p>
+          <button onClick={() => navigate("/explore")} className="btn-primary" style={{ marginTop: "1rem" }}>
             Back to Explore
           </button>
         </div>
@@ -97,7 +201,7 @@ const PropertyDetail = () => {
             </svg>
             Back
           </button>
-          <button onClick={() => navigate("/invest", { state: { propertyId: property.id } })} className="property-detail__invest-btn property-detail__invest-btn--top">
+          <button onClick={() => navigate("/invest", { state: { propertyId: property._id || property.id } })} className="property-detail__invest-btn property-detail__invest-btn--top">
             Invest Now
           </button>
         </div>
@@ -132,11 +236,15 @@ const PropertyDetail = () => {
         </div>
         <div className="property-detail__info-item">
           <span className="property-detail__info-label">Monthly Return</span>
-          <span className="property-detail__info-value property-detail__info-value--green">0.5%</span>
+          <span className="property-detail__info-value property-detail__info-value--green">
+            {property.monthlyReturnRate || 0.5}%
+          </span>
         </div>
         <div className="property-detail__info-item">
           <span className="property-detail__info-label">Lock-in Period</span>
-          <span className="property-detail__info-value">3 months</span>
+          <span className="property-detail__info-value">
+            {property.lockInMonths || 3} months
+          </span>
         </div>
         <div className="property-detail__info-item">
           <span className="property-detail__info-label">Deadline</span>
@@ -150,19 +258,27 @@ const PropertyDetail = () => {
         <div className="property-detail__terms-list">
           <div className="property-detail__term-item">
             <span className="property-detail__term-label">Minimum Investment</span>
-            <span className="property-detail__term-value">₹5,00,000 (mandatory)</span>
+            <span className="property-detail__term-value">
+              {formatCurrency(property.minInvestment || 500000)} (mandatory)
+            </span>
           </div>
           <div className="property-detail__term-item">
             <span className="property-detail__term-label">Maximum Investment</span>
-            <span className="property-detail__term-value">No limit</span>
+            <span className="property-detail__term-value">
+              {property.availableToInvest ? formatCurrency(property.availableToInvest) : 'No limit'}
+            </span>
           </div>
           <div className="property-detail__term-item">
             <span className="property-detail__term-label">Lock-in Period</span>
-            <span className="property-detail__term-value">3 months (cannot withdraw before)</span>
+            <span className="property-detail__term-value">
+              {property.lockInMonths || 3} months (cannot withdraw before)
+            </span>
           </div>
           <div className="property-detail__term-item">
             <span className="property-detail__term-label">Monthly Return</span>
-            <span className="property-detail__term-value">0.5% of invested amount</span>
+            <span className="property-detail__term-value">
+              {property.monthlyReturnRate || 0.5}% of invested amount
+            </span>
           </div>
           <div className="property-detail__term-item">
             <span className="property-detail__term-label">Earnings Withdrawal</span>
@@ -188,17 +304,26 @@ const PropertyDetail = () => {
               <span>Monthly Earning</span>
             </div>
             {userInvestments.map((investment) => {
-              const isMatured = investment.status === "matured" || investment.daysRemaining === 0;
+              const investmentId = investment._id || investment.id;
+              const purchaseDate = investment.purchaseDate || investment.createdAt;
+              const maturityDate = investment.maturityDate;
+              
+              // Calculate if matured: check if maturity date has passed
+              const isMatured = investment.status === "matured" || 
+                                (maturityDate && new Date(maturityDate) <= new Date());
+              
               return (
-                <div key={investment.id} className="property-detail__table-row">
-                  <span>{formatDate(investment.purchaseDate)}</span>
-                  <span className="property-detail__table-value">{formatCurrency(investment.amountInvested, "INR")}</span>
+                <div key={investmentId} className="property-detail__table-row">
+                  <span>{formatDate(purchaseDate)}</span>
+                  <span className="property-detail__table-value">
+                    {formatCurrency(investment.amountInvested || 0, "INR")}
+                  </span>
                   <span className={`property-detail__table-status ${isMatured ? "property-detail__table-status--matured" : "property-detail__table-status--locked"}`}>
                     {isMatured ? "Matured" : "Locked"}
                   </span>
-                  <span>{formatDate(investment.maturityDate)}</span>
+                  <span>{maturityDate ? formatDate(maturityDate) : "N/A"}</span>
                   <span className="property-detail__table-value property-detail__table-value--green">
-                    {formatCurrency(investment.monthlyEarning, "INR")}/month
+                    {formatCurrency(investment.monthlyEarning || 0, "INR")}/month
                   </span>
                 </div>
               );
@@ -212,14 +337,16 @@ const PropertyDetail = () => {
         <h2 className="property-detail__section-title">ROI Calculator</h2>
         <div className="property-detail__calculator-content">
           <div className="property-detail__calculator-input">
-            <label htmlFor="calculator-amount">Investment Amount (Minimum ₹5,00,000)</label>
+            <label htmlFor="calculator-amount">
+              Investment Amount (Minimum {formatCurrency(property.minInvestment || 500000)})
+            </label>
             <input
               id="calculator-amount"
               type="number"
-              min="500000"
+              min={property.minInvestment || 500000}
               step="100000"
               value={calculatorAmount}
-              onChange={(e) => setCalculatorAmount(Math.max(500000, parseInt(e.target.value) || 500000))}
+              onChange={(e) => setCalculatorAmount(Math.max(property.minInvestment || 500000, parseInt(e.target.value) || property.minInvestment || 500000))}
               className="property-detail__input"
             />
           </div>
@@ -233,18 +360,24 @@ const PropertyDetail = () => {
               <span className="property-detail__calc-value property-detail__calc-value--green">
                 {formatCurrency(calculateROI.monthlyEarning, "INR")}
               </span>
-              <span className="property-detail__calc-subtext">0.5% per month</span>
+              <span className="property-detail__calc-subtext">
+                {property.monthlyReturnRate || 0.5}% per month
+              </span>
             </div>
             <div className="property-detail__calc-card">
               <span className="property-detail__calc-label">Lock-in Period</span>
-              <span className="property-detail__calc-value">3 months</span>
+              <span className="property-detail__calc-value">
+                {calculateROI.lockInMonths || property.lockInMonths || 3} months
+              </span>
             </div>
             <div className="property-detail__calc-card property-detail__calc-card--earning">
               <span className="property-detail__calc-label">Total Earnings</span>
               <span className="property-detail__calc-value property-detail__calc-value--green">
-                {formatCurrency(calculateROI.totalEarnings3Months, "INR")}
+                {formatCurrency(calculateROI.totalEarnings, "INR")}
               </span>
-              <span className="property-detail__calc-subtext">In 3 months</span>
+              <span className="property-detail__calc-subtext">
+                In {calculateROI.lockInMonths || property.lockInMonths || 3} months
+              </span>
             </div>
             <div className="property-detail__calc-card">
               <span className="property-detail__calc-label">Maturity Date</span>
@@ -255,17 +388,29 @@ const PropertyDetail = () => {
               <span className="property-detail__calc-value">
                 {formatCurrency(calculateROI.investmentAmount, "INR")}
               </span>
-              <span className="property-detail__calc-subtext">After 3 months</span>
+              <span className="property-detail__calc-subtext">
+                After {calculateROI.lockInMonths || property.lockInMonths || 3} months
+              </span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Documents Section */}
+      {property.documents && property.documents.length > 0 && (
       <div className="property-detail__documents">
         <h2 className="property-detail__section-title">Legal Documents</h2>
         <div className="property-detail__documents-list">
-          <a href="#" className="property-detail__document-item" onClick={(e) => e.preventDefault()}>
+            {property.documents.map((docUrl, index) => {
+              const docName = docUrl.split('/').pop() || `Document ${index + 1}`;
+              return (
+                <a 
+                  key={index}
+                  href={docUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="property-detail__document-item"
+                >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
                 d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
@@ -277,53 +422,18 @@ const PropertyDetail = () => {
               <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <div>
-              <span className="property-detail__document-name">Property Agreement</span>
+                    <span className="property-detail__document-name">{docName}</span>
               <span className="property-detail__document-size">PDF Document</span>
             </div>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </a>
-          <a href="#" className="property-detail__document-item" onClick={(e) => e.preventDefault()}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <div>
-              <span className="property-detail__document-name">Terms & Conditions</span>
-              <span className="property-detail__document-size">PDF Document</span>
-            </div>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </a>
-          <a href="#" className="property-detail__document-item" onClick={(e) => e.preventDefault()}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <div>
-              <span className="property-detail__document-name">Investment Certificate Template</span>
-              <span className="property-detail__document-size">PDF Document</span>
-            </div>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </a>
+              );
+            })}
         </div>
       </div>
+      )}
 
       {/* FAQ Section */}
       <div className="property-detail__faq">
@@ -355,7 +465,7 @@ const PropertyDetail = () => {
 
       {/* Bottom Invest Now Button */}
       <div className="property-detail__bottom-action">
-        <button onClick={() => navigate("/invest", { state: { propertyId: property.id } })} className="property-detail__invest-btn property-detail__invest-btn--large">
+        <button onClick={() => navigate("/invest", { state: { propertyId: property._id || property.id } })} className="property-detail__invest-btn property-detail__invest-btn--large">
           Invest Now
         </button>
       </div>

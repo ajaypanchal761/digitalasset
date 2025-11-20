@@ -7,7 +7,7 @@ const Invest = () => {
   const location = useLocation();
   const { listings } = useAppState();
   const propertyId = location.state?.propertyId;
-  const property = listings.find((p) => p.id === propertyId);
+  const property = listings.find((p) => (p._id || p.id) === propertyId);
 
   const [formData, setFormData] = useState({
     amount: property?.minInvestment || 500000,

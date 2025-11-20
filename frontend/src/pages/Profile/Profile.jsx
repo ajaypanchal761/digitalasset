@@ -1,17 +1,16 @@
 import { useNavigate } from "react-router-dom";
-import { useAppState } from "../../context/AppStateContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import "./Profile.css";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user: appUser } = useAppState();
-  const { user: authUser, signOut } = useAuth();
+  const { user: authUser, signOut, loading: authLoading } = useAuth();
   
-  // Merge user data from both contexts
-  const user = {
-    ...appUser,
-    email: authUser?.email || appUser?.email || "",
+  // Use user from AuthContext (fetched from backend)
+  const user = authUser || {
+    name: "Loading...",
+    email: "",
+    avatarInitials: "U",
   };
 
   const handleBack = () => {
@@ -20,6 +19,9 @@ const Profile = () => {
 
   const handleLogout = () => {
     signOut();
+    // Clear any other app state
+    localStorage.clear();
+    // Navigate to login
     navigate("/auth/login", { replace: true });
   };
 
@@ -137,7 +139,45 @@ const Profile = () => {
   // Generate username from email or name
   const username = user.email
     ? `@${user.email.split("@")[0]}`
-    : `@${user.name.toLowerCase().replace(/\s+/g, "")}`;
+    : user.name
+    ? `@${user.name.toLowerCase().replace(/\s+/g, "")}`
+    : "@user";
+
+  // Show loading state
+  if (authLoading) {
+    return (
+      <div className="profile-page">
+        <div style={{ padding: "2rem", textAlign: "center" }}>
+          <p>Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If not authenticated, show message
+  if (!authUser) {
+    return (
+      <div className="profile-page">
+        <div style={{ padding: "2rem", textAlign: "center" }}>
+          <p>Please log in to view your profile.</p>
+          <button
+            onClick={() => navigate("/auth/login")}
+            style={{
+              marginTop: "1rem",
+              padding: "0.5rem 1rem",
+              backgroundColor: "#6366f1",
+              color: "white",
+              border: "none",
+              borderRadius: "0.5rem",
+              cursor: "pointer",
+            }}
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="profile-page">

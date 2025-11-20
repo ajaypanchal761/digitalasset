@@ -2,8 +2,13 @@ import './config/env.js'; // Load and validate environment variables
 import connectDB from './config/db.js';
 import app from './app.js';
 import { env } from './config/env.js';
+import { Server } from 'socket.io';
+import { createServer } from 'http';
+import socketHandler from './socket/socketHandler.js';
+import { setSocketInstance } from './utils/socketInstance.js';
 
 let server;
+let io;
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
@@ -30,18 +35,44 @@ connectDB().catch((err) => {
   process.exit(1);
 });
 
+// Create HTTP server
+const httpServer = createServer(app);
+
+// Initialize Socket.io
+io = new Server(httpServer, {
+  cors: {
+    origin: env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true,
+    methods: ['GET', 'POST'],
+  },
+});
+
+// Set Socket.io instance for use in controllers
+setSocketInstance(io);
+
+// Setup socket handlers
+socketHandler(io);
+
 // Start server
-server = app.listen(env.PORT, () => {
+server = httpServer.listen(env.PORT, () => {
   console.log('🚀 Server Started');
   console.log(`📍 Port: ${env.PORT}`);
   console.log(`🌍 Environment: ${env.NODE_ENV}`);
   console.log(`🔗 Frontend URL: ${env.FRONTEND_URL}`);
+  console.log(`💬 Socket.io initialized`);
   console.log(`⏰ ${new Date().toLocaleString()}`);
 });
 
 // Graceful shutdown
 const gracefulShutdown = (signal) => {
   console.log(`\n⚠️  ${signal} received. Shutting down gracefully...`);
+
+  // Close Socket.io server
+  if (io) {
+    io.close(() => {
+      console.log('✅ Socket.io server closed');
+    });
+  }
 
   server.close(() => {
     console.log('✅ HTTP server closed');

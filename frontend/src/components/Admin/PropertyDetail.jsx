@@ -21,7 +21,7 @@ const PropertyDetail = ({ property, onClose }) => {
           <div>
             <p className="property-detail__tag">{property.propertyType}</p>
             <h2 className="property-detail__title">{property.title}</h2>
-            <p className="property-detail__id">ID: {property.id}</p>
+            <p className="property-detail__id">ID: {property._id || property.id}</p>
           </div>
           <button className="property-detail__close" onClick={onClose} aria-label="Close">
             ✕
@@ -72,8 +72,8 @@ const PropertyDetail = ({ property, onClose }) => {
             <h3>Documents</h3>
             {documents.length > 0 ? (
               <div className="property-detail__documents-list">
-                {documents.map((doc) => (
-                  <div key={doc.id || doc.name} className="property-detail__document">
+                {documents.map((doc, index) => (
+                  <div key={doc.id || doc.name || index} className="property-detail__document">
                     <div>
                       <p className="property-detail__document-name">{doc.name}</p>
                       <p className="property-detail__document-meta">
@@ -82,7 +82,10 @@ const PropertyDetail = ({ property, onClose }) => {
                     </div>
                     <button
                       className="property-detail__document-btn"
-                      onClick={() => window.open(doc.url, '_blank')}
+                      onClick={() => {
+                        const docUrl = typeof doc === 'string' ? doc : doc.url;
+                        if (docUrl) window.open(docUrl, '_blank');
+                      }}
                     >
                       View
                     </button>

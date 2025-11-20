@@ -1,32 +1,85 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAppState } from "../../context/AppStateContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { profileAPI, uploadAPI } from "../../services/api.js";
 import "./EditProfile.css";
 
 const EditProfile = () => {
   const navigate = useNavigate();
-  const { user: appUser, updateUser } = useAppState();
-  const { user: authUser } = useAuth();
+  const { user: authUser, refreshUser } = useAuth();
 
-  // Merge user data from both contexts
-  const initialUser = {
-    ...appUser,
-    email: authUser?.email || appUser?.email || "",
-    phone: appUser?.phone || authUser?.phone || "",
-    username: appUser?.username || (authUser?.email ? `@${authUser.email.split("@")[0]}` : `@${appUser.name.toLowerCase().replace(/\s+/g, "")}`),
-    countryCode: appUser?.countryCode || "+91",
+  // Generate username from email (username is derived from email, not stored separately)
+  const generateUsername = (email) => {
+    if (!email) return "";
+    return `@${email.split("@")[0]}`;
+  };
+
+  // Extract country code from phone if it exists
+  const extractCountryCode = (phone) => {
+    if (!phone) return "+91";
+    // If phone starts with country code, extract it
+    if (phone.startsWith("+")) {
+      // Handle India (+91) specifically first
+      if (phone.startsWith("+91")) {
+        return "+91";
+      }
+      // For other country codes, match 1-2 digits (not 3 to avoid matching +917, +918, etc.)
+      const match = phone.match(/^\+(\d{1,2})/);
+      return match ? `+${match[1]}` : "+91";
+    }
+    return "+91"; // Default to +91 for India
+  };
+
+  // Extract phone number without country code
+  const extractPhoneNumber = (phone) => {
+    if (!phone) return "";
+    
+    // Remove country code - handle India (+91) specifically first
+    if (phone.startsWith("+91")) {
+      return phone.replace(/^\+91\s?/, "");
+    }
+    // For other country codes, remove 1-2 digits (not 3 to avoid matching +917, +918, etc.)
+    if (phone.startsWith("+")) {
+      return phone.replace(/^\+\d{1,2}\s?/, "");
+    }
+    
+    // If no country code, return as is
+    return phone;
   };
 
   const [formData, setFormData] = useState({
-    name: initialUser.name || "",
-    email: initialUser.email || "",
-    username: initialUser.username || "",
-    phone: initialUser.phone || "",
-    countryCode: initialUser.countryCode || "+91",
+    name: "",
+    email: "",
+    username: "",
+    phone: "",
+    countryCode: "+91",
   });
 
-  const [avatarPreview, setAvatarPreview] = useState(initialUser.avatarUrl || "");
+  const [avatarPreview, setAvatarPreview] = useState("");
+  const [avatarFile, setAvatarFile] = useState(null); // Store the actual file for upload
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  // Update form data when authUser loads
+  useEffect(() => {
+    if (authUser) {
+      const username = generateUsername(authUser.email);
+      const countryCode = extractCountryCode(authUser.phone);
+      const phoneNumber = extractPhoneNumber(authUser.phone);
+
+      setFormData({
+        name: authUser.name || "",
+        email: authUser.email || "",
+        username: username,
+        phone: phoneNumber || authUser.phone || "",
+        countryCode: countryCode,
+      });
+      setAvatarPreview(authUser.avatarUrl || "");
+      setLoading(false);
+    } else {
+      setLoading(false);
+    }
+  }, [authUser]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -39,6 +92,22 @@ const EditProfile = () => {
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size should be less than 5MB');
+        return;
+      }
+
+      // Store the file for upload
+      setAvatarFile(file);
+      
+      // Show preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setAvatarPreview(reader.result);
@@ -47,28 +116,109 @@ const EditProfile = () => {
     }
   };
 
-  const handleSave = () => {
-    // Update user in AppStateContext
-    updateUser({
-      ...appUser,
-      name: formData.name,
-      username: formData.username,
-      phone: formData.phone,
-      countryCode: formData.countryCode,
-      avatarUrl: avatarPreview || appUser.avatarUrl,
-      avatarInitials: avatarPreview ? appUser.avatarInitials : appUser.avatarInitials,
-    });
-    
-    // TODO: Save profile changes to backend
-    console.log("Saving profile:", { ...formData, avatarUrl: avatarPreview });
-    
-    // Navigate back to profile page
-    navigate("/profile");
+  const handleSave = async () => {
+    if (!authUser) {
+      alert("Please log in to update your profile");
+      navigate("/auth/login");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      // Prepare data for backend (username is not stored, it's derived from email)
+      const updateData = {
+        name: formData.name,
+        phone: formData.countryCode + formData.phone.replace(/\D/g, ""), // Combine country code and phone
+        // Note: email cannot be changed, username is derived from email
+      };
+
+      // If avatar was changed, upload it first
+      if (avatarFile) {
+        try {
+          console.log('📤 Uploading avatar image...');
+          const uploadResponse = await uploadAPI.uploadImage(avatarFile);
+          
+          if (uploadResponse.success && uploadResponse.data?.url) {
+            updateData.avatarUrl = uploadResponse.data.url;
+            console.log('✅ Avatar uploaded successfully:', uploadResponse.data.url);
+          } else {
+            throw new Error(uploadResponse.message || 'Failed to upload avatar');
+          }
+        } catch (uploadError) {
+          console.error('❌ Error uploading avatar:', uploadError);
+          alert('Failed to upload profile picture. Please try again.');
+          setSaving(false);
+          return;
+        }
+      } else if (avatarPreview && !avatarPreview.startsWith('data:') && avatarPreview !== authUser.avatarUrl) {
+        // If avatarPreview is a URL (not base64) and different from current, use it
+        // This handles cases where user might have set a URL directly
+        updateData.avatarUrl = avatarPreview;
+      }
+
+      // Save to backend
+      console.log('💾 Saving profile data:', { 
+        ...updateData, 
+        avatarUrl: updateData.avatarUrl ? 'URL set' : 'not set' 
+      });
+      const response = await profileAPI.update(updateData);
+
+      if (response.success) {
+        // Refresh user data from backend
+        await refreshUser();
+        // Navigate back to profile page
+        navigate("/profile");
+      } else {
+        alert(response.message || "Failed to update profile");
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert(error.message || "Failed to update profile. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleBack = () => {
     navigate("/profile");
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="edit-profile">
+        <div style={{ padding: "2rem", textAlign: "center" }}>
+          <p>Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show message if not authenticated
+  if (!authUser) {
+    return (
+      <div className="edit-profile">
+        <div style={{ padding: "2rem", textAlign: "center" }}>
+          <p>Please log in to edit your profile.</p>
+          <button
+            onClick={() => navigate("/auth/login")}
+            style={{
+              marginTop: "1rem",
+              padding: "0.5rem 1rem",
+              backgroundColor: "#6366f1",
+              color: "white",
+              border: "none",
+              borderRadius: "0.5rem",
+              cursor: "pointer",
+            }}
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="edit-profile">
@@ -80,10 +230,20 @@ const EditProfile = () => {
           </svg>
         </button>
         <h1 className="edit-profile__title">Edit Profile</h1>
-        <button type="button" className="edit-profile__save-btn" onClick={handleSave} aria-label="Save changes">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 6L9 17L4 12" />
-          </svg>
+        <button 
+          type="button" 
+          className="edit-profile__save-btn" 
+          onClick={handleSave} 
+          aria-label="Save changes"
+          disabled={saving}
+        >
+          {saving ? (
+            <span>Saving...</span>
+          ) : (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 6L9 17L4 12" />
+            </svg>
+          )}
         </button>
       </header>
 

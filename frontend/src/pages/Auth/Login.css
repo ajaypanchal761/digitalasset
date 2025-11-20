@@ -167,6 +167,9 @@
   margin-top: 1.5rem;
   font-size: 0.9rem;
   color: #6b7280;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .login-footer a {
@@ -177,6 +180,11 @@
 
 .login-footer a:hover {
   text-decoration: underline;
+}
+
+.login-switch {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
 }
 
 /* Mobile View - 100% width and height */

@@ -194,6 +194,9 @@
   margin-top: 1.5rem;
   font-size: 0.9rem;
   color: #6b7280;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .register-footer a {
@@ -204,6 +207,11 @@
 
 .register-footer a:hover {
   text-decoration: underline;
+}
+
+.register-switch {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
 }
 
 /* Mobile View - 100% width and height */

@@ -14,6 +14,11 @@ const adminSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
   },
+  phone: {
+    type: String,
+    required: [true, 'Please provide a phone number'],
+    trim: true,
+  },
   password: {
     type: String,
     required: [true, 'Please provide a password'],
@@ -38,6 +43,18 @@ adminSchema.pre('save', async function(next) {
   }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+});
+
+// Ensure only one admin exists in the database
+adminSchema.pre('save', async function(next) {
+  // Only check on new document creation, not updates
+  if (this.isNew) {
+    const adminCount = await mongoose.model('Admin').countDocuments();
+    if (adminCount > 0) {
+      return next(new Error('Only one admin can exist in the system'));
+    }
+  }
+  next();
 });
 
 // Match password method

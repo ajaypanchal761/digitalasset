@@ -1,35 +1,65 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAdmin } from '../../../context/AdminContext';
 import StatusBadge from '../../../components/Admin/common/StatusBadge';
 import UserDetail from '../../../components/Admin/UserDetail';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
 
 const AdminUsers = () => {
-  const { users, selectedUser, setSelectedUser } = useAdmin();
+  const location = useLocation();
+  const { 
+    users, 
+    usersLoading, 
+    usersError,
+    selectedUser, 
+    setSelectedUser,
+    fetchUsers,
+    refreshUsers,
+    fetchUserDetail
+  } = useAdmin();
   const [searchQuery, setSearchQuery] = useState('');
   const [accountFilter, setAccountFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
-  // Filter users
-  const filteredUsers = useMemo(() => {
-    return users.filter(user => {
-      const matchesSearch = 
-        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.phone.includes(searchQuery);
-      
-      const matchesAccount = accountFilter === 'all' || user.accountStatus === accountFilter;
-      
-      return matchesSearch && matchesAccount;
-    });
-  }, [users, searchQuery, accountFilter]);
+  // Check for search query from navigation state (from header search)
+  useEffect(() => {
+    if (location.state?.searchQuery) {
+      console.log('🔍 AdminUsers - Received search query from navigation:', {
+        query: location.state.searchQuery,
+        timestamp: new Date().toISOString()
+      });
+      setSearchQuery(location.state.searchQuery);
+      setCurrentPage(1); // Reset to first page
+      // Clear the state to prevent re-applying on re-renders
+      window.history.replaceState({ ...location.state, searchQuery: undefined }, '');
+    }
+  }, [location.state]);
 
-  // Pagination
-  const totalPages = Math.ceil(filteredUsers.length / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+  // Listen for search events from header (when already on this page)
+  useEffect(() => {
+    const handleSearchEvent = (event) => {
+      const query = event.detail?.searchQuery;
+      if (query) {
+        console.log('🔍 AdminUsers - Received search event from header:', {
+          query,
+          timestamp: new Date().toISOString()
+        });
+        setSearchQuery(query);
+        setCurrentPage(1);
+      }
+    };
+
+    window.addEventListener('adminSearch', handleSearchEvent);
+    return () => {
+      window.removeEventListener('adminSearch', handleSearchEvent);
+    };
+  }, []);
+
+  // Use users directly from API (backend handles filtering and pagination)
+  const paginatedUsers = users;
 
   const handleClearFilters = () => {
     setSearchQuery('');
@@ -37,13 +67,149 @@ const AdminUsers = () => {
     setCurrentPage(1);
   };
 
-  const handleViewUser = (user) => {
-    setSelectedUser(user);
+  // Debounce search query to avoid too many API calls
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
+  const lastFetchTimeRef = useRef(0);
+  const fetchTimeoutRef = useRef(null);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+      setCurrentPage(1); // Reset to first page when search changes
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Fetch users when filters change with debouncing
+  useEffect(() => {
+    // Clear any pending timeout
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current);
+    }
+
+    // Debounce: wait at least 500ms between requests
+    const now = Date.now();
+    const timeSinceLastFetch = now - lastFetchTimeRef.current;
+    const debounceDelay = Math.max(0, 500 - timeSinceLastFetch);
+
+    fetchTimeoutRef.current = setTimeout(() => {
+      const params = {
+        page: currentPage,
+        limit: pageSize,
+      };
+      
+      if (debouncedSearchQuery.trim()) {
+        params.search = debouncedSearchQuery.trim();
+      }
+      
+      if (accountFilter !== 'all') {
+        params.status = accountFilter;
+      }
+      
+      console.log('📋 AdminUsers - Fetching users with params:', params);
+      lastFetchTimeRef.current = Date.now();
+      
+      fetchUsers(params).then((response) => {
+        // Update pagination info from API response
+        if (response?.total !== undefined) {
+          setTotalUsers(response.total);
+        }
+        if (response?.pages !== undefined) {
+          setTotalPages(response.pages);
+        }
+      }).catch((error) => {
+        console.error('❌ AdminUsers - Error fetching users:', error);
+      });
+    }, debounceDelay);
+
+    // Cleanup timeout on unmount or dependency change
+    return () => {
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, pageSize, debouncedSearchQuery, accountFilter]); // fetchUsers is stable (memoized with useCallback)
+
+  // Log component state changes
+  useEffect(() => {
+    console.log('📊 AdminUsers - Component state:', {
+      usersCount: users.length,
+      loading: usersLoading,
+      error: usersError,
+      hasUsers: users.length > 0,
+      searchQuery,
+      accountFilter,
+      currentPage,
+      pageSize,
+      timestamp: new Date().toISOString()
+    });
+  }, [users, usersLoading, usersError, searchQuery, accountFilter, currentPage, pageSize]);
+
+  const handleViewUser = async (user) => {
+    console.log('👁️ AdminUsers - View user clicked:', {
+      userId: user.id || user._id,
+      userName: user.name,
+      timestamp: new Date().toISOString()
+    });
+    
+    try {
+      // Fetch full user detail with holdings and transactions
+      await fetchUserDetail(user.id || user._id);
+    } catch (error) {
+      console.error('❌ AdminUsers - Error fetching user detail:', error);
+      // Fallback to using existing user data
+      setSelectedUser(user);
+    }
   };
 
   const handleCloseUserDetail = () => {
+    console.log('🔒 AdminUsers - Closing user detail');
     setSelectedUser(null);
   };
+
+  // Show loading state
+  if (usersLoading) {
+    console.log('⏳ AdminUsers - Showing loading state');
+    return (
+      <div className="admin-users">
+        <div style={{ padding: '2rem', textAlign: 'center' }}>
+          <p>Loading users...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (usersError) {
+    console.error('❌ AdminUsers - Showing error state:', {
+      error: usersError,
+      timestamp: new Date().toISOString()
+    });
+    return (
+      <div className="admin-users">
+        <div style={{ padding: '2rem', textAlign: 'center' }}>
+          <p style={{ color: '#dc2626', marginBottom: '1rem' }}>Error: {usersError}</p>
+          <button 
+            onClick={() => {
+              console.log('🔄 AdminUsers - Retry button clicked');
+              refreshUsers();
+            }}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#6366f1',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.5rem',
+              cursor: 'pointer'
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-users">
@@ -58,7 +224,7 @@ const AdminUsers = () => {
         <div className="admin-users__stats">
           <div className="admin-users__stat">
             <span className="admin-users__stat-label">Total Users</span>
-            <span className="admin-users__stat-value">{users.length}</span>
+            <span className="admin-users__stat-value">{totalUsers}</span>
           </div>
         </div>
       </div>
@@ -130,31 +296,32 @@ const AdminUsers = () => {
               </tr>
             ) : (
               paginatedUsers.map((user) => (
-                <tr key={user.id}>
+                <tr key={user.id || user._id}>
                   <td>
                     <div className="admin-users__user-name">
                       <div className="admin-users__user-avatar">
-                        {user.name.charAt(0)}
+                        {user.name?.charAt(0) || 'U'}
                       </div>
-                      <span>{user.name}</span>
+                      <span>{user.name || 'Unknown User'}</span>
                     </div>
                   </td>
                   <td>
                     <div className="admin-users__contact">
-                      <div>{user.email}</div>
-                      <div className="admin-users__phone">{user.phone}</div>
+                      <div>{user.email || '-'}</div>
+                      <div className="admin-users__phone">{user.phone || '-'}</div>
                     </div>
                   </td>
-                  <td>{formatDate(user.registrationDate)}</td>
-                  <td>{formatCurrency(user.wallet.totalInvestments)}</td>
-                  <td>{formatCurrency(user.wallet.balance)}</td>
+                  <td>{formatDate(user.registrationDate || user.createdAt)}</td>
+                  <td>{formatCurrency(user.wallet?.totalInvestments || 0)}</td>
+                  <td>{formatCurrency(user.wallet?.balance || 0)}</td>
                   <td>
-                    <StatusBadge status={user.accountStatus} />
+                    <StatusBadge status={user.accountStatus || 'active'} />
                   </td>
                   <td>
                     <button 
                       className="admin-users__action-btn"
                       onClick={() => handleViewUser(user)}
+                      disabled={usersLoading}
                     >
                       View
                     </button>
@@ -167,10 +334,10 @@ const AdminUsers = () => {
       </div>
 
       {/* Pagination */}
-      {filteredUsers.length > 0 && (
+      {paginatedUsers.length > 0 && (
         <div className="admin-users__pagination">
           <div className="admin-users__pagination-info">
-            Showing {startIndex + 1} to {Math.min(endIndex, filteredUsers.length)} of {filteredUsers.length} users
+            Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalUsers)} of {totalUsers} users
           </div>
           <div className="admin-users__pagination-controls">
             <select

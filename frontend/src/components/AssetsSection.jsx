@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import AssetCard from "./AssetCard.jsx";
 
 const AssetsSection = () => {
-  const { holdings } = useAppState();
+  const { holdings, loading, error } = useAppState();
   const navigate = useNavigate();
 
   const handleViewDetail = (holding) => {
     // Navigate to holding detail page
-    navigate(`/holding/${holding.id}`);
+    navigate(`/holding/${holding._id || holding.id}`);
   };
 
   const handleWithdraw = (holding) => {
@@ -18,6 +18,31 @@ const AssetsSection = () => {
     // navigate(`/withdraw/${holding.id}`);
   };
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="assets-section">
+        <h2 className="assets-section__title">Current Holdings</h2>
+        <div className="assets-section__empty">
+          <p>Loading holdings...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="assets-section">
+        <h2 className="assets-section__title">Current Holdings</h2>
+        <div className="assets-section__empty">
+          <p>Error loading holdings: {error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty state
   if (!holdings || holdings.length === 0) {
     return (
       <div className="assets-section">
@@ -55,7 +80,7 @@ const AssetsSection = () => {
         <div className="assets-section__cards">
           {displayedHoldings.map((holding) => (
             <AssetCard
-              key={holding.id}
+              key={holding._id || holding.id}
               holding={holding}
               onViewDetail={handleViewDetail}
               onWithdraw={handleWithdraw}

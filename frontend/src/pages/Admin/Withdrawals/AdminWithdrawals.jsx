@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAdmin } from '../../../context/AdminContext';
 import StatusBadge from '../../../components/Admin/common/StatusBadge';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
@@ -6,10 +7,15 @@ import WithdrawalDetail from '../../../components/Admin/WithdrawalDetail';
 import ConfirmDialog from '../../../components/Admin/common/ConfirmDialog';
 
 const AdminWithdrawals = () => {
+  const location = useLocation();
   const { 
     withdrawals, 
+    withdrawalsLoading,
+    withdrawalsError,
     selectedWithdrawal, 
     setSelectedWithdrawal,
+    fetchWithdrawals,
+    refreshWithdrawals,
     updateWithdrawalStatus,
     bulkUpdateWithdrawals
   } = useAdmin();
@@ -23,15 +29,62 @@ const AdminWithdrawals = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
 
+  // Check for search query from navigation state (from header search)
+  useEffect(() => {
+    if (location.state?.searchQuery) {
+      console.log('🔍 AdminWithdrawals - Received search query from navigation:', {
+        query: location.state.searchQuery,
+        timestamp: new Date().toISOString()
+      });
+      setSearchQuery(location.state.searchQuery);
+      setCurrentPage(1); // Reset to first page
+      // Clear the state to prevent re-applying on re-renders
+      window.history.replaceState({ ...location.state, searchQuery: undefined }, '');
+    }
+  }, [location.state]);
+
+  // Listen for search events from header (when already on this page)
+  useEffect(() => {
+    const handleSearchEvent = (event) => {
+      const query = event.detail?.searchQuery;
+      if (query) {
+        console.log('🔍 AdminWithdrawals - Received search event from header:', {
+          query,
+          timestamp: new Date().toISOString()
+        });
+        setSearchQuery(query);
+        setCurrentPage(1);
+      }
+    };
+
+    window.addEventListener('adminSearch', handleSearchEvent);
+    return () => {
+      window.removeEventListener('adminSearch', handleSearchEvent);
+    };
+  }, []);
+
   // Filter withdrawals
   const filteredWithdrawals = useMemo(() => {
+    if (!withdrawals || withdrawals.length === 0) return [];
+    
     return withdrawals.filter(withdrawal => {
+      const searchLower = searchQuery.toLowerCase();
       const matchesSearch = 
-        withdrawal.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        withdrawal.userEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        withdrawal.id.toLowerCase().includes(searchQuery.toLowerCase());
+        (withdrawal.userName?.toLowerCase() || '').includes(searchLower) ||
+        (withdrawal.userEmail?.toLowerCase() || '').includes(searchLower) ||
+        (withdrawal.id?.toLowerCase() || '').includes(searchLower) ||
+        (withdrawal._id?.toLowerCase() || '').includes(searchLower);
       
-      const matchesStatus = statusFilter === 'all' || withdrawal.status === statusFilter;
+      // Map status filter to handle both 'approved' and 'completed'
+      let statusToMatch = statusFilter;
+      if (statusFilter === 'completed') {
+        statusToMatch = 'completed'; // Frontend uses 'completed'
+      } else if (statusFilter === 'all') {
+        statusToMatch = 'all';
+      }
+      
+      const matchesStatus = statusToMatch === 'all' || withdrawal.status === statusToMatch || 
+                           (statusToMatch === 'completed' && withdrawal.status === 'approved');
       
       return matchesSearch && matchesStatus;
     });
@@ -67,7 +120,7 @@ const AdminWithdrawals = () => {
     if (selectedIds.length === paginatedWithdrawals.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(paginatedWithdrawals.map(w => w.id));
+      setSelectedIds(paginatedWithdrawals.map(w => w.id || w._id));
     }
   };
 
@@ -83,28 +136,88 @@ const AdminWithdrawals = () => {
     setShowConfirmDialog(true);
   };
 
-  const handleConfirmAction = () => {
+  const handleConfirmAction = async () => {
     if (!confirmAction) return;
     
-    if (confirmAction.type === 'approve') {
-      bulkUpdateWithdrawals(confirmAction.ids, 'processing');
-      setTimeout(() => {
-        bulkUpdateWithdrawals(confirmAction.ids, 'completed');
-      }, 1000);
-    } else if (confirmAction.type === 'reject') {
-      bulkUpdateWithdrawals(confirmAction.ids, 'rejected', 'Bulk rejection by admin');
+    try {
+      if (confirmAction.type === 'approve') {
+        // Approve withdrawals (backend uses 'approved' status)
+        await bulkUpdateWithdrawals(confirmAction.ids, 'approved');
+      } else if (confirmAction.type === 'reject') {
+        await bulkUpdateWithdrawals(confirmAction.ids, 'rejected', 'Bulk rejection by admin');
+      }
+      
+      setSelectedIds([]);
+      setShowConfirmDialog(false);
+      setConfirmAction(null);
+      
+      // Refresh withdrawals list
+      await refreshWithdrawals();
+    } catch (error) {
+      console.error('❌ AdminWithdrawals - Error in bulk action:', error);
+      alert(`Failed to ${confirmAction.type} withdrawals: ${error.message}`);
     }
-    
-    setSelectedIds([]);
-    setShowConfirmDialog(false);
-    setConfirmAction(null);
   };
 
   const pendingCount = withdrawals.filter(w => w.status === 'pending').length;
-  const processingCount = withdrawals.filter(w => w.status === 'processing').length;
+  const processingCount = withdrawals.filter(w => w.status === 'processing' || w.status === 'approved').length;
   const totalPendingAmount = withdrawals
-    .filter(w => w.status === 'pending' || w.status === 'processing')
-    .reduce((sum, w) => sum + w.amount, 0);
+    .filter(w => w.status === 'pending' || w.status === 'processing' || w.status === 'approved')
+    .reduce((sum, w) => sum + (w.amount || 0), 0);
+
+  // Show loading state
+  if (withdrawalsLoading) {
+    return (
+      <div className="admin-withdrawals">
+        <div className="admin-withdrawals__header">
+          <div>
+            <h1 className="admin-withdrawals__title">Withdrawal Management</h1>
+            <p className="admin-withdrawals__subtitle">
+              Review and manage withdrawal requests from users
+            </p>
+          </div>
+        </div>
+        <div style={{ padding: '2rem', textAlign: 'center' }}>
+          <p>Loading withdrawals...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (withdrawalsError) {
+    return (
+      <div className="admin-withdrawals">
+        <div className="admin-withdrawals__header">
+          <div>
+            <h1 className="admin-withdrawals__title">Withdrawal Management</h1>
+            <p className="admin-withdrawals__subtitle">
+              Review and manage withdrawal requests from users
+            </p>
+          </div>
+        </div>
+        <div style={{ padding: '2rem', textAlign: 'center' }}>
+          <p style={{ color: '#dc2626', marginBottom: '1rem' }}>Error: {withdrawalsError}</p>
+          <button 
+            onClick={() => {
+              console.log('🔄 AdminWithdrawals - Retry button clicked');
+              refreshWithdrawals();
+            }}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#6366f1',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.5rem',
+              cursor: 'pointer'
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-withdrawals">
@@ -243,55 +356,58 @@ const AdminWithdrawals = () => {
                 </td>
               </tr>
             ) : (
-              paginatedWithdrawals.map((withdrawal) => (
-                <tr key={withdrawal.id}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.includes(withdrawal.id)}
-                      onChange={() => handleSelectWithdrawal(withdrawal.id)}
-                      className="admin-withdrawals__checkbox"
-                    />
-                  </td>
-                  <td>
-                    <div className="admin-withdrawals__user-info">
-                      <div className="admin-withdrawals__user-avatar">
-                        {withdrawal.userName.split(' ').map(n => n[0]).join('').toUpperCase()}
+              paginatedWithdrawals.map((withdrawal) => {
+                const withdrawalId = withdrawal.id || withdrawal._id;
+                return (
+                  <tr key={withdrawalId}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(withdrawalId)}
+                        onChange={() => handleSelectWithdrawal(withdrawalId)}
+                        className="admin-withdrawals__checkbox"
+                      />
+                    </td>
+                    <td>
+                      <div className="admin-withdrawals__user-info">
+                        <div className="admin-withdrawals__user-avatar">
+                          {(withdrawal.userName || 'U').split(' ').map(n => n[0] || 'U').join('').toUpperCase()}
+                        </div>
+                        <div className="admin-withdrawals__user-details">
+                          <div className="admin-withdrawals__user-name">{withdrawal.userName || 'Unknown User'}</div>
+                          <div className="admin-withdrawals__user-email">{withdrawal.userEmail || 'N/A'}</div>
+                        </div>
                       </div>
-                      <div className="admin-withdrawals__user-details">
-                        <div className="admin-withdrawals__user-name">{withdrawal.userName}</div>
-                        <div className="admin-withdrawals__user-email">{withdrawal.userEmail}</div>
+                    </td>
+                    <td className="admin-withdrawals__amount">
+                      {formatCurrency(withdrawal.amount || 0)}
+                    </td>
+                    <td>
+                      <div className="admin-withdrawals__bank-info">
+                        <div className="admin-withdrawals__bank-name">
+                          {withdrawal.bankDetails?.accountHolderName || 'N/A'}
+                        </div>
+                        <div className="admin-withdrawals__bank-details">
+                          {withdrawal.bankDetails?.accountNumber || 'N/A'} • {withdrawal.bankDetails?.ifscCode || 'N/A'}
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="admin-withdrawals__amount">
-                    {formatCurrency(withdrawal.amount)}
-                  </td>
-                  <td>
-                    <div className="admin-withdrawals__bank-info">
-                      <div className="admin-withdrawals__bank-name">
-                        {withdrawal.bankDetails.accountHolderName}
-                      </div>
-                      <div className="admin-withdrawals__bank-details">
-                        {withdrawal.bankDetails.accountNumber} • {withdrawal.bankDetails.ifscCode}
-                      </div>
-                    </div>
-                  </td>
-                  <td>{formatDate(withdrawal.requestDate)}</td>
-                  <td>
-                    <StatusBadge status={withdrawal.status} />
-                  </td>
-                  <td>
-                    <button 
-                      className="admin-withdrawals__action-btn admin-withdrawals__action-btn--view"
-                      onClick={() => handleViewWithdrawal(withdrawal)}
-                      title="View Details"
-                    >
-                      View
-                    </button>
-                  </td>
-                </tr>
-              ))
+                    </td>
+                    <td>{formatDate(withdrawal.requestDate || withdrawal.createdAt)}</td>
+                    <td>
+                      <StatusBadge status={withdrawal.status} />
+                    </td>
+                    <td>
+                      <button 
+                        className="admin-withdrawals__action-btn admin-withdrawals__action-btn--view"
+                        onClick={() => handleViewWithdrawal(withdrawal)}
+                        title="View Details"
+                      >
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
