@@ -809,6 +809,22 @@ export const adminAuthAPI = {
     });
   },
 
+  // Forgot password - request password reset
+  forgotPassword: async (email) => {
+    return apiRequest('/admin-auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  // Reset password - set new password with token
+  resetPassword: async (token, password) => {
+    return apiRequest('/admin-auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, password }),
+    });
+  },
+
   // Logout (remove admin token)
   logout: () => {
     removeAdminToken();
