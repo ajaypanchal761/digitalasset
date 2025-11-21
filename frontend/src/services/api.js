@@ -91,10 +91,14 @@ const apiRequest = async (url, options = {}) => {
   
   const token = (isAdminRoute || isPropertyAdminOp) ? adminToken : userToken;
   
+  // Check if body is FormData - if so, don't set Content-Type (browser will set it with boundary)
+  const isFormData = options.body instanceof FormData;
+  
   const config = {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      // Only set Content-Type for JSON, not for FormData
+      ...(!isFormData && { 'Content-Type': 'application/json' }),
       ...(token && { Authorization: `Bearer ${token}` }),
       ...options.headers,
     },
@@ -475,10 +479,30 @@ export const profileAPI = {
   },
 
   // Submit KYC documents
-  submitKYC: async (documents) => {
-    // Show alert before making request
-    alert('Integrate soon');
-    return Promise.reject(new Error('Integrate soon'));
+  submitKYC: async (kycData) => {
+    const formData = new FormData();
+    
+    // Append files
+    if (kycData.panCard) formData.append('panCard', kycData.panCard);
+    if (kycData.aadhaarCard) formData.append('aadhaarCard', kycData.aadhaarCard);
+    if (kycData.photo) formData.append('photo', kycData.photo);
+    if (kycData.addressProof) formData.append('addressProof', kycData.addressProof);
+    
+    // Append text fields
+    if (kycData.panNumber) formData.append('panNumber', kycData.panNumber);
+    if (kycData.aadhaarNumber) formData.append('aadhaarNumber', kycData.aadhaarNumber);
+    
+    // Get token for authorization
+    const token = getToken();
+    
+    return apiRequest('/profile/kyc', {
+      method: 'POST',
+      body: formData,
+      // Don't set Content-Type header, browser will set it with boundary for FormData
+      headers: {
+        Authorization: token ? `Bearer ${token}` : '',
+      },
+    });
   },
 
   // Update bank details
@@ -562,6 +586,7 @@ export const adminAPI = {
       method: 'DELETE',
     });
   },
+
 
   // Get all withdrawals
   getWithdrawals: async (params = {}) => {

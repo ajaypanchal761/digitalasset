@@ -53,6 +53,16 @@ const userSchema = new mongoose.Schema({
     enum: ['pending', 'approved', 'rejected'],
     default: 'pending',
   },
+  kycDocuments: {
+    panCard: { type: String, default: null },
+    aadhaarCard: { type: String, default: null },
+    photo: { type: String, default: null },
+    addressProof: { type: String, default: null },
+    panNumber: { type: String, default: null },
+    aadhaarNumber: { type: String, default: null },
+  },
+  kycSubmittedAt: { type: Date, default: null },
+  kycRejectionReason: { type: String, default: null },
   wallet: {
     balance: {
       type: Number,

@@ -251,6 +251,9 @@ export const AdminProvider = ({ children }) => {
           transactions: user.transactions || [],
           role: user.role || 'investor',
           kycStatus: user.kycStatus || 'pending',
+          kycDocuments: user.kycDocuments || null,
+          kycSubmittedAt: user.kycSubmittedAt || null,
+          kycRejectionReason: user.kycRejectionReason || null,
         }));
         
         logger.log('✅ AdminContext - Users fetched successfully:', {
@@ -565,6 +568,10 @@ export const AdminProvider = ({ children }) => {
             lockedAmount: user.wallet?.lockedAmount || 0,
             monthlyEarnings: user.wallet?.monthlyEarnings || 0,
           },
+          kycStatus: user.kycStatus || 'pending',
+          kycDocuments: user.kycDocuments || null,
+          kycSubmittedAt: user.kycSubmittedAt || null,
+          kycRejectionReason: user.kycRejectionReason || null,
           bankDetails: user.bankDetails || null,
           investments: holdings?.map(h => ({
             id: h._id || h.id,
@@ -587,7 +594,6 @@ export const AdminProvider = ({ children }) => {
             status: t.status || 'completed',
           })) || [],
           role: user.role || 'investor',
-          kycStatus: user.kycStatus || 'pending',
         };
         
         logger.log('✅ AdminContext - User detail fetched successfully:', {
@@ -1219,6 +1225,7 @@ export const AdminProvider = ({ children }) => {
       throw error;
     }
   };
+
 
   // Fetch properties on mount (only if we're actually on an admin route)
   useEffect(() => {

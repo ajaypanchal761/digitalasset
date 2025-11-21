@@ -41,4 +41,12 @@ export const uploadDocument = upload.single('document');
 // Upload multiple documents
 export const uploadDocuments = upload.array('documents', 10);
 
+// Upload KYC documents (multiple named fields)
+export const uploadKYCDocuments = upload.fields([
+  { name: 'panCard', maxCount: 1 },
+  { name: 'aadhaarCard', maxCount: 1 },
+  { name: 'photo', maxCount: 1 },
+  { name: 'addressProof', maxCount: 1 },
+]);
+
 

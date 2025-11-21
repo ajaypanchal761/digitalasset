@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAdmin } from '../../context/AdminContext';
+import { useToast } from '../../context/ToastContext';
 import StatusBadge from './common/StatusBadge';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 
@@ -101,6 +102,48 @@ const UserInfoTab = ({ user }) => {
           <label>Registration Date</label>
           <p>{formatDate(user.registrationDate)}</p>
         </div>
+      </div>
+
+      <h3 className="user-detail-tab__title">KYC Status</h3>
+      <div className="user-detail-tab__section">
+        <div className="user-detail-tab__field">
+          <label>Verification Status</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <StatusBadge status={user.kycStatus || 'pending'} />
+            {user.kycSubmittedAt && (
+              <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                Submitted: {formatDate(user.kycSubmittedAt)}
+              </span>
+            )}
+          </div>
+        </div>
+        {user.kycDocuments && (
+          <>
+            <div className="user-detail-tab__field">
+              <label>PAN Number</label>
+              <p>{user.kycDocuments.panNumber || '-'}</p>
+            </div>
+            <div className="user-detail-tab__field">
+              <label>Aadhaar Number</label>
+              <p>{user.kycDocuments.aadhaarNumber ? `****${user.kycDocuments.aadhaarNumber.slice(-4)}` : '-'}</p>
+            </div>
+            <div className="user-detail-tab__field">
+              <label>Note</label>
+              <p style={{ fontSize: '0.875rem', color: '#64748b', fontStyle: 'italic' }}>
+                KYC documents are verified and managed by DigiLocker. Document viewing is not available in the admin panel.
+              </p>
+            </div>
+          </>
+        )}
+        {user.kycRejectionReason && (
+          <div className="user-detail-tab__field">
+            <label>Rejection Reason</label>
+            <p style={{ color: '#dc2626' }}>{user.kycRejectionReason}</p>
+          </div>
+        )}
+        {!user.kycDocuments && (
+          <p className="user-detail-tab__empty">KYC documents not submitted yet</p>
+        )}
       </div>
 
       <h3 className="user-detail-tab__title">Bank Details</h3>
@@ -466,6 +509,7 @@ const WalletTab = ({ user }) => {
 // Actions Tab Component
 const ActionsTab = ({ user, onClose }) => {
   const { toggleUserAccountStatus, fetchUserDetail, refreshUsers } = useAdmin();
+  const { showToast } = useToast();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [actionType, setActionType] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -534,6 +578,44 @@ const ActionsTab = ({ user, onClose }) => {
 
   return (
     <div className="user-detail-tab">
+      {/* KYC Status Info */}
+      {user.kycDocuments && (
+        <div style={{ marginBottom: '2rem' }}>
+          <h3 className="user-detail-tab__title">KYC Verification</h3>
+          <div style={{ 
+            padding: '1rem', 
+            background: '#f8fafc', 
+            borderRadius: '8px', 
+            border: '1px solid #e2e8f0',
+            fontSize: '0.875rem',
+            color: '#475569'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <path d="M9 12l2 2 4-4" />
+              </svg>
+              <strong>KYC Status:</strong>
+              <StatusBadge status={user.kycStatus || 'pending'} />
+            </div>
+            <p style={{ margin: 0, marginTop: '0.5rem', color: '#64748b' }}>
+              KYC verification is handled automatically by DigiLocker. Status updates are processed through the DigiLocker system.
+            </p>
+            {user.kycStatus === 'approved' && (
+              <p style={{ margin: '0.5rem 0 0 0', color: '#059669', fontWeight: 500 }}>
+                ✓ KYC verified and approved by DigiLocker
+              </p>
+            )}
+            {user.kycStatus === 'rejected' && user.kycRejectionReason && (
+              <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: '#fee2e2', borderRadius: '6px' }}>
+                <strong style={{ color: '#991b1b', display: 'block', marginBottom: '0.25rem' }}>Rejection Reason (from DigiLocker):</strong>
+                <p style={{ margin: 0, color: '#991b1b', fontSize: '0.8125rem' }}>{user.kycRejectionReason}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <h3 className="user-detail-tab__title">Account Actions</h3>
       <div className="user-detail-tab__actions-grid">
         {user.accountStatus === 'active' ? (

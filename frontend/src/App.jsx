@@ -18,6 +18,7 @@ const AllInvestments = lazy(() => import("./pages/Wallet/AllInvestments.jsx"));
 const Earnings = lazy(() => import("./pages/Wallet/Earnings.jsx"));
 const Profile = lazy(() => import("./pages/Profile/Profile.jsx"));
 const EditProfile = lazy(() => import("./pages/EditProfile/EditProfile.jsx"));
+const KYC = lazy(() => import("./pages/KYC/KYC.jsx"));
 const PropertyDetail = lazy(() => import("./pages/PropertyDetail/PropertyDetail.jsx"));
 const HoldingDetail = lazy(() => import("./pages/HoldingDetail/HoldingDetail.jsx"));
 const WithdrawInfo = lazy(() => import("./pages/WithdrawInfo/WithdrawInfo.jsx"));
@@ -84,6 +85,7 @@ function App() {
             <Route path="transfer-ownership" element={<TransferOwnership />} />
             <Route path="profile" element={<Profile />} />
             <Route path="profile/edit" element={<EditProfile />} />
+            <Route path="kyc" element={<KYC />} />
             <Route path="chat" element={<Chat />} />
             <Route path="holdings" element={<Holdings />} />
           </Route>

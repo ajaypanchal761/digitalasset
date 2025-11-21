@@ -17,6 +17,9 @@ export const getProfile = async (req, res) => {
         avatarUrl: user.avatarUrl,
         wallet: user.wallet,
         kycStatus: user.kycStatus,
+        kycDocuments: user.kycDocuments,
+        kycSubmittedAt: user.kycSubmittedAt,
+        kycRejectionReason: user.kycRejectionReason,
         bankDetails: user.bankDetails,
       },
     });
@@ -67,15 +70,96 @@ export const updateProfile = async (req, res) => {
 // @access  Private
 export const submitKYC = async (req, res) => {
   try {
-    // KYC integration not yet implemented
-    res.status(501).json({
-      success: false,
-      message: 'Integrate soon',
+    const { panNumber, aadhaarNumber } = req.body;
+    const files = req.files;
+
+    // Validate required fields
+    if (!panNumber || !aadhaarNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'PAN number and Aadhaar number are required',
+      });
+    }
+
+    // Validate PAN format (10 characters, alphanumeric)
+    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+    if (!panRegex.test(panNumber.toUpperCase())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid PAN format. PAN should be 10 characters (e.g., ABCDE1234F)',
+      });
+    }
+
+    // Validate Aadhaar format (12 digits)
+    const aadhaarRegex = /^[0-9]{12}$/;
+    if (!aadhaarRegex.test(aadhaarNumber)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid Aadhaar format. Aadhaar should be 12 digits',
+      });
+    }
+
+    // Validate all files are uploaded
+    if (!files || !files.panCard || !files.aadhaarCard || !files.photo || !files.addressProof) {
+      return res.status(400).json({
+        success: false,
+        message: 'All documents are required: PAN Card, Aadhaar Card, Photo, and Address Proof',
+      });
+    }
+
+    // Validate photo is an image (not PDF)
+    if (files.photo[0].mimetype === 'application/pdf') {
+      return res.status(400).json({
+        success: false,
+        message: 'Profile photo must be an image file (JPG, PNG, etc.), not PDF',
+      });
+    }
+
+    // Get user
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    // Upload documents to Cloudinary and get URLs
+    const panCardUrl = files.panCard[0].path;
+    const aadhaarCardUrl = files.aadhaarCard[0].path;
+    const photoUrl = files.photo[0].path;
+    const addressProofUrl = files.addressProof[0].path;
+
+    // Update user KYC documents
+    user.kycDocuments = {
+      panCard: panCardUrl,
+      aadhaarCard: aadhaarCardUrl,
+      photo: photoUrl,
+      addressProof: addressProofUrl,
+      panNumber: panNumber.toUpperCase(),
+      aadhaarNumber: aadhaarNumber,
+    };
+
+    // Set KYC status to pending
+    user.kycStatus = 'pending';
+    user.kycSubmittedAt = new Date();
+    user.kycRejectionReason = null; // Clear any previous rejection reason
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'KYC documents submitted successfully. Your documents are under review.',
+      data: {
+        kycStatus: user.kycStatus,
+        kycSubmittedAt: user.kycSubmittedAt,
+      },
     });
   } catch (error) {
+    console.error('❌ Submit KYC error:', error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || 'Failed to submit KYC documents. Please try again.',
     });
   }
 };

@@ -298,6 +298,29 @@
   color: #ef4444;
 }
 
+.profile-menu__badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+.profile-menu__badge--pending {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+.profile-menu__badge--approved {
+  background: #d1fae5;
+  color: #10b981;
+}
+
+.profile-menu__badge--rejected {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
 /* Mobile specific adjustments */
 @media (max-width: 640px) {
   .profile-page {
