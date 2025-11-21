@@ -240,7 +240,22 @@ const AdminLogin = () => {
 
             {/* Password Input */}
             <div className="admin-login-field">
-              <label htmlFor="password">Password</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <label htmlFor="password" style={{ marginBottom: 0 }}>Password</label>
+                <Link 
+                  to="/admin-auth/forgot-password" 
+                  style={{ 
+                    fontSize: '0.875rem', 
+                    color: '#6366f1', 
+                    textDecoration: 'none',
+                    fontWeight: 500
+                  }}
+                  onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                  onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                >
+                  Forgot Password?
+                </Link>
+              </div>
               <div className="admin-login-password-wrapper">
                 <input
                   type={showPassword ? "text" : "password"}

@@ -41,6 +41,8 @@ const AdminProfileSettings = lazy(() => import("./pages/Admin/Profile/AdminProfi
 const AdminLogin = lazy(() => import("./pages/Admin/Auth/AdminLogin.jsx"));
 const AdminRegister = lazy(() => import("./pages/Admin/Auth/AdminRegister.jsx"));
 const AdminVerifyOtp = lazy(() => import("./pages/Admin/Auth/AdminVerifyOtp.jsx"));
+const AdminForgotPassword = lazy(() => import("./pages/Admin/Auth/AdminForgotPassword.jsx"));
+const AdminResetPassword = lazy(() => import("./pages/Admin/Auth/AdminResetPassword.jsx"));
 const NotFound = lazy(() => import("./pages/NotFound.jsx"));
 
 // Loading component
@@ -101,6 +103,8 @@ function App() {
             <Route path="login" element={<AdminLogin />} />
             <Route path="register" element={<AdminRegister />} />
             <Route path="verify-otp" element={<AdminVerifyOtp />} />
+            <Route path="forgot-password" element={<AdminForgotPassword />} />
+            <Route path="reset-password" element={<AdminResetPassword />} />
           </Route>
 
           <Route path="/admin" element={<AdminLayout />}>

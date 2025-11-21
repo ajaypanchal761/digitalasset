@@ -3,7 +3,7 @@ import OTP from '../models/OTP.js';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET, JWT_EXPIRE } from '../config/jwt.js';
 import { generateOTP } from '../utils/otp.js';
-import { sendOTPEmail } from '../utils/email.js';
+import { sendOTPEmail, sendPasswordResetEmail } from '../utils/email.js';
 import smsHubIndiaService from '../services/smsHubIndiaService.js';
 
 // Generate JWT Token with explicit iat and exp (matching user token format)
@@ -621,6 +621,137 @@ export const updateAdminProfile = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to update profile',
+    });
+  }
+};
+
+// @desc    Forgot admin password - send reset email
+// @route   POST /api/admin-auth/forgot-password
+// @access  Public
+export const forgotAdminPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required',
+      });
+    }
+
+    // Find admin by email
+    const admin = await Admin.findOne({ email: email.toLowerCase().trim() });
+
+    // Don't reveal if admin exists or not (security best practice)
+    // Always return success message even if admin doesn't exist
+    if (admin) {
+      // Generate reset token (expires in 1 hour)
+      const resetToken = jwt.sign(
+        { id: admin._id, type: 'admin-reset' },
+        JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+
+      // Send password reset email
+      try {
+        await sendPasswordResetEmail(admin.email, resetToken, 'admin');
+      } catch (emailError) {
+        console.error('❌ Failed to send password reset email:', emailError);
+        // Still return success to not reveal admin existence
+      }
+    }
+
+    // Always return success message (don't reveal if admin exists)
+    res.json({
+      success: true,
+      message: 'If an admin account exists with this email, a password reset link has been sent.',
+    });
+  } catch (error) {
+    console.error('❌ Forgot Admin Password error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to process password reset request',
+    });
+  }
+};
+
+// @desc    Reset admin password
+// @route   POST /api/admin-auth/reset-password
+// @access  Public
+export const resetAdminPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Reset token is required',
+      });
+    }
+
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password is required',
+      });
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters long',
+      });
+    }
+
+    // Verify and decode token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+      
+      // Check if token is for admin reset
+      if (decoded.type !== 'admin-reset') {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid reset token',
+        });
+      }
+    } catch (tokenError) {
+      if (tokenError.name === 'TokenExpiredError') {
+        return res.status(400).json({
+          success: false,
+          message: 'Reset token has expired. Please request a new one.',
+        });
+      }
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired reset token',
+      });
+    }
+
+    // Find admin by ID from token
+    const admin = await Admin.findById(decoded.id).select('+password');
+
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: 'Admin not found',
+      });
+    }
+
+    // Update password (pre-save hook will hash it)
+    admin.password = password;
+    await admin.save();
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully. You can now login with your new password.',
+    });
+  } catch (error) {
+    console.error('❌ Reset Admin Password error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to reset password',
     });
   }
 };
