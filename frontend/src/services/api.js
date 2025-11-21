@@ -286,22 +286,6 @@ export const authAPI = {
     return apiRequest('/auth/me');
   },
 
-  // Forgot password
-  forgotPassword: async (email) => {
-    return apiRequest('/auth/forgot-password', {
-      method: 'POST',
-      body: JSON.stringify({ email }),
-    });
-  },
-
-  // Reset password
-  resetPassword: async (token, password) => {
-    return apiRequest('/auth/reset-password', {
-      method: 'POST',
-      body: JSON.stringify({ token, password }),
-    });
-  },
-
   // Logout (remove token)
   logout: () => {
     removeToken();

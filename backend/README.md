@@ -54,7 +54,7 @@ npm start
 - `POST /api/auth/login` - User login
 - `POST /api/auth/send-otp` - Send OTP
 - `POST /api/auth/verify-otp` - Verify OTP
-- `POST /api/auth/forgot-password` - Forgot password
+- `POST /api/auth/login-otp` - Login with OTP
 - `GET /api/auth/me` - Get current user
 
 ### Properties

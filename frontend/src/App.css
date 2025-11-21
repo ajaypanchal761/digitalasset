@@ -156,6 +156,157 @@
   box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
 }
 
+/* Full-width for all pages on desktop/webview only (except chat page) */
+@media (min-width: 769px) {
+  /* Make app-content full-width for all pages except chat */
+  .app-content:not(:has(.chat-page)) {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  /* Make app-content__page full-width for all pages except chat */
+  .app-content__page:not(:has(.chat-page)) {
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  /* Wallet summary card margin for pages that show it */
+  .app-content:not(:has(.chat-page)) .wallet-summary-card {
+    margin: 0 2.5rem;
+    margin-top: 0;
+  }
+
+  /* Dashboard specific styles - full width with padding */
+  .app-content__page:not(:has(.chat-page)) > .dashboard {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+
+  .dashboard {
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+  }
+
+  /* All other page content should have padding */
+  .app-content__page:not(:has(.chat-page)) > *:not(.dashboard) {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+
+  /* Homepage Sections - Proper Layout */
+  .dashboard .assets-section,
+  .dashboard .explore-properties-section {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .dashboard .assets-section__header,
+  .dashboard .explore-properties-section__header {
+    padding-left: 0;
+    padding-right: 0;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .dashboard .assets-section__title,
+  .dashboard .explore-properties-section__title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  .dashboard .assets-section__view-all-btn,
+  .dashboard .explore-properties-section__view-all-btn {
+    font-size: 0.9375rem;
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+  }
+
+  .dashboard .assets-section__view-all-btn:hover,
+  .dashboard .explore-properties-section__view-all-btn:hover {
+    background: rgba(37, 99, 235, 0.1);
+    transform: translateX(2px);
+  }
+
+  .dashboard .assets-section__container,
+  .dashboard .explore-properties-section__container {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* Homepage - Assets Section Cards Grid Layout */
+  .dashboard .assets-section__cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    width: 100%;
+    padding: 0;
+  }
+
+  /* Homepage - Explore Properties Cards Grid Layout */
+  .dashboard .explore-properties-section__cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 2rem;
+    width: 100%;
+    padding: 0;
+  }
+
+  /* Homepage - Property Cards Styling */
+  .dashboard .property-card {
+    padding: 1.75rem;
+    gap: 1.25rem;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+    background: #ffffff;
+  }
+
+  .dashboard .property-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+    border-color: rgba(37, 99, 235, 0.2);
+  }
+
+  /* Homepage - Empty States */
+  .dashboard .assets-section__empty,
+  .dashboard .explore-properties-section__empty {
+    padding: 3rem 2rem;
+    text-align: center;
+    background: #f8fafc;
+    border-radius: 1rem;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+  }
+
+  /* Page-specific containers should be full-width */
+  .wallet-page,
+  .wallet-page__container {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
 /* Make chat page full-screen */
 .app-content__page > .chat-page {
   position: fixed;
@@ -473,15 +624,6 @@
   box-sizing: border-box;
 }
 
-@media (min-width: 769px) {
-  .dashboard {
-    gap: 2rem;
-  }
-
-  .explore-properties-section {
-    max-width: 100%;
-  }
-}
 
 /* Explore Properties Section */
 .explore-properties-section {

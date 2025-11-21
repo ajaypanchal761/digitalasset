@@ -28,7 +28,6 @@ const Chat = lazy(() => import("./pages/Chat/Chat.jsx"));
 const Holdings = lazy(() => import("./pages/Holdings/Holdings.jsx"));
 const Login = lazy(() => import("./pages/Auth/Login.jsx"));
 const Register = lazy(() => import("./pages/Auth/Register.jsx"));
-const ForgotPassword = lazy(() => import("./pages/Auth/ForgotPassword.jsx"));
 const VerifyEmail = lazy(() => import("./pages/Auth/VerifyEmail.jsx"));
 const VerifyOtp = lazy(() => import("./pages/Auth/VerifyOtp.jsx"));
 const LoginOtp = lazy(() => import("./pages/Auth/LoginOtp.jsx"));
@@ -91,7 +90,6 @@ function App() {
             <Route index element={<Navigate to="login" replace />} />
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
-            <Route path="forgot-password" element={<ForgotPassword />} />
             <Route path="verify-email" element={<VerifyEmail />} />
             <Route path="verify-otp" element={<VerifyOtp />} />
             <Route path="login-otp" element={<LoginOtp />} />

@@ -36,32 +36,6 @@ export const sendOTPEmail = async (email, otp) => {
   }
 };
 
-export const sendPasswordResetEmail = async (email, resetToken) => {
-  const resetUrl = `${env.FRONTEND_URL}/auth/reset-password?token=${resetToken}`;
-  
-  const mailOptions = {
-    from: env.EMAIL_USER,
-    to: email,
-    subject: 'Password Reset Request',
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2>Password Reset Request</h2>
-        <p>You requested to reset your password. Click the link below to reset it:</p>
-        <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; background-color: #6366f1; color: white; text-decoration: none; border-radius: 5px;">Reset Password</a>
-        <p>This link will expire in 1 hour.</p>
-        <p>If you didn't request this, please ignore this email.</p>
-      </div>
-    `,
-  };
-
-  try {
-    await transporter.sendMail(mailOptions);
-    return { success: true };
-  } catch (error) {
-    console.error('Email sending error:', error);
-    return { success: false, error: error.message };
-  }
-};
 
 
 
