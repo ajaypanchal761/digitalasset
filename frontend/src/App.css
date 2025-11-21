@@ -180,6 +180,40 @@
     margin-top: 0;
   }
 
+  /* Homepage - Wallet Card Height Adjustment (Dashboard only) */
+  .app-content:has(.dashboard) .wallet-summary-card {
+    padding: 1.5rem 2rem;
+    gap: 1rem;
+  }
+
+  .app-content:has(.dashboard) .wallet-summary-card__header {
+    gap: 0.5rem;
+  }
+
+  .app-content:has(.dashboard) .wallet-summary-card__value {
+    font-size: 1.875rem;
+    line-height: 1.1;
+  }
+
+  .app-content:has(.dashboard) .wallet-summary-card__metrics {
+    gap: 1rem;
+    margin-top: 0.25rem;
+  }
+
+  .app-content:has(.dashboard) .wallet-summary-card__metric {
+    padding: 0.875rem 1rem;
+    min-height: 50px;
+    gap: 0.35rem;
+  }
+
+  .app-content:has(.dashboard) .wallet-summary-card__metric-label {
+    font-size: 0.7rem;
+  }
+
+  .app-content:has(.dashboard) .wallet-summary-card__metric-value {
+    font-size: 0.9375rem;
+  }
+
   /* Dashboard specific styles - full width with padding */
   .app-content__page:not(:has(.chat-page)) > .dashboard {
     width: 100%;
