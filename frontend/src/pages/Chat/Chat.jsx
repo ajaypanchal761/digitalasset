@@ -1,13 +1,16 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
 import { createSocket, getSocketToken } from "../../utils/socket.js";
 import { chatAPI } from "../../services/api.js";
+import logger from "../../utils/logger.js";
 import "./Chat.css";
 
 const Chat = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -16,7 +19,7 @@ const Chat = () => {
   const socketRef = useRef(null);
   const adminIdRef = useRef(null);
 
-  const formatMessageTime = (date) => {
+  const formatMessageTime = useCallback((date) => {
     if (!date) return '';
     const d = new Date(date);
     return d.toLocaleTimeString("en-US", {
@@ -24,7 +27,7 @@ const Chat = () => {
       minute: "2-digit",
       hour12: true,
     });
-  };
+  }, []);
 
   // Initialize socket and fetch messages
   useEffect(() => {
@@ -100,12 +103,12 @@ const Chat = () => {
 
             // Listen for errors
             socket.on('error', (error) => {
-              console.error('Socket error:', error);
+              logger.error('Socket error:', error);
             });
           }
         }
       } catch (error) {
-        console.error('Failed to initialize chat:', error);
+        logger.error('Failed to initialize chat:', error);
       } finally {
         setLoading(false);
       }
@@ -122,13 +125,13 @@ const Chat = () => {
     };
   }, [user]);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, scrollToBottom]);
 
   // Prevent body scroll when chat page is mounted
   useEffect(() => {
@@ -177,10 +180,10 @@ const Chat = () => {
         setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
       }
     } catch (error) {
-      console.error('Failed to send message:', error);
+      logger.error('Failed to send message:', error);
       // Remove temp message on error
       setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
-      alert('Failed to send message. Please try again.');
+      showToast('Failed to send message. Please try again.', 'error');
     } finally {
       setSending(false);
     }
@@ -255,6 +258,23 @@ const Chat = () => {
             onChange={(e) => setInputMessage(e.target.value)}
             disabled={sending || loading}
           />
+          <button 
+            type="submit" 
+            className="chat-input__send-btn" 
+            aria-label="Send message"
+            disabled={sending || loading || !inputMessage.trim()}
+          >
+            {sending ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="chat-input__send-spinner">
+                <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+                <path d="M12 2C6.477 2 2 6.477 2 12" strokeLinecap="round" />
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+          </button>
           <button type="button" className="chat-input__icon-btn chat-input__mic-btn" aria-label="Voice message">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 1C10.3431 1 9 2.34315 9 4V12C9 13.6569 10.3431 15 12 15C13.6569 15 15 13.6569 15 12V4C15 2.34315 13.6569 1 12 1Z" strokeLinecap="round" strokeLinejoin="round" />

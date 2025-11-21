@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { adminAPI } from '../../../services/api';
+import { useToast } from '../../../context/ToastContext.jsx';
 import { createSocket, getSocketToken } from '../../../utils/socket';
 import './AdminChat.css';
 
 const AdminChat = () => {
+  const { showToast } = useToast();
   const [conversations, setConversations] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -152,7 +154,7 @@ const AdminChat = () => {
     // Listen for errors
     socket.on('error', (error) => {
       console.error('Socket error:', error);
-      alert(error.message || 'An error occurred');
+      showToast(error.message || 'An error occurred', 'error');
     });
 
     // Cleanup on unmount
@@ -288,7 +290,7 @@ const AdminChat = () => {
     
     if (!selectedUser) {
       console.warn('⚠️ Cannot send: No user selected');
-      alert('Please select a user to send a message');
+      showToast('Please select a user to send a message', 'warning');
       return;
     }
     
@@ -300,13 +302,13 @@ const AdminChat = () => {
     // Check socket connection
     if (!socketRef.current) {
       console.error('❌ Cannot send: Socket not initialized');
-      alert('Connection not ready. Please refresh the page.');
+      showToast('Connection not ready. Please refresh the page.', 'warning');
       return;
     }
     
     if (!socketRef.current.connected) {
       console.error('❌ Cannot send: Socket not connected');
-      alert('Connection lost. Please refresh the page.');
+      showToast('Connection lost. Please refresh the page.', 'error');
       return;
     }
     
@@ -320,7 +322,7 @@ const AdminChat = () => {
           console.log('✅ Admin ID fetched:', currentAdminIdRef.current);
         } else {
           console.error('❌ Failed to get admin info from response:', response);
-          alert('Failed to get admin information. Please refresh the page.');
+          showToast('Failed to get admin information. Please refresh the page.', 'error');
           return;
         }
       } catch (error) {
@@ -395,7 +397,7 @@ const AdminChat = () => {
       console.error('❌ Failed to send message:', error);
       // Remove temp message on error
       setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
-      alert('Failed to send message. Please try again.');
+      showToast('Failed to send message. Please try again.', 'error');
     } finally {
       setSending(false);
     }
@@ -488,7 +490,12 @@ const AdminChat = () => {
                 >
                   <div className="admin-chat__user-avatar">
                     {conv.userAvatar ? (
-                      <img src={conv.userAvatar} alt={conv.userName} />
+                      <img 
+                        src={conv.userAvatar} 
+                        alt={conv.userName}
+                        loading="lazy"
+                        decoding="async"
+                      />
                     ) : (
                       <span>{getUserInitials(conv.userName)}</span>
                     )}
@@ -517,7 +524,12 @@ const AdminChat = () => {
               <header className="admin-chat__header">
                 <div className="admin-chat__header-avatar">
                   {selectedUser.userAvatar ? (
-                    <img src={selectedUser.userAvatar} alt={selectedUser.userName} />
+                    <img 
+                      src={selectedUser.userAvatar} 
+                      alt={selectedUser.userName}
+                      loading="lazy"
+                      decoding="async"
+                    />
                   ) : (
                     <span>{getUserInitials(selectedUser.userName)}</span>
                   )}

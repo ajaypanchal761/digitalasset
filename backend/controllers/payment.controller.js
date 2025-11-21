@@ -84,6 +84,11 @@ export const verifyPayment = async (req, res) => {
     const lockInMonths = timePeriod || property.lockInMonths;
     const purchaseDate = new Date();
     const maturityDate = calculateMaturityDate(purchaseDate, lockInMonths);
+    
+    // Calculate next payout date (1st of next month)
+    const nextPayoutDate = new Date(purchaseDate);
+    nextPayoutDate.setMonth(nextPayoutDate.getMonth() + 1);
+    nextPayoutDate.setDate(1);
 
     // Create holding
     const holding = await Holding.create({
@@ -97,6 +102,8 @@ export const verifyPayment = async (req, res) => {
       status: 'lock-in',
       canWithdrawInvestment: false,
       canWithdrawEarnings: true,
+      nextPayoutDate: nextPayoutDate,
+      payoutCount: 0,
     });
 
     // Update property

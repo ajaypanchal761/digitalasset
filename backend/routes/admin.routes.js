@@ -11,6 +11,12 @@ import {
   rejectWithdrawal,
   getDashboardStats,
 } from '../controllers/admin.controller.js';
+import {
+  getPayouts,
+  processPayouts,
+  getPayoutHistory,
+  generateMonthlyPayouts,
+} from '../controllers/payout.controller.js';
 import { admin } from '../middleware/admin.middleware.js';
 
 const router = express.Router();
@@ -29,6 +35,12 @@ router.delete('/users/:id', deleteUser);
 router.get('/withdrawals', getWithdrawals);
 router.put('/withdrawals/:id/approve', approveWithdrawal);
 router.put('/withdrawals/:id/reject', rejectWithdrawal);
+
+// Payout routes
+router.get('/payouts', getPayouts);
+router.post('/payouts/process', processPayouts);
+router.get('/payouts/history', getPayoutHistory);
+router.post('/payouts/generate', generateMonthlyPayouts);
 
 export default router;
 

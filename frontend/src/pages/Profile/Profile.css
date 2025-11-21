@@ -99,11 +99,56 @@
   cursor: pointer;
   color: #ffffff;
   padding: 0;
-  border: none;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: opacity 0.2s ease, background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.profile-picture__camera:hover {
+.profile-picture__camera:hover:not(:disabled) {
+  background: #dc2626;
+  opacity: 0.9;
+}
+
+.profile-picture__camera:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.profile-picture__camera .spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.profile-picture__camera:hover:not(:disabled) {
+  background: #dc2626;
+  opacity: 0.9;
+}
+
+.profile-picture__camera:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.profile-picture__camera .spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.profile-picture__camera:hover:not(:disabled) {
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }

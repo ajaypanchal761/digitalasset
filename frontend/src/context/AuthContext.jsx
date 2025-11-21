@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { authAPI, adminAuthAPI } from '../services/api.js';
+import logger from '../utils/logger.js';
 
 const AuthContext = createContext(null);
 
@@ -31,40 +32,22 @@ export const AuthProvider = ({ children }) => {
       // On admin routes, use adminToken if available
       token = adminToken || null;
       if (token) {
-        console.log('🔐 AuthContext.fetchUser - Using adminToken for admin route');
       }
     } else if (isAuthRoute) {
       // On auth routes (login/register), ONLY use userToken, completely ignore adminToken
       // This prevents admin token from interfering with user login flow
       token = userToken || null;
       if (token) {
-        console.log('👤 AuthContext.fetchUser - Using userToken for auth route (ignoring adminToken)');
       } else {
-        console.log('👤 AuthContext.fetchUser - No userToken on auth route, skipping fetch (adminToken ignored)');
+        logger.log('👤 AuthContext.fetchUser - No userToken on auth route, skipping fetch (adminToken ignored)');
       }
     } else {
       // On regular routes, use userToken if available
       token = userToken || null;
-      if (token) {
-        console.log('👤 AuthContext.fetchUser - Using userToken for regular route');
-      }
     }
-    
-    console.log('🔄 AuthContext.fetchUser - Called:', {
-      pathname: location.pathname,
-      hasAdminToken: !!adminToken,
-      hasUserToken: !!userToken,
-      isAdminRoute,
-      hasToken: !!token,
-      tokenLength: token?.length,
-      tokenPreview: token ? token.substring(0, 30) + '...' : 'null',
-      tokenType: adminToken ? 'adminToken' : (userToken ? 'token' : 'none'),
-      timestamp: new Date().toISOString()
-    });
     
     // Only fetch if token exists
     if (!token) {
-      console.log('⚠️ AuthContext.fetchUser - No token found, skipping fetch');
       setLoading(false);
       return;
     }
@@ -75,32 +58,17 @@ export const AuthProvider = ({ children }) => {
       
       // Try admin API if on admin route, otherwise try regular user API
       if (isAdminRoute) {
-        console.log('🔐 AuthContext.fetchUser - Using admin API');
         try {
           response = await adminAuthAPI.getMe();
-          console.log('📥 AuthContext.fetchUser - Admin API response:', {
-            success: response?.success,
-            hasUser: !!response?.user,
-            userRole: response?.user?.role,
-            userEmail: response?.user?.email
-          });
         } catch (adminError) {
-          console.error('❌ AuthContext.fetchUser - Admin API error:', adminError);
           // If admin API fails, token might be invalid
           throw adminError;
         }
       } else {
-        console.log('👤 AuthContext.fetchUser - Using user API');
         response = await authAPI.getMe();
       }
 
       if (response && response.success && response.user) {
-        console.log('✅ AuthContext.fetchUser - User data received:', {
-          userId: response.user.id || response.user._id,
-          userName: response.user.name,
-          userEmail: response.user.email,
-          userRole: response.user.role
-        });
         // Determine if this is an admin user
         // If we're on an admin route and got a response, it's definitely an admin
         // Also check if the response came from admin API (no wallet field indicates admin)

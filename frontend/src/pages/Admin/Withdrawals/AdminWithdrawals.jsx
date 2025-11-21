@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAdmin } from '../../../context/AdminContext';
+import { useToast } from '../../../context/ToastContext.jsx';
 import StatusBadge from '../../../components/Admin/common/StatusBadge';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
 import WithdrawalDetail from '../../../components/Admin/WithdrawalDetail';
@@ -8,6 +9,7 @@ import ConfirmDialog from '../../../components/Admin/common/ConfirmDialog';
 
 const AdminWithdrawals = () => {
   const location = useLocation();
+  const { showToast } = useToast();
   const { 
     withdrawals, 
     withdrawalsLoading,
@@ -155,7 +157,7 @@ const AdminWithdrawals = () => {
       await refreshWithdrawals();
     } catch (error) {
       console.error('❌ AdminWithdrawals - Error in bulk action:', error);
-      alert(`Failed to ${confirmAction.type} withdrawals: ${error.message}`);
+      showToast(`Failed to ${confirmAction.type} withdrawals: ${error.message}`, 'error');
     }
   };
 

@@ -33,10 +33,6 @@ const getAdminToken = () => {
   
   const token = localStorage.getItem('adminToken');
   
-  // Only log in development mode or when there's an issue
-  if (process.env.NODE_ENV === 'development' && !token) {
-    console.log('🔑 getAdminToken() called: No token found');
-  }
   
   // Update cache
   cachedAdminToken = token;
@@ -48,7 +44,7 @@ const getAdminToken = () => {
 const setAdminToken = (token) => {
   if (!token) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('❌ setAdminToken: Cannot save null/undefined token');
+      // Token validation - no logging needed
     }
     return;
   }
@@ -60,7 +56,7 @@ const setAdminToken = (token) => {
   tokenCacheTime = Date.now();
   
   if (process.env.NODE_ENV === 'development') {
-    console.log('✅ setAdminToken: Token saved successfully');
+    // Token saved - no logging needed
   }
 };
 
@@ -72,7 +68,7 @@ const removeAdminToken = () => {
   tokenCacheTime = 0;
   
   if (process.env.NODE_ENV === 'development') {
-    console.log('🗑️ removeAdminToken: Token removed successfully');
+    // Token removed - no logging needed
   }
 };
 
@@ -110,7 +106,7 @@ const apiRequest = async (url, options = {}) => {
       response = await fetch(`${API_URL}${url}`, config);
     } catch (fetchError) {
       // Network error - fetch failed completely
-      console.error('Network fetch error:', fetchError);
+      // Network error handled by error handler
       throw new Error('Network error. Please check your connection and try again.');
     }
     
@@ -166,9 +162,7 @@ const apiRequest = async (url, options = {}) => {
         }
         
         // Log rate limit error (but don't spam)
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('⚠️ Rate limit (429) error:', errorMessage);
-        }
+        // Rate limit error - handled by error message
         
         throw new Error(errorMessage);
       }
@@ -202,15 +196,10 @@ const apiRequest = async (url, options = {}) => {
         }
       } catch (e) {
         // If extraction fails, use default message
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('Error extracting message from response:', e);
-        }
+        // Error extraction failed - use default message
       }
       
-      // Log the extracted error for debugging (only in development)
-      if (process.env.NODE_ENV === 'development' && response.status !== 429) {
-        console.log('API Error Response:', { status: response.status, data, errorMessage });
-      }
+      // Error logged via error message
       
       // Throw simple error with just message string
       // errorMessage is guaranteed to be a string at this point
@@ -226,15 +215,13 @@ const apiRequest = async (url, options = {}) => {
     if (error instanceof Error) {
       const msg = error.message;
       
-      // Log for debugging
-      console.error('API Error caught:', msg);
+      // Error handled via error message
       
       // Re-throw the error with its message
       throw error;
     }
     
     // If it's not an Error instance, create one
-    console.error('API Error (non-Error object):', error);
     throw new Error('An unexpected error occurred. Please try again.');
   }
 };
@@ -336,6 +323,14 @@ export const propertyAPI = {
     return apiRequest(`/properties/${id}`);
   },
 
+  // Calculate ROI for a property
+  calculateROI: async (propertyId, investmentAmount) => {
+    return apiRequest(`/properties/${propertyId}/calculate-roi`, {
+      method: 'POST',
+      body: JSON.stringify({ investmentAmount }),
+    });
+  },
+
   // Create property (Admin only)
   create: async (propertyData) => {
     console.log('📡 propertyAPI.create - Calling API:', {
@@ -430,6 +425,11 @@ export const walletAPI = {
     const url = queryString ? `/wallet/transactions?${queryString}` : '/wallet/transactions';
     return apiRequest(url);
   },
+
+  // Get user payouts
+  getPayouts: async () => {
+    return apiRequest('/wallet/payouts');
+  },
 };
 
 // ==================== PAYMENT API ====================
@@ -492,10 +492,9 @@ export const profileAPI = {
 
   // Submit KYC documents
   submitKYC: async (documents) => {
-    return apiRequest('/profile/kyc', {
-      method: 'POST',
-      body: JSON.stringify({ documents }),
-    });
+    // Show alert before making request
+    alert('Integrate soon');
+    return Promise.reject(new Error('Integrate soon'));
   },
 
   // Update bank details
@@ -624,6 +623,28 @@ export const adminAPI = {
       method: 'POST',
       body: JSON.stringify({ message }),
     });
+  },
+
+  // Get all payouts
+  getPayouts: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const url = queryString ? `/admin/payouts?${queryString}` : '/admin/payouts';
+    return apiRequest(url);
+  },
+
+  // Process payouts
+  processPayouts: async (payoutIds) => {
+    return apiRequest('/admin/payouts/process', {
+      method: 'POST',
+      body: JSON.stringify({ payoutIds }),
+    });
+  },
+
+  // Get payout history
+  getPayoutHistory: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const url = queryString ? `/admin/payouts/history?${queryString}` : '/admin/payouts/history';
+    return apiRequest(url);
   },
 };
 
@@ -794,6 +815,14 @@ export const adminAuthAPI = {
   // Get current admin user
   getMe: async () => {
     return apiRequest('/admin-auth/me');
+  },
+
+  // Update admin profile
+  updateProfile: async (profileData) => {
+    return apiRequest('/admin-auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
   },
 
   // Logout (remove admin token)

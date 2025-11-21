@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
 
 const PropertySale = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { holdings, listings } = useAppState();
+  const { showToast } = useToast();
   const holdingId = location.state?.holdingId;
   const holding = holdings.find((h) => h.id === holdingId);
   const property = listings.find((p) => p.id === holding?.propertyId);
@@ -48,7 +50,7 @@ const PropertySale = () => {
     if (Object.keys(newErrors).length === 0) {
       // Here you would typically save to backend
       console.log("Property listed for sale:", { holdingId, ...formData });
-      alert("Property listed for sale successfully! It will be visible to other users on the platform.");
+      showToast("Property listed for sale successfully! It will be visible to other users on the platform.", "success");
       navigate("/wallet");
     } else {
       setErrors(newErrors);

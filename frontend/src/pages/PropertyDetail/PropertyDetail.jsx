@@ -13,6 +13,8 @@ const PropertyDetail = () => {
   const [userInvestments, setUserInvestments] = useState([]);
   const [calculatorAmount, setCalculatorAmount] = useState(500000);
   const [expandedFaq, setExpandedFaq] = useState(null);
+  const [roiData, setRoiData] = useState(null);
+  const [roiLoading, setRoiLoading] = useState(false);
 
   // Fetch property details from API
   useEffect(() => {
@@ -100,35 +102,62 @@ const PropertyDetail = () => {
     return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
   };
 
-  const calculateROI = useMemo(() => {
-    if (!property) {
-      return {
-        investmentAmount: calculatorAmount,
-        monthlyEarning: 0,
-        totalEarnings3Months: 0,
-        maturityDate: '',
-      };
-    }
+  // Fetch ROI calculation from backend when calculator amount or property changes
+  useEffect(() => {
+    const fetchROI = async () => {
+      if (!property || !id) {
+        setRoiData(null);
+        return;
+      }
 
-    const minInvestment = property.minInvestment || 500000;
-    const amount = calculatorAmount >= minInvestment ? calculatorAmount : minInvestment;
-    const monthlyReturnRate = (property.monthlyReturnRate || 0.5) / 100; // Convert percentage to decimal
-    const lockInMonths = property.lockInMonths || 3;
-    
-    const monthlyEarning = amount * monthlyReturnRate;
-    const totalEarnings = monthlyEarning * lockInMonths;
-    
-    const maturityDate = new Date();
-    maturityDate.setMonth(maturityDate.getMonth() + lockInMonths);
-    
-    return {
-      investmentAmount: amount,
-      monthlyEarning,
-      totalEarnings,
-      lockInMonths,
-      maturityDate: maturityDate.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+      try {
+        setRoiLoading(true);
+        const response = await propertyAPI.calculateROI(id, calculatorAmount);
+        
+        if (response.success && response.data) {
+          setRoiData(response.data);
+        } else {
+          console.error('❌ PropertyDetail - Error calculating ROI:', response.message);
+          // Fallback to default values
+          setRoiData({
+            investmentAmount: calculatorAmount,
+            monthlyEarning: 0,
+            totalEarnings: 0,
+            lockInMonths: property.lockInMonths || 3,
+            maturityDate: '',
+          });
+        }
+      } catch (error) {
+        console.error('❌ PropertyDetail - Error fetching ROI:', error);
+        // Fallback to default values on error
+        setRoiData({
+          investmentAmount: calculatorAmount,
+          monthlyEarning: 0,
+          totalEarnings: 0,
+          lockInMonths: property.lockInMonths || 3,
+          maturityDate: '',
+        });
+      } finally {
+        setRoiLoading(false);
+      }
     };
-  }, [calculatorAmount, property]);
+
+    // Debounce API calls to avoid too many requests
+    const timeoutId = setTimeout(() => {
+      fetchROI();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [calculatorAmount, property, id]);
+
+  // Default ROI data for display
+  const calculateROI = roiData || {
+    investmentAmount: calculatorAmount,
+    monthlyEarning: 0,
+    totalEarnings: 0,
+    lockInMonths: property?.lockInMonths || 3,
+    maturityDate: '',
+  };
 
 
   const faqs = [
@@ -201,7 +230,21 @@ const PropertyDetail = () => {
             </svg>
             Back
           </button>
-          <button onClick={() => navigate("/invest", { state: { propertyId: property._id || property.id } })} className="property-detail__invest-btn property-detail__invest-btn--top">
+          <button onClick={() => {
+            if (!calculateROI || !property) return;
+            navigate("/invest", { 
+              state: { 
+                propertyId: property._id || property.id,
+                propertyTitle: property.title,
+                investmentAmount: calculateROI.investmentAmount,
+                monthlyEarning: calculateROI.monthlyEarning,
+                totalEarnings: calculateROI.totalEarnings,
+                lockInMonths: calculateROI.lockInMonths,
+                maturityDate: calculateROI.maturityDate,
+                monthlyReturnRate: property.monthlyReturnRate || 0.5,
+              } 
+            });
+          }} className="property-detail__invest-btn property-detail__invest-btn--top">
             Invest Now
           </button>
         </div>
@@ -350,6 +393,11 @@ const PropertyDetail = () => {
               className="property-detail__input"
             />
           </div>
+          {roiLoading && (
+            <div style={{ textAlign: 'center', padding: '1rem', color: '#64748b' }}>
+              Calculating...
+            </div>
+          )}
           <div className="property-detail__calculator-grid">
             <div className="property-detail__calc-card">
               <span className="property-detail__calc-label">Investment Amount</span>
@@ -465,7 +513,21 @@ const PropertyDetail = () => {
 
       {/* Bottom Invest Now Button */}
       <div className="property-detail__bottom-action">
-        <button onClick={() => navigate("/invest", { state: { propertyId: property._id || property.id } })} className="property-detail__invest-btn property-detail__invest-btn--large">
+        <button onClick={() => {
+          if (!calculateROI || !property) return;
+          navigate("/invest", { 
+            state: { 
+              propertyId: property._id || property.id,
+              propertyTitle: property.title,
+              investmentAmount: calculateROI.investmentAmount,
+              monthlyEarning: calculateROI.monthlyEarning,
+              totalEarnings: calculateROI.totalEarnings,
+              lockInMonths: calculateROI.lockInMonths,
+              maturityDate: calculateROI.maturityDate,
+              monthlyReturnRate: property.monthlyReturnRate || 0.5,
+            } 
+          });
+        }} className="property-detail__invest-btn property-detail__invest-btn--large">
           Invest Now
         </button>
       </div>

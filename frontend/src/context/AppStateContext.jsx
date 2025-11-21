@@ -2,6 +2,7 @@ import React, { createContext, useContext, useMemo, useState, useEffect, useRef 
 import { propertyAPI, holdingAPI, walletAPI } from "../services/api.js";
 import { useAuth } from "./AuthContext.jsx";
 import { useLocation } from "react-router-dom";
+import logger from "../utils/logger.js";
 
 const AppStateContext = createContext(null);
 
@@ -55,7 +56,7 @@ export const AppStateProvider = ({ children }) => {
       // Always fetch properties (public) - but skip if on admin route
       const propertiesRes = await propertyAPI.getAll().catch(err => {
         if (err.name !== 'AbortError') {
-          console.error('Failed to fetch properties:', err);
+          logger.error('Failed to fetch properties:', err);
         }
         return { data: [], success: false };
       });
@@ -71,11 +72,11 @@ export const AppStateProvider = ({ children }) => {
       if (isAuthenticated) {
         const [holdingsRes, walletRes] = await Promise.all([
           holdingAPI.getAll().catch(err => {
-            console.error('Failed to fetch holdings:', err);
+            logger.error('Failed to fetch holdings:', err);
             return { data: [], success: false };
           }),
           walletAPI.getBalance().catch(err => {
-            console.error('Failed to fetch wallet:', err);
+            logger.error('Failed to fetch wallet:', err);
             return null;
           }),
         ]);
@@ -126,7 +127,7 @@ export const AppStateProvider = ({ children }) => {
     } catch (err) {
       // Don't log error if request was aborted
       if (err.name !== 'AbortError') {
-        console.error('Error fetching data:', err);
+        logger.error('Error fetching data:', err);
         setError(err.message || 'Failed to load data');
       }
     } finally {

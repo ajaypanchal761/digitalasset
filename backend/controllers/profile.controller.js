@@ -67,19 +67,10 @@ export const updateProfile = async (req, res) => {
 // @access  Private
 export const submitKYC = async (req, res) => {
   try {
-    const { documents } = req.body; // Array of document URLs
-
-    const user = await User.findById(req.user.id);
-    user.kycStatus = 'pending';
-    // TODO: Store KYC documents
-    await user.save();
-
-    res.json({
-      success: true,
-      message: 'KYC documents submitted successfully',
-      data: {
-        kycStatus: user.kycStatus,
-      },
+    // KYC integration not yet implemented
+    res.status(501).json({
+      success: false,
+      message: 'Integrate soon',
     });
   } catch (error) {
     res.status(500).json({

@@ -74,7 +74,7 @@ export const createWithdrawal = async (req, res) => {
             status: withdrawal.status,
           },
           timestamp: new Date().toISOString(),
-          icon: '💰',
+          icon: 'withdrawal-request',
           link: `/admin/withdrawals`,
         };
         

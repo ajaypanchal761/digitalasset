@@ -126,15 +126,15 @@ export const register = async (req, res) => {
 
     // Verify OTP code
     if (otpRecord.otp !== otp) {
-      await otpRecord.incrementAttempts();
-      return res.status(400).json({
-        success: false,
+          await otpRecord.incrementAttempts();
+        return res.status(400).json({
+          success: false,
         message: 'Invalid OTP. Please check and try again.',
-      });
-    }
+        });
+      }
 
-    // Mark OTP as verified
-    await otpRecord.markAsVerified();
+      // Mark OTP as verified
+      await otpRecord.markAsVerified();
 
     // Generate password if not provided
     const userPassword = password || Math.random().toString(36).slice(-12) + 'A1!';
@@ -175,7 +175,7 @@ export const register = async (req, res) => {
             phone: user.phone,
           },
           timestamp: new Date().toISOString(),
-          icon: '🔔',
+          icon: 'user-registered',
           link: `/admin/users/${user._id}`,
         };
         
@@ -463,7 +463,7 @@ export const verifyOTP = async (req, res) => {
         normalizedPhone = normalizedPhone.slice(-10);
       }
     }
-    
+
     // Find valid OTP from database
     let otpRecord = await OTP.findValidOTP(phone, email, otp, purpose);
 
@@ -652,10 +652,10 @@ export const loginWithOTP = async (req, res) => {
       });
     }
 
-    // Update verification status
-    if (phone) user.isPhoneVerified = true;
-    if (email) user.isEmailVerified = true;
-    await user.save();
+      // Update verification status
+      if (phone) user.isPhoneVerified = true;
+      if (email) user.isEmailVerified = true;
+      await user.save();
 
     // Generate token
     const token = generateToken(user._id);
@@ -697,6 +697,7 @@ export const getMe = async (req, res) => {
         role: user.role,
         wallet: user.wallet,
         kycStatus: user.kycStatus,
+        avatarUrl: user.avatarUrl,
       },
     });
   } catch (error) {

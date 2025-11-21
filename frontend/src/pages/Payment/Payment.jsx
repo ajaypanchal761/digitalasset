@@ -1,8 +1,10 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { useToast } from "../../context/ToastContext.jsx";
 
 const Payment = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const paymentData = location.state;
 
   const formatCurrency = (value, currency = "INR") =>
@@ -72,7 +74,7 @@ const Payment = () => {
             <button onClick={() => navigate(-1)} className="payment-page__btn payment-page__btn--cancel">
               Cancel
             </button>
-            <button onClick={() => alert("Payment integration coming soon!")} className="payment-page__btn payment-page__btn--primary">
+            <button onClick={() => showToast("Integrate soon", "info")} className="payment-page__btn payment-page__btn--primary">
               Proceed with Payment
             </button>
           </div>

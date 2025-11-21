@@ -273,7 +273,12 @@ const AdminProperties = () => {
                     <div className="admin-properties__property-info">
                       <div className="admin-properties__property-image">
                         {property.image ? (
-                          <img src={property.image} alt={property.title} />
+                          <img 
+                            src={property.image} 
+                            alt={property.title}
+                            loading="lazy"
+                            decoding="async"
+                          />
                         ) : (
                           <div className="admin-properties__property-placeholder">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

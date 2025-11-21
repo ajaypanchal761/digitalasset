@@ -3,15 +3,149 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { adminAuthAPI } from '../../services/api';
 import { createSocket, getSocketToken } from '../../utils/socket';
 import { formatRelativeTime } from '../../utils/timeUtils';
+import { playNotificationSound } from '../../utils/notificationSound';
 
-const AdminHeader = ({ userName = 'Admin User', userAvatar = null }) => {
+const AdminHeader = ({ userName = 'Admin User', userAvatar = null, userEmail = null }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [notifications, setNotifications] = useState([]);
+  const [notificationPermission, setNotificationPermission] = useState('default');
   const socketRef = useRef(null);
+  const notificationRefs = useRef(new Map()); // Store notification instances
+  const originalTitleRef = useRef(document.title);
+
+  // Check browser notification support and permission status
+  useEffect(() => {
+    if (!('Notification' in window)) {
+      console.warn('Browser does not support notifications');
+      setNotificationPermission('unsupported');
+      return;
+    }
+
+    // Check current permission status
+    setNotificationPermission(Notification.permission);
+
+    // Store original title
+    originalTitleRef.current = document.title || 'DigitalAssets Admin';
+
+    // Request permission if not already requested
+    const permissionAsked = localStorage.getItem('notificationPermissionAsked');
+    if (!permissionAsked && Notification.permission === 'default') {
+      // Don't auto-request, wait for user interaction
+      // Permission will be requested when first notification arrives or user clicks
+    }
+  }, []);
+
+  // Request notification permission
+  const requestNotificationPermission = async () => {
+    if (!('Notification' in window)) {
+      console.warn('Browser does not support notifications');
+      return false;
+    }
+
+    if (Notification.permission === 'granted') {
+      setNotificationPermission('granted');
+      return true;
+    }
+
+    if (Notification.permission === 'denied') {
+      setNotificationPermission('denied');
+      return false;
+    }
+
+    try {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+      localStorage.setItem('notificationPermissionAsked', 'true');
+      
+      if (permission === 'granted') {
+        return true;
+      } else {
+        console.log('Notification permission denied');
+        return false;
+      }
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
+      return false;
+    }
+  };
+
+  // Show browser push notification
+  const showBrowserNotification = (notification) => {
+    // Check if notifications are supported and permitted
+    if (!('Notification' in window)) {
+      return;
+    }
+
+    // Request permission if not granted
+    if (Notification.permission === 'default') {
+      // Request permission on first notification
+      requestNotificationPermission().then((granted) => {
+        if (granted) {
+          // Retry showing notification after permission granted
+          showBrowserNotification(notification);
+        }
+      });
+      return;
+    }
+
+    if (Notification.permission !== 'granted') {
+      return; // Permission denied, silently fail
+    }
+
+    try {
+      // Create notification options
+      const notificationOptions = {
+        body: notification.message || notification.title,
+        icon: '/favicon.ico', // Use app icon or default
+        badge: '/favicon.ico',
+        tag: notification.id, // Group similar notifications
+        requireInteraction: false,
+        silent: false, // Allow system sound
+        data: {
+          link: notification.link || '/admin/dashboard',
+          notificationId: notification.id,
+        },
+      };
+
+      // Show notification
+      const browserNotification = new Notification(notification.title, notificationOptions);
+
+      // Handle notification click
+      browserNotification.onclick = (event) => {
+        event.preventDefault();
+        window.focus(); // Focus the window
+        
+        // Mark notification as read
+        setNotifications((prev) =>
+          prev.map((n) =>
+            n.id === notification.id ? { ...n, isRead: true } : n
+          )
+        );
+
+        // Navigate to relevant page
+        if (notification.link) {
+          navigate(notification.link);
+        }
+
+        // Close the notification
+        browserNotification.close();
+      };
+
+      // Auto-close notification after 5 seconds
+      setTimeout(() => {
+        browserNotification.close();
+      }, 5000);
+
+      // Store notification reference
+      notificationRefs.current.set(notification.id, browserNotification);
+    } catch (error) {
+      console.error('Error showing browser notification:', error);
+    }
+  };
 
   // Load notifications from localStorage on mount
   useEffect(() => {
@@ -59,6 +193,12 @@ const AdminHeader = ({ userName = 'Admin User', userAvatar = null }) => {
         isRead: false,
       };
       setNotifications((prev) => [newNotification, ...prev]);
+      
+      // Show browser notification
+      showBrowserNotification(newNotification);
+      
+      // Play sound
+      playNotificationSound();
     });
 
     // Listen for new withdrawal request
@@ -70,6 +210,12 @@ const AdminHeader = ({ userName = 'Admin User', userAvatar = null }) => {
         isRead: false,
       };
       setNotifications((prev) => [newNotification, ...prev]);
+      
+      // Show browser notification
+      showBrowserNotification(newNotification);
+      
+      // Play sound
+      playNotificationSound();
     });
 
     // Listen for new chat message
@@ -81,6 +227,12 @@ const AdminHeader = ({ userName = 'Admin User', userAvatar = null }) => {
         isRead: false,
       };
       setNotifications((prev) => [newNotification, ...prev]);
+      
+      // Show browser notification
+      showBrowserNotification(newNotification);
+      
+      // Play sound
+      playNotificationSound();
     });
 
     socket.on('connect', () => {
@@ -107,8 +259,58 @@ const AdminHeader = ({ userName = 'Admin User', userAvatar = null }) => {
     };
   }, []);
 
+  // Get notification icon based on type
+  const getNotificationIcon = (iconType) => {
+    const iconMap = {
+      'user-registered': (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      ),
+      'withdrawal-request': (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"></line>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+        </svg>
+      ),
+      'chat-message': (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      ),
+    };
+
+    // If it's already a React element (SVG), return it
+    if (typeof iconType === 'object' || (typeof iconType === 'string' && iconType.startsWith('<'))) {
+      return iconType;
+    }
+
+    // Return mapped icon or default bell icon
+    return iconMap[iconType] || (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+      </svg>
+    );
+  };
+
   // Calculate unread notification count
   const notificationCount = notifications.filter((n) => !n.isRead).length;
+
+  // Update document title with badge count
+  useEffect(() => {
+    if (notificationCount > 0) {
+      document.title = `(${notificationCount}) ${originalTitleRef.current}`;
+    } else {
+      document.title = originalTitleRef.current;
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.title = originalTitleRef.current;
+    };
+  }, [notificationCount]);
 
   // Mark notifications as read when dropdown is opened
   useEffect(() => {
@@ -117,10 +319,17 @@ const AdminHeader = ({ userName = 'Admin User', userAvatar = null }) => {
         prev.map((n) => ({ ...n, isRead: true }))
       );
     }
-  }, [showNotifications]);
+  }, [showNotifications, notificationCount]);
 
   // Handle notification click - navigate to relevant page
   const handleNotificationClick = (notification) => {
+    // Mark as read
+    setNotifications((prev) =>
+      prev.map((n) =>
+        n.id === notification.id ? { ...n, isRead: true } : n
+      )
+    );
+
     if (notification.link) {
       navigate(notification.link);
       setShowNotifications(false);
@@ -206,12 +415,22 @@ const AdminHeader = ({ userName = 'Admin User', userAvatar = null }) => {
           >
             <div className="admin-header__user-avatar">
               {userAvatar ? (
-                <img src={userAvatar} alt={userName} />
+                <img 
+                  src={userAvatar} 
+                  alt={userName}
+                  loading="lazy"
+                  decoding="async"
+                />
               ) : (
                 <span>{userName.charAt(0).toUpperCase()}</span>
               )}
             </div>
-            <span className="admin-header__user-name">{userName}</span>
+            <div className="admin-header__user-info-inline">
+              <span className="admin-header__user-name">{userName}</span>
+              {userEmail && (
+                <span className="admin-header__user-email-inline">{userEmail}</span>
+              )}
+            </div>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M6 9l6 6 6-6"/>
             </svg>
@@ -222,18 +441,26 @@ const AdminHeader = ({ userName = 'Admin User', userAvatar = null }) => {
               <div className="admin-header__user-info">
                 <div className="admin-header__user-avatar admin-header__user-avatar--large">
                   {userAvatar ? (
-                    <img src={userAvatar} alt={userName} />
+                    <img 
+                      src={userAvatar} 
+                      alt={userName}
+                      loading="lazy"
+                      decoding="async"
+                    />
                   ) : (
                     <span>{userName.charAt(0).toUpperCase()}</span>
                   )}
                 </div>
                 <div>
                   <p className="admin-header__user-name-full">{userName}</p>
-                  <p className="admin-header__user-email">admin@digitalassets.in</p>
+                  <p className="admin-header__user-email">{userEmail || 'admin@digitalassets.in'}</p>
                 </div>
               </div>
               <div className="admin-header__user-menu-divider"></div>
-              <button className="admin-header__user-menu-item">
+              <button 
+                className="admin-header__user-menu-item"
+                onClick={() => navigate('/admin/profile')}
+              >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                   <circle cx="12" cy="7" r="4"/>
@@ -282,8 +509,21 @@ const AdminHeader = ({ userName = 'Admin User', userAvatar = null }) => {
         <div className="admin-header__notifications">
           <button
             className="admin-header__notifications-button"
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={() => {
+              setShowNotifications(!showNotifications);
+              // Request permission if not granted when user clicks notification button
+              if (Notification.permission === 'default' && !showNotifications) {
+                requestNotificationPermission();
+              }
+            }}
             aria-label="Notifications"
+            title={
+              notificationPermission === 'denied'
+                ? 'Notification permission denied. Enable in browser settings.'
+                : notificationPermission === 'default'
+                ? 'Click to enable browser notifications'
+                : 'Notifications'
+            }
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
@@ -291,6 +531,15 @@ const AdminHeader = ({ userName = 'Admin User', userAvatar = null }) => {
             </svg>
             {notificationCount > 0 && (
               <span className="admin-header__notifications-badge">{notificationCount}</span>
+            )}
+            {notificationPermission === 'denied' && (
+              <span className="admin-header__notifications-warning" title="Notifications disabled">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                  <line x1="12" y1="9" x2="12" y2="13"></line>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+              </span>
             )}
           </button>
           
@@ -317,7 +566,9 @@ const AdminHeader = ({ userName = 'Admin User', userAvatar = null }) => {
                       onClick={() => handleNotificationClick(notification)}
                       style={{ cursor: notification.link ? 'pointer' : 'default' }}
                     >
-                      <div className="admin-header__notification-icon">{notification.icon || '🔔'}</div>
+                      <div className="admin-header__notification-icon">
+                        {getNotificationIcon(notification.icon || notification.type)}
+                      </div>
                       <div className="admin-header__notification-content">
                         <p className="admin-header__notification-title">{notification.title}</p>
                         {notification.message && (

@@ -54,5 +54,17 @@ export const calculateDaysRemaining = (maturityDate) => {
   return diffDays > 0 ? diffDays : 0;
 };
 
+/**
+ * Calculate next payout date (1st of next month from purchase date)
+ * @param {Date} purchaseDate - Purchase date
+ * @returns {Date} Next payout date
+ */
+export const calculateNextPayoutDate = (purchaseDate) => {
+  const nextPayout = new Date(purchaseDate);
+  nextPayout.setMonth(nextPayout.getMonth() + 1);
+  nextPayout.setDate(1);
+  return nextPayout;
+};
+
 
 

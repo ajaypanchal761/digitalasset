@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
 import { profileAPI, uploadAPI } from "../../services/api.js";
 import "./EditProfile.css";
 
 const EditProfile = () => {
   const navigate = useNavigate();
   const { user: authUser, refreshUser } = useAuth();
+  const { showToast } = useToast();
 
   // Generate username from email (username is derived from email, not stored separately)
   const generateUsername = (email) => {
@@ -94,13 +96,13 @@ const EditProfile = () => {
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
+        showToast('Please select an image file', 'error');
         return;
       }
       
       // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
-        alert('Image size should be less than 5MB');
+        showToast('Image size should be less than 5MB', 'error');
         return;
       }
 
@@ -118,7 +120,7 @@ const EditProfile = () => {
 
   const handleSave = async () => {
     if (!authUser) {
-      alert("Please log in to update your profile");
+      showToast("Please log in to update your profile", "error");
       navigate("/auth/login");
       return;
     }
@@ -136,18 +138,15 @@ const EditProfile = () => {
       // If avatar was changed, upload it first
       if (avatarFile) {
         try {
-          console.log('📤 Uploading avatar image...');
           const uploadResponse = await uploadAPI.uploadImage(avatarFile);
           
           if (uploadResponse.success && uploadResponse.data?.url) {
             updateData.avatarUrl = uploadResponse.data.url;
-            console.log('✅ Avatar uploaded successfully:', uploadResponse.data.url);
           } else {
             throw new Error(uploadResponse.message || 'Failed to upload avatar');
           }
         } catch (uploadError) {
-          console.error('❌ Error uploading avatar:', uploadError);
-          alert('Failed to upload profile picture. Please try again.');
+          showToast('Failed to upload profile picture. Please try again.', 'error');
           setSaving(false);
           return;
         }
@@ -158,10 +157,6 @@ const EditProfile = () => {
       }
 
       // Save to backend
-      console.log('💾 Saving profile data:', { 
-        ...updateData, 
-        avatarUrl: updateData.avatarUrl ? 'URL set' : 'not set' 
-      });
       const response = await profileAPI.update(updateData);
 
       if (response.success) {
@@ -170,11 +165,11 @@ const EditProfile = () => {
         // Navigate back to profile page
         navigate("/profile");
       } else {
-        alert(response.message || "Failed to update profile");
+        showToast(response.message || "Failed to update profile", "error");
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert(error.message || "Failed to update profile. Please try again.");
+      showToast(error.message || "Failed to update profile. Please try again.", "error");
     } finally {
       setSaving(false);
     }
@@ -251,7 +246,13 @@ const EditProfile = () => {
       <div className="edit-profile__avatar-section">
         <div className="edit-profile__avatar-wrapper">
           {avatarPreview ? (
-            <img src={avatarPreview} alt={formData.name} className="edit-profile__avatar" />
+            <img 
+              src={avatarPreview} 
+              alt={formData.name} 
+              className="edit-profile__avatar"
+              loading="lazy"
+              decoding="async"
+            />
           ) : (
             <div className="edit-profile__avatar-fallback">
               {formData.name

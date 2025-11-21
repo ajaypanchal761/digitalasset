@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { propertyAPI, uploadAPI, adminAPI } from '../services/api.js';
+import logger from '../utils/logger.js';
 
 // Dummy Users Data
 const generateDummyUsers = () => {
@@ -180,7 +181,7 @@ export const AdminProvider = ({ children }) => {
 
   // Fetch users from API
   const fetchUsers = useCallback(async (params = {}) => {
-    console.log('🔄 AdminContext - fetchUsers called:', {
+    logger.log('🔄 AdminContext - fetchUsers called:', {
       params,
       timestamp: new Date().toISOString(),
       isAlreadyFetching: isFetchingUsersRef.current
@@ -188,13 +189,13 @@ export const AdminProvider = ({ children }) => {
     
     // Cancel any ongoing request
     if (fetchUsersAbortController.current) {
-      console.log('⚠️ AdminContext - Canceling previous users fetch request');
+      logger.warn('⚠️ AdminContext - Canceling previous users fetch request');
       fetchUsersAbortController.current.abort();
     }
 
     // Prevent duplicate requests
     if (isFetchingUsersRef.current) {
-      console.log('⏸️ AdminContext - Users request already in progress, skipping');
+      logger.log('⏸️ AdminContext - Users request already in progress, skipping');
       return {
         success: false,
         message: 'Request already in progress',
@@ -211,13 +212,13 @@ export const AdminProvider = ({ children }) => {
       setUsersLoading(true);
       setUsersError(null);
       
-      console.log('📡 AdminContext - Calling adminAPI.getUsers()');
+      logger.log('📡 AdminContext - Calling adminAPI.getUsers()');
       
       // Create new abort controller for this request
       fetchUsersAbortController.current = new AbortController();
       
       const response = await adminAPI.getUsers(params);
-      console.log('📥 AdminContext - Users API response:', {
+      logger.log('📥 AdminContext - Users API response:', {
         success: response?.success,
         count: response?.count || response?.data?.length || 0,
         total: response?.total,
@@ -252,7 +253,7 @@ export const AdminProvider = ({ children }) => {
           kycStatus: user.kycStatus || 'pending',
         }));
         
-        console.log('✅ AdminContext - Users fetched successfully:', {
+        logger.log('✅ AdminContext - Users fetched successfully:', {
           count: formattedUsers.length,
           total: response.total,
           page: response.page,
@@ -275,7 +276,7 @@ export const AdminProvider = ({ children }) => {
           count: formattedUsers.length,
         };
       } else {
-        console.error('❌ AdminContext - Users API returned error:', {
+        logger.error('❌ AdminContext - Users API returned error:', {
           message: response.message,
           response: response
         });
@@ -294,7 +295,7 @@ export const AdminProvider = ({ children }) => {
     } catch (error) {
       // Don't log error if request was aborted
       if (error.name !== 'AbortError') {
-        console.error('❌ AdminContext - Failed to fetch users:', {
+        logger.error('❌ AdminContext - Failed to fetch users:', {
           error: error.message,
           stack: error.stack,
           name: error.name,
@@ -312,7 +313,7 @@ export const AdminProvider = ({ children }) => {
           count: 0,
         };
       } else {
-        console.log('ℹ️ AdminContext - Users request was aborted');
+        logger.log('ℹ️ AdminContext - Users request was aborted');
         return {
           success: false,
           message: 'Request aborted',
@@ -327,7 +328,7 @@ export const AdminProvider = ({ children }) => {
       isFetchingUsersRef.current = false;
       setUsersLoading(false);
       fetchUsersAbortController.current = null;
-      console.log('🏁 AdminContext - fetchUsers completed');
+      logger.log('🏁 AdminContext - fetchUsers completed');
     }
   }, []); // Empty dependency array - function doesn't depend on any state
 
@@ -349,13 +350,13 @@ export const AdminProvider = ({ children }) => {
   const toggleUserAccountStatus = async (userId, action) => {
     const user = users.find(u => u.id === userId || u._id === userId);
     if (!user) {
-      console.error('❌ AdminContext - User not found:', userId);
+      logger.error('❌ AdminContext - User not found:', userId);
       throw new Error('User not found');
     }
 
     // Handle delete action separately
     if (action === 'delete') {
-      console.log('🗑️ AdminContext - deleteUser called:', {
+      logger.log('🗑️ AdminContext - deleteUser called:', {
         userId,
         email: user.email,
         timestamp: new Date().toISOString()
@@ -363,9 +364,9 @@ export const AdminProvider = ({ children }) => {
 
       try {
         const id = user._id || user.id;
-        console.log('📡 AdminContext - Calling adminAPI.deleteUser()');
+        logger.log('📡 AdminContext - Calling adminAPI.deleteUser()');
         const response = await adminAPI.deleteUser(id);
-        console.log('📥 AdminContext - Delete user API response:', {
+        logger.log('📥 AdminContext - Delete user API response:', {
           success: response?.success,
           message: response?.message,
           timestamp: new Date().toISOString()
@@ -382,15 +383,15 @@ export const AdminProvider = ({ children }) => {
             setSelectedUser(null);
           }
           
-          console.log('✅ AdminContext - User deleted successfully');
+          logger.log('✅ AdminContext - User deleted successfully');
         } else {
-          console.error('❌ AdminContext - Failed to delete user:', {
+          logger.error('❌ AdminContext - Failed to delete user:', {
             message: response.message
           });
           throw new Error(response.message || 'Failed to delete user');
         }
       } catch (error) {
-        console.error('❌ AdminContext - Error deleting user:', {
+        logger.error('❌ AdminContext - Error deleting user:', {
           error: error.message,
           stack: error.stack,
           name: error.name
@@ -406,7 +407,7 @@ export const AdminProvider = ({ children }) => {
     else if (action === 'unlock') newStatus = 'active';
     else if (action === 'suspend') newStatus = 'suspended';
 
-    console.log('🔒 AdminContext - toggleUserAccountStatus called:', {
+        logger.log('🔒 AdminContext - toggleUserAccountStatus called:', {
       userId,
       action,
       currentStatus: user.accountStatus,
@@ -416,9 +417,9 @@ export const AdminProvider = ({ children }) => {
 
     try {
       const id = user._id || user.id;
-      console.log('📡 AdminContext - Calling adminAPI.updateUserStatus()');
+      logger.log('📡 AdminContext - Calling adminAPI.updateUserStatus()');
       const response = await adminAPI.updateUserStatus(id, newStatus);
-      console.log('📥 AdminContext - Update user status API response:', {
+      logger.log('📥 AdminContext - Update user status API response:', {
         success: response?.success,
         message: response?.message,
         timestamp: new Date().toISOString()
@@ -434,15 +435,15 @@ export const AdminProvider = ({ children }) => {
             return u;
           })
         );
-        console.log('✅ AdminContext - User status updated successfully');
+        logger.log('✅ AdminContext - User status updated successfully');
       } else {
-        console.error('❌ AdminContext - Failed to update user status:', {
+        logger.error('❌ AdminContext - Failed to update user status:', {
           message: response.message
         });
         throw new Error(response.message || 'Failed to update user status');
       }
     } catch (error) {
-      console.error('❌ AdminContext - Error updating user status:', {
+      logger.error('❌ AdminContext - Error updating user status:', {
         error: error.message,
         stack: error.stack,
         name: error.name
@@ -455,11 +456,11 @@ export const AdminProvider = ({ children }) => {
   const updateWallet = async (userId, type, amount, reason) => {
     const user = users.find(u => u.id === userId || u._id === userId);
     if (!user) {
-      console.error('❌ AdminContext - User not found:', userId);
+      logger.error('❌ AdminContext - User not found:', userId);
       throw new Error('User not found');
     }
 
-    console.log('💰 AdminContext - updateWallet called:', {
+        logger.log('💰 AdminContext - updateWallet called:', {
       userId,
       type,
             amount,
@@ -473,14 +474,14 @@ export const AdminProvider = ({ children }) => {
       
       let response;
       if (type === 'credit') {
-        console.log('📡 AdminContext - Calling adminAPI.creditWallet()');
+        logger.log('📡 AdminContext - Calling adminAPI.creditWallet()');
         response = await adminAPI.creditWallet(id, amount, reason);
       } else {
-        console.log('📡 AdminContext - Calling adminAPI.debitWallet()');
+        logger.log('📡 AdminContext - Calling adminAPI.debitWallet()');
         response = await adminAPI.debitWallet(id, amount, reason);
       }
       
-      console.log('📥 AdminContext - Wallet update API response:', {
+      logger.log('📥 AdminContext - Wallet update API response:', {
         success: response?.success,
         newBalance: response?.data?.balance,
         message: response?.message,
@@ -503,20 +504,20 @@ export const AdminProvider = ({ children }) => {
             return u;
           })
         );
-        console.log('✅ AdminContext - Wallet updated successfully');
+        logger.log('✅ AdminContext - Wallet updated successfully');
         
         // Refresh user detail if selected
         if (selectedUser && (selectedUser.id === userId || selectedUser._id === userId)) {
           await fetchUserDetail(id);
         }
       } else {
-        console.error('❌ AdminContext - Failed to update wallet:', {
+        logger.error('❌ AdminContext - Failed to update wallet:', {
           message: response.message
         });
         throw new Error(response.message || 'Failed to update wallet');
       }
     } catch (error) {
-      console.error('❌ AdminContext - Error updating wallet:', {
+      logger.error('❌ AdminContext - Error updating wallet:', {
         error: error.message,
         stack: error.stack,
         name: error.name
@@ -527,16 +528,16 @@ export const AdminProvider = ({ children }) => {
 
   // Fetch user detail with holdings and transactions
   const fetchUserDetail = async (userId) => {
-    console.log('👤 AdminContext - fetchUserDetail called:', {
+        logger.log('👤 AdminContext - fetchUserDetail called:', {
       userId,
       timestamp: new Date().toISOString()
     });
 
     try {
       const id = userId._id || userId.id || userId;
-      console.log('📡 AdminContext - Calling adminAPI.getUserDetail()');
+      logger.log('📡 AdminContext - Calling adminAPI.getUserDetail()');
       const response = await adminAPI.getUserDetail(id);
-      console.log('📥 AdminContext - User detail API response:', {
+      logger.log('📥 AdminContext - User detail API response:', {
         success: response?.success,
         hasUser: !!response?.data?.user,
         hasHoldings: !!response?.data?.holdings,
@@ -589,7 +590,7 @@ export const AdminProvider = ({ children }) => {
           kycStatus: user.kycStatus || 'pending',
         };
         
-        console.log('✅ AdminContext - User detail fetched successfully:', {
+        logger.log('✅ AdminContext - User detail fetched successfully:', {
           userId: formattedUser.id,
           investmentsCount: formattedUser.investments.length,
           transactionsCount: formattedUser.transactions.length
@@ -607,13 +608,13 @@ export const AdminProvider = ({ children }) => {
         
         return formattedUser;
       } else {
-        console.error('❌ AdminContext - Failed to fetch user detail:', {
+        logger.error('❌ AdminContext - Failed to fetch user detail:', {
           message: response.message
         });
         throw new Error(response.message || 'Failed to fetch user detail');
       }
     } catch (error) {
-      console.error('❌ AdminContext - Error fetching user detail:', {
+      logger.error('❌ AdminContext - Error fetching user detail:', {
         error: error.message,
         stack: error.stack,
         name: error.name
@@ -628,20 +629,20 @@ export const AdminProvider = ({ children }) => {
 
   // Fetch properties from API
   const fetchProperties = async () => {
-    console.log('🔄 AdminContext - fetchProperties called:', {
+        logger.log('🔄 AdminContext - fetchProperties called:', {
       timestamp: new Date().toISOString(),
       isAlreadyFetching: isFetchingRef.current
     });
     
     // Cancel any ongoing request
     if (fetchPropertiesAbortController.current) {
-      console.log('⚠️ AdminContext - Canceling previous fetch request');
+      logger.log('⚠️ AdminContext - Canceling previous fetch request');
       fetchPropertiesAbortController.current.abort();
     }
 
     // Prevent duplicate requests
     if (isFetchingRef.current) {
-      console.log('⏸️ AdminContext - Request already in progress, skipping');
+      logger.log('⏸️ AdminContext - Request already in progress, skipping');
       return;
     }
 
@@ -650,13 +651,13 @@ export const AdminProvider = ({ children }) => {
       setPropertiesLoading(true);
       setPropertiesError(null);
       
-      console.log('📡 AdminContext - Calling propertyAPI.getAll()');
+      logger.log('📡 AdminContext - Calling propertyAPI.getAll()');
       
       // Create new abort controller for this request
       fetchPropertiesAbortController.current = new AbortController();
       
       const response = await propertyAPI.getAll();
-      console.log('📥 AdminContext - Properties API response:', {
+      logger.log('📥 AdminContext - Properties API response:', {
         success: response?.success,
         count: response?.count || response?.data?.length || 0,
         hasData: !!response?.data,
@@ -666,7 +667,7 @@ export const AdminProvider = ({ children }) => {
       
       if (response.success) {
         const properties = response.data || [];
-        console.log('✅ AdminContext - Properties fetched successfully:', {
+        logger.log('✅ AdminContext - Properties fetched successfully:', {
           count: properties.length,
           propertyIds: properties.slice(0, 5).map(p => p._id || p.id),
           statuses: properties.reduce((acc, p) => {
@@ -676,7 +677,7 @@ export const AdminProvider = ({ children }) => {
         });
         setProperties(properties);
       } else {
-        console.error('❌ AdminContext - Properties API returned error:', {
+        logger.error('❌ AdminContext - Properties API returned error:', {
           message: response.message,
           response: response
         });
@@ -686,7 +687,7 @@ export const AdminProvider = ({ children }) => {
     } catch (error) {
       // Don't log error if request was aborted
       if (error.name !== 'AbortError') {
-        console.error('❌ AdminContext - Failed to fetch properties:', {
+        logger.error('❌ AdminContext - Failed to fetch properties:', {
           error: error.message,
           stack: error.stack,
           name: error.name,
@@ -695,13 +696,13 @@ export const AdminProvider = ({ children }) => {
         setPropertiesError(error.message || 'Failed to fetch properties');
         setProperties([]);
       } else {
-        console.log('ℹ️ AdminContext - Request was aborted');
+        logger.log('ℹ️ AdminContext - Request was aborted');
       }
     } finally {
       isFetchingRef.current = false;
       setPropertiesLoading(false);
       fetchPropertiesAbortController.current = null;
-      console.log('🏁 AdminContext - fetchProperties completed');
+      logger.log('🏁 AdminContext - fetchProperties completed');
     }
   };
 
@@ -712,7 +713,7 @@ export const AdminProvider = ({ children }) => {
 
   // Property Management Functions
   const addProperty = async (propertyData) => {
-    console.log('➕ AdminContext - addProperty called:', {
+        logger.log('➕ AdminContext - addProperty called:', {
       propertyTitle: propertyData.title,
       propertyType: propertyData.propertyType,
       availableToInvest: propertyData.availableToInvest,
@@ -726,45 +727,45 @@ export const AdminProvider = ({ children }) => {
       // Handle image upload if it's a File object
       let imageUrl = propertyData.image;
       if (propertyData.image && propertyData.image instanceof File) {
-        console.log('📤 AdminContext - Uploading image file:', {
+        logger.log('📤 AdminContext - Uploading image file:', {
           fileName: propertyData.image.name,
           fileSize: propertyData.image.size,
           fileType: propertyData.image.type
         });
         const uploadRes = await uploadAPI.uploadImage(propertyData.image);
         imageUrl = uploadRes.data?.url || uploadRes.url;
-        console.log('✅ AdminContext - Image uploaded successfully:', {
+        logger.log('✅ AdminContext - Image uploaded successfully:', {
           imageUrl: imageUrl?.substring(0, 50) + '...'
         });
       } else if (propertyData.image) {
-        console.log('ℹ️ AdminContext - Using existing image URL');
+        logger.log('ℹ️ AdminContext - Using existing image URL');
       }
 
       // Handle document uploads
       const documentUrls = [];
       if (propertyData.documents && Array.isArray(propertyData.documents)) {
-        console.log('📤 AdminContext - Processing documents:', {
+        logger.log('📤 AdminContext - Processing documents:', {
           count: propertyData.documents.length
         });
         for (const doc of propertyData.documents) {
           if (doc instanceof File) {
-            console.log('📤 AdminContext - Uploading document:', {
+            logger.log('📤 AdminContext - Uploading document:', {
               fileName: doc.name,
               fileSize: doc.size
             });
             const docRes = await uploadAPI.uploadDocument(doc);
             const docUrl = docRes.data?.url || docRes.url;
             documentUrls.push(docUrl);
-            console.log('✅ AdminContext - Document uploaded:', {
+            logger.log('✅ AdminContext - Document uploaded:', {
               fileName: doc.name,
               url: docUrl?.substring(0, 50) + '...'
             });
           } else if (typeof doc === 'string') {
             documentUrls.push(doc);
-            console.log('ℹ️ AdminContext - Using existing document URL');
+            logger.log('ℹ️ AdminContext - Using existing document URL');
           } else if (doc.url) {
             documentUrls.push(doc.url);
-            console.log('ℹ️ AdminContext - Using existing document URL from object');
+            logger.log('ℹ️ AdminContext - Using existing document URL from object');
           }
         }
       }
@@ -775,16 +776,16 @@ export const AdminProvider = ({ children }) => {
         documents: documentUrls,
       };
 
-      console.log('📦 AdminContext - Final property payload for API:', {
+      logger.log('📦 AdminContext - Final property payload for API:', {
         ...propertyPayload,
         description: propertyPayload.description?.substring(0, 50) + '...',
         image: propertyPayload.image ? (typeof propertyPayload.image === 'string' ? propertyPayload.image.substring(0, 50) + '...' : 'File object') : 'none',
         documents: propertyPayload.documents.length > 0 ? `${propertyPayload.documents.length} URL(s)` : 'none'
       });
 
-      console.log('📡 AdminContext - Calling propertyAPI.create()');
+      logger.log('📡 AdminContext - Calling propertyAPI.create()');
       const response = await propertyAPI.create(propertyPayload);
-      console.log('📥 AdminContext - Create property API response:', {
+      logger.log('📥 AdminContext - Create property API response:', {
         success: response?.success,
         hasData: !!response?.data,
         propertyId: response?.data?._id || response?.data?.id,
@@ -794,19 +795,19 @@ export const AdminProvider = ({ children }) => {
       });
       
       if (response.success) {
-        console.log('✅ AdminContext - Property created successfully, refreshing list...');
+        logger.log('✅ AdminContext - Property created successfully, refreshing list...');
         await fetchProperties(); // Refresh list
-        console.log('✅ AdminContext - Property list refreshed');
+        logger.log('✅ AdminContext - Property list refreshed');
         return response.data;
       } else {
-        console.error('❌ AdminContext - Property creation failed:', {
+        logger.error('❌ AdminContext - Property creation failed:', {
           message: response.message,
           response: response
         });
         throw new Error(response.message || 'Failed to create property');
       }
     } catch (error) {
-      console.error('❌ AdminContext - Error creating property:', {
+      logger.error('❌ AdminContext - Error creating property:', {
         error: error.message,
         stack: error.stack,
         name: error.name,
@@ -818,7 +819,7 @@ export const AdminProvider = ({ children }) => {
 
   const updateProperty = async (propertyId, updates) => {
     const id = propertyId._id || propertyId.id || propertyId;
-    console.log('✏️ AdminContext - updateProperty called:', {
+        logger.log('✏️ AdminContext - updateProperty called:', {
       propertyId: id,
       updates: {
         ...updates,
@@ -834,22 +835,22 @@ export const AdminProvider = ({ children }) => {
       // Handle image upload if it's a File object
       let imageUrl = updates.image;
       if (updates.image && updates.image instanceof File) {
-        console.log('📤 AdminContext - Uploading new image for update:', {
+        logger.log('📤 AdminContext - Uploading new image for update:', {
           fileName: updates.image.name,
           fileSize: updates.image.size
         });
         const uploadRes = await uploadAPI.uploadImage(updates.image);
         imageUrl = uploadRes.data?.url || uploadRes.url;
-        console.log('✅ AdminContext - Image uploaded for update');
+        logger.log('✅ AdminContext - Image uploaded for update');
       } else if (updates.image === null || updates.image === undefined) {
-        console.log('ℹ️ AdminContext - No image update provided');
+        logger.log('ℹ️ AdminContext - No image update provided');
         // Don't update image if not provided
         delete updates.image;
       }
 
       // Handle document uploads
       if (updates.documents && Array.isArray(updates.documents)) {
-        console.log('📤 AdminContext - Processing document updates:', {
+        logger.log('📤 AdminContext - Processing document updates:', {
           count: updates.documents.length
         });
         const documentUrls = [];
@@ -871,14 +872,14 @@ export const AdminProvider = ({ children }) => {
         ...(imageUrl !== undefined && { image: imageUrl }),
       };
 
-      console.log('📦 AdminContext - Final update payload:', {
+      logger.log('📦 AdminContext - Final update payload:', {
         ...propertyPayload,
         description: propertyPayload.description?.substring(0, 50) + '...'
       });
 
-      console.log('📡 AdminContext - Calling propertyAPI.update()');
+      logger.log('📡 AdminContext - Calling propertyAPI.update()');
       const response = await propertyAPI.update(id, propertyPayload);
-      console.log('📥 AdminContext - Update property API response:', {
+      logger.log('📥 AdminContext - Update property API response:', {
         success: response?.success,
         hasData: !!response?.data,
         propertyId: response?.data?._id || response?.data?.id,
@@ -886,17 +887,17 @@ export const AdminProvider = ({ children }) => {
       });
       
       if (response.success) {
-        console.log('✅ AdminContext - Property updated successfully, refreshing list...');
+        logger.log('✅ AdminContext - Property updated successfully, refreshing list...');
         await fetchProperties(); // Refresh list
         return response.data;
       } else {
-        console.error('❌ AdminContext - Property update failed:', {
+        logger.error('❌ AdminContext - Property update failed:', {
           message: response.message
         });
         throw new Error(response.message || 'Failed to update property');
       }
     } catch (error) {
-      console.error('❌ AdminContext - Error updating property:', {
+      logger.error('❌ AdminContext - Error updating property:', {
         error: error.message,
         stack: error.stack,
         name: error.name
@@ -916,7 +917,7 @@ export const AdminProvider = ({ children }) => {
         throw new Error(response.message || 'Failed to delete property');
       }
     } catch (error) {
-      console.error('Error deleting property:', error);
+      logger.error('Error deleting property:', error);
       throw error;
     }
   };
@@ -932,7 +933,7 @@ export const AdminProvider = ({ children }) => {
         throw new Error(response.message || 'Failed to update property status');
       }
     } catch (error) {
-      console.error('Error updating property status:', error);
+      logger.error('Error updating property status:', error);
       throw error;
     }
   };
@@ -954,7 +955,7 @@ export const AdminProvider = ({ children }) => {
 
   // Fetch withdrawals from API
   const fetchWithdrawals = useCallback(async (params = {}) => {
-    console.log('🔄 AdminContext - fetchWithdrawals called:', {
+        logger.log('🔄 AdminContext - fetchWithdrawals called:', {
       params,
       timestamp: new Date().toISOString(),
       isAlreadyFetching: isFetchingWithdrawalsRef.current
@@ -962,13 +963,13 @@ export const AdminProvider = ({ children }) => {
     
     // Cancel any ongoing request
     if (fetchWithdrawalsAbortController.current) {
-      console.log('⚠️ AdminContext - Canceling previous withdrawals fetch request');
+      logger.log('⚠️ AdminContext - Canceling previous withdrawals fetch request');
       fetchWithdrawalsAbortController.current.abort();
     }
 
     // Prevent duplicate requests
     if (isFetchingWithdrawalsRef.current) {
-      console.log('⏸️ AdminContext - Withdrawals request already in progress, skipping');
+      logger.log('⏸️ AdminContext - Withdrawals request already in progress, skipping');
       return {
         success: false,
         message: 'Request already in progress',
@@ -985,13 +986,13 @@ export const AdminProvider = ({ children }) => {
       setWithdrawalsLoading(true);
       setWithdrawalsError(null);
       
-      console.log('📡 AdminContext - Calling adminAPI.getWithdrawals()');
+      logger.log('📡 AdminContext - Calling adminAPI.getWithdrawals()');
       
       // Create new abort controller for this request
       fetchWithdrawalsAbortController.current = new AbortController();
       
       const response = await adminAPI.getWithdrawals(params);
-      console.log('📥 AdminContext - Withdrawals API response:', {
+      logger.log('📥 AdminContext - Withdrawals API response:', {
         success: response?.success,
         count: response?.count || response?.data?.length || 0,
         total: response?.total,
@@ -1040,7 +1041,7 @@ export const AdminProvider = ({ children }) => {
           };
         });
         
-        console.log('✅ AdminContext - Withdrawals fetched successfully:', {
+        logger.log('✅ AdminContext - Withdrawals fetched successfully:', {
           count: formattedWithdrawals.length,
           total: response.total,
           page: response.page,
@@ -1063,7 +1064,7 @@ export const AdminProvider = ({ children }) => {
           count: formattedWithdrawals.length,
         };
       } else {
-        console.error('❌ AdminContext - Withdrawals API returned error:', {
+        logger.error('❌ AdminContext - Withdrawals API returned error:', {
           message: response.message,
           response: response
         });
@@ -1082,7 +1083,7 @@ export const AdminProvider = ({ children }) => {
     } catch (error) {
       // Don't log error if request was aborted
       if (error.name !== 'AbortError') {
-        console.error('❌ AdminContext - Failed to fetch withdrawals:', {
+        logger.error('❌ AdminContext - Failed to fetch withdrawals:', {
           error: error.message,
           stack: error.stack,
           name: error.name,
@@ -1100,7 +1101,7 @@ export const AdminProvider = ({ children }) => {
           count: 0,
         };
       } else {
-        console.log('ℹ️ AdminContext - Withdrawals request was aborted');
+        logger.log('ℹ️ AdminContext - Withdrawals request was aborted');
         return {
           success: false,
           message: 'Request aborted',
@@ -1115,7 +1116,7 @@ export const AdminProvider = ({ children }) => {
       isFetchingWithdrawalsRef.current = false;
       setWithdrawalsLoading(false);
       fetchWithdrawalsAbortController.current = null;
-      console.log('🏁 AdminContext - fetchWithdrawals completed');
+      logger.log('🏁 AdminContext - fetchWithdrawals completed');
     }
   }, []); // Empty dependency array - function doesn't depend on any state
 
@@ -1126,7 +1127,7 @@ export const AdminProvider = ({ children }) => {
 
   // Withdrawal Management Functions
   const updateWithdrawalStatus = async (withdrawalId, newStatus, rejectionReason = null) => {
-    console.log('🔄 AdminContext - updateWithdrawalStatus called:', {
+        logger.log('🔄 AdminContext - updateWithdrawalStatus called:', {
       withdrawalId,
       newStatus,
       hasRejectionReason: !!rejectionReason,
@@ -1136,7 +1137,7 @@ export const AdminProvider = ({ children }) => {
     try {
       const withdrawal = withdrawals.find(w => w.id === withdrawalId || w._id === withdrawalId);
       if (!withdrawal) {
-        console.error('❌ AdminContext - Withdrawal not found:', withdrawalId);
+        logger.error('❌ AdminContext - Withdrawal not found:', withdrawalId);
         throw new Error('Withdrawal not found');
       }
 
@@ -1145,11 +1146,11 @@ export const AdminProvider = ({ children }) => {
 
       if (newStatus === 'completed' || newStatus === 'approved') {
         // Approve withdrawal
-        console.log('📡 AdminContext - Calling adminAPI.approveWithdrawal()');
+        logger.log('📡 AdminContext - Calling adminAPI.approveWithdrawal()');
         response = await adminAPI.approveWithdrawal(id, rejectionReason || null);
       } else if (newStatus === 'rejected') {
         // Reject withdrawal
-        console.log('📡 AdminContext - Calling adminAPI.rejectWithdrawal()');
+        logger.log('📡 AdminContext - Calling adminAPI.rejectWithdrawal()');
         response = await adminAPI.rejectWithdrawal(id, rejectionReason || 'Rejected by admin');
       } else {
         // For other statuses, just update locally (processing, etc.)
@@ -1171,7 +1172,7 @@ export const AdminProvider = ({ children }) => {
         return;
       }
 
-      console.log('📥 AdminContext - Update withdrawal status API response:', {
+      logger.log('📥 AdminContext - Update withdrawal status API response:', {
         success: response?.success,
         message: response?.message,
         timestamp: new Date().toISOString()
@@ -1180,15 +1181,15 @@ export const AdminProvider = ({ children }) => {
       if (response.success) {
         // Refresh withdrawals to get updated data
         await fetchWithdrawals();
-        console.log('✅ AdminContext - Withdrawal status updated successfully');
+        logger.log('✅ AdminContext - Withdrawal status updated successfully');
       } else {
-        console.error('❌ AdminContext - Failed to update withdrawal status:', {
+        logger.error('❌ AdminContext - Failed to update withdrawal status:', {
           message: response.message
         });
         throw new Error(response.message || 'Failed to update withdrawal status');
       }
     } catch (error) {
-      console.error('❌ AdminContext - Error updating withdrawal status:', {
+      logger.error('❌ AdminContext - Error updating withdrawal status:', {
         error: error.message,
         stack: error.stack,
         name: error.name
@@ -1198,7 +1199,7 @@ export const AdminProvider = ({ children }) => {
   };
 
   const bulkUpdateWithdrawals = async (withdrawalIds, newStatus, rejectionReason = null) => {
-    console.log('🔄 AdminContext - bulkUpdateWithdrawals called:', {
+        logger.log('🔄 AdminContext - bulkUpdateWithdrawals called:', {
       withdrawalIds,
       newStatus,
       count: withdrawalIds.length,
@@ -1210,9 +1211,9 @@ export const AdminProvider = ({ children }) => {
       for (const withdrawalId of withdrawalIds) {
         await updateWithdrawalStatus(withdrawalId, newStatus, rejectionReason);
       }
-      console.log('✅ AdminContext - Bulk withdrawal update completed');
+      logger.log('✅ AdminContext - Bulk withdrawal update completed');
     } catch (error) {
-      console.error('❌ AdminContext - Error in bulk update:', {
+      logger.error('❌ AdminContext - Error in bulk update:', {
         error: error.message
       });
       throw error;

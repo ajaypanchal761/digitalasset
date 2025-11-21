@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
 
 const ContactOwner = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { holdings, listings } = useAppState();
+  const { showToast } = useToast();
   const holdingId = location.state?.holdingId;
   const holding = holdings.find((h) => (h._id || h.id) === holdingId);
   const property = holding ? listings.find((p) => {
@@ -62,10 +64,9 @@ const ContactOwner = () => {
         property: holding.name,
         ...formData,
       });
-      alert(
-        `Your message has been sent to the property owner!\n\n` +
-        `They will contact you via ${formData.contactPreference === "email" ? "email" : "phone"} to discuss the sale options.\n\n` +
-        `Please check your ${formData.contactPreference === "email" ? "email" : "phone"} for their response.`
+      showToast(
+        `Your message has been sent to the property owner! They will contact you via ${formData.contactPreference === "email" ? "email" : "phone"} to discuss the sale options.`,
+        "success"
       );
       navigate("/wallet");
     } else {

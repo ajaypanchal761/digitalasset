@@ -112,6 +112,11 @@ export const getStatusColor = (status) => {
     // Property Status
     inactive: { bg: '#f3f4f6', text: '#374151' },
     closed: { bg: '#fee2e2', text: '#991b1b' },
+    
+    // Payout Status
+    pending: { bg: '#fed7aa', text: '#9a3412' },
+    processed: { bg: '#d1fae5', text: '#065f46' },
+    failed: { bg: '#fee2e2', text: '#991b1b' },
   };
   
   return statusColors[status?.toLowerCase()] || statusColors.pending;

@@ -49,6 +49,16 @@ const holdingSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  nextPayoutDate: {
+    type: Date,
+  },
+  lastPayoutDate: {
+    type: Date,
+  },
+  payoutCount: {
+    type: Number,
+    default: 0,
+  },
 }, {
   timestamps: true,
 });

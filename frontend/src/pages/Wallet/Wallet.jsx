@@ -1,10 +1,12 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
 
 const Wallet = () => {
   const { wallet, holdings, listings, loading, error } = useAppState();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState("overview"); // overview, transactions, investments
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawForm, setWithdrawForm] = useState({
@@ -245,6 +247,72 @@ const Wallet = () => {
               </div>
             </div>
 
+            {/* Monthly Payouts Section */}
+            <div className="wallet-page__payout-section">
+              <h2 className="wallet-page__section-title">Monthly Payouts</h2>
+              <div className="wallet-page__payout-cards">
+                {holdings && holdings.length > 0 ? (
+                  holdings
+                    .filter(h => h.status === 'lock-in' || h.status === 'matured')
+                    .map((holding) => {
+                      const holdingId = holding._id || holding.id;
+                      const propertyId = holding.propertyId?._id || holding.propertyId;
+                      const property = listings.find((p) => (p._id || p.id) === propertyId);
+                      const propertyName = property?.title || holding.name || 'Property';
+                      
+                      // Calculate next payout date (1st of next month from purchase date)
+                      const calculateNextPayoutDate = (purchaseDate) => {
+                        if (!purchaseDate) return null;
+                        const purchase = new Date(purchaseDate);
+                        const nextPayout = new Date(purchase);
+                        nextPayout.setMonth(nextPayout.getMonth() + 1);
+                        nextPayout.setDate(1); // Set to 1st of next month
+                        return nextPayout;
+                      };
+
+                      const nextPayoutDate = calculateNextPayoutDate(holding.purchaseDate);
+                      const monthlyEarning = holding.monthlyEarning || (holding.amountInvested || 0) * 0.005;
+                      const isPayoutDue = nextPayoutDate && new Date() >= nextPayoutDate;
+
+                      return (
+                        <div key={holdingId} className="wallet-page__payout-card">
+                          <div className="wallet-page__payout-card-header">
+                            <h3 className="wallet-page__payout-property">{propertyName}</h3>
+                            <span className={`wallet-page__payout-badge ${isPayoutDue ? 'wallet-page__payout-badge--due' : ''}`}>
+                              {isPayoutDue ? 'Due' : 'Upcoming'}
+                            </span>
+                          </div>
+                          <div className="wallet-page__payout-details">
+                            <div className="wallet-page__payout-detail-item">
+                              <span className="wallet-page__payout-label">Next Payout Date:</span>
+                              <span className="wallet-page__payout-value">
+                                {nextPayoutDate ? formatDate(nextPayoutDate.toISOString()) : 'N/A'}
+                              </span>
+                            </div>
+                            <div className="wallet-page__payout-detail-item">
+                              <span className="wallet-page__payout-label">Monthly Amount:</span>
+                              <span className="wallet-page__payout-value wallet-page__payout-value--green">
+                                {formatCurrency(monthlyEarning, walletData.currency)}
+                              </span>
+                            </div>
+                            <div className="wallet-page__payout-detail-item">
+                              <span className="wallet-page__payout-label">Investment:</span>
+                              <span className="wallet-page__payout-value">
+                                {formatCurrency(holding.amountInvested || 0, walletData.currency)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                ) : (
+                  <div className="wallet-page__payout-empty">
+                    <p>No active investments for monthly payouts</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="wallet-page__quick-actions">
               <button className="wallet-page__action-btn wallet-page__action-btn--primary" onClick={() => navigate("/explore")}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -419,7 +487,7 @@ const Wallet = () => {
                     if (Object.keys(errors).length === 0) {
                       // Handle withdrawal submission
                       console.log("Withdrawal submitted:", withdrawForm);
-                      alert("Withdrawal request submitted successfully! It will be processed within 2-3 business days.");
+                      showToast("Withdrawal request submitted successfully! It will be processed within 2-3 business days.", "success");
                       setShowWithdrawModal(false);
                       setWithdrawForm({
                         amount: 0,

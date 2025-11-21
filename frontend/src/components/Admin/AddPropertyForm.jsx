@@ -377,7 +377,12 @@ const AddPropertyForm = ({ onClose, property = null }) => {
               <div className="add-property-form__image-upload">
                 {imagePreview ? (
                   <div className="add-property-form__image-preview">
-                    <img src={imagePreview} alt="Preview" />
+                    <img 
+                      src={imagePreview} 
+                      alt="Preview"
+                      loading="lazy"
+                      decoding="async"
+                    />
                     <button
                       type="button"
                       className="add-property-form__remove-image"

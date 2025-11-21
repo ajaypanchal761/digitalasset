@@ -144,7 +144,7 @@ const socketHandler = (io) => {
               userId: chat.userId._id.toString(),
             },
             timestamp: new Date().toISOString(),
-            icon: '💬',
+            icon: 'chat-message',
             link: `/admin/chat`,
           };
           

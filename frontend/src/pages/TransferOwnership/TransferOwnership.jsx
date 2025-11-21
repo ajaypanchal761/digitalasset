@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
 
 const TransferOwnership = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { holdings } = useAppState();
+  const { showToast } = useToast();
   const user = { name: "Yunus Ahmed", email: "yunus@example.com" }; // TODO: Get from context
   const holdingId = location.state?.holdingId;
   const buyerInfo = location.state?.buyerInfo;
@@ -104,6 +106,12 @@ const TransferOwnership = () => {
   };
 
   const handleNext = () => {
+    // Show alert for KYC step
+    if (currentStep === 2) {
+      showToast('Integrate soon', 'info');
+      return;
+    }
+    
     const stepErrors = validateStep(currentStep);
     if (Object.keys(stepErrors).length === 0) {
       setErrors({});
@@ -145,12 +153,9 @@ const TransferOwnership = () => {
         salePrice,
       });
 
-      alert(
-        `Ownership transfer initiated! Profile details have been updated to:\n\n` +
-        `Name: ${formData.buyerName}\n` +
-        `Email: ${formData.buyerEmail}\n` +
-        `Phone: ${formData.buyerPhone}\n\n` +
-        `You can now proceed with withdrawal. Sale proceeds: ${formatCurrency(salePrice || holding.amountInvested, "INR")}`
+      showToast(
+        `Ownership transfer initiated! Profile details have been updated. You can now proceed with withdrawal.`,
+        "success"
       );
 
       // Navigate to withdrawal with updated info

@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useAdmin } from '../../context/AdminContext';
+import { useToast } from '../../context/ToastContext.jsx';
 import StatusBadge from './common/StatusBadge';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import ConfirmDialog from './common/ConfirmDialog';
 
 const WithdrawalDetail = ({ withdrawal, onClose }) => {
   const { updateWithdrawalStatus } = useAdmin();
+  const { showToast } = useToast();
   const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
@@ -20,13 +22,13 @@ const WithdrawalDetail = ({ withdrawal, onClose }) => {
       onClose();
     } catch (error) {
       console.error('❌ WithdrawalDetail - Error approving withdrawal:', error);
-      alert(`Failed to approve withdrawal: ${error.message}`);
+      showToast(`Failed to approve withdrawal: ${error.message}`, 'error');
     }
   };
 
   const handleReject = async () => {
     if (!rejectionReason.trim()) {
-      alert('Please provide a rejection reason');
+      showToast('Please provide a rejection reason', 'warning');
       return;
     }
     
@@ -37,7 +39,7 @@ const WithdrawalDetail = ({ withdrawal, onClose }) => {
       onClose();
     } catch (error) {
       console.error('❌ WithdrawalDetail - Error rejecting withdrawal:', error);
-      alert(`Failed to reject withdrawal: ${error.message}`);
+      showToast(`Failed to reject withdrawal: ${error.message}`, 'error');
     }
   };
 

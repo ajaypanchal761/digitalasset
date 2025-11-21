@@ -5,6 +5,7 @@ import {
   loginAdmin,
   loginAdminWithOTP,
   getAdminMe,
+  updateAdminProfile,
 } from '../controllers/adminAuth.controller.js';
 import { adminProtect } from '../middleware/adminAuth.middleware.js';
 import { authLimiter } from '../middleware/security.js';
@@ -19,6 +20,7 @@ router.post('/register', registerAdmin);
 router.post('/login', loginAdmin);
 router.post('/login-otp', loginAdminWithOTP);
 router.get('/me', adminProtect, getAdminMe);
+router.put('/profile', adminProtect, updateAdminProfile);
 
 export default router;
 

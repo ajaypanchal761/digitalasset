@@ -130,6 +130,7 @@ const Holdings = () => {
                 <span className="holdings-page__table-header-item">Earnings</span>
                 <span className="holdings-page__table-header-item">Status</span>
                 <span className="holdings-page__table-header-item">Maturity</span>
+                <span className="holdings-page__table-header-item">Next Payout</span>
                 <span className="holdings-page__table-header-item">Action</span>
               </div>
               <div className="holdings-page__table-body">
@@ -141,6 +142,18 @@ const Holdings = () => {
                   const isMatured = holding.status === "matured" || daysRemaining === 0;
                   // Get property name from holding or property reference
                   const propertyName = holding.name || holding.propertyId?.title || "Property";
+                  
+                  // Calculate next payout date (1st of next month from purchase date)
+                  const calculateNextPayoutDate = (purchaseDate) => {
+                    if (!purchaseDate) return null;
+                    const purchase = new Date(purchaseDate);
+                    const nextPayout = new Date(purchase);
+                    nextPayout.setMonth(nextPayout.getMonth() + 1);
+                    nextPayout.setDate(1); // Set to 1st of next month
+                    return nextPayout;
+                  };
+
+                  const nextPayoutDate = calculateNextPayoutDate(holding.purchaseDate);
                   
                   return (
                     <div
@@ -164,6 +177,9 @@ const Holdings = () => {
                       </span>
                       <span className="holdings-page__table-cell" data-label="Maturity">
                         {formatDate(holding.maturityDate)}
+                      </span>
+                      <span className="holdings-page__table-cell" data-label="Next Payout">
+                        {nextPayoutDate ? formatDate(nextPayoutDate.toISOString()) : 'N/A'}
                       </span>
                       <span className="holdings-page__table-cell" data-label="Action">
                         <button

@@ -17,6 +17,11 @@ const StatusBadge = ({ status, variant = 'default' }) => {
     // Property Status
     inactive: { label: 'Inactive', color: 'gray', bg: '#f3f4f6', text: '#374151' },
     closed: { label: 'Closed', color: 'red', bg: '#fee2e2', text: '#991b1b' },
+    
+    // Payout Status
+    pending: { label: 'Pending', color: 'orange', bg: '#fed7aa', text: '#9a3412' },
+    processed: { label: 'Processed', color: 'green', bg: '#d1fae5', text: '#065f46' },
+    failed: { label: 'Failed', color: 'red', bg: '#fee2e2', text: '#991b1b' },
   };
 
   const config = statusConfig[status?.toLowerCase()] || { label: status || 'Unknown', bg: '#f3f4f6', text: '#374151' };

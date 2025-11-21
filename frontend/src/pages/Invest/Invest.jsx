@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
 
 const Invest = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { listings } = useAppState();
+  const { showToast } = useToast();
   const propertyId = location.state?.propertyId;
   const property = listings.find((p) => (p._id || p.id) === propertyId);
 
@@ -75,18 +77,20 @@ const Invest = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
+      // Show alert for payment integration
+      showToast('Integrate soon', 'info');
       // Navigate to payment page with investment data
-      navigate("/payment", {
-        state: {
-          propertyId: property?.id,
-          propertyTitle: property?.title,
-          investmentAmount: formData.amount,
-          timePeriod: formData.timePeriod,
-          monthlyEarning: formData.amount * 0.005,
-          totalEarnings: formData.amount * 0.005 * formData.timePeriod,
-          maturityAmount: formData.amount + formData.amount * 0.005 * formData.timePeriod,
-        },
-      });
+      // navigate("/payment", {
+      //   state: {
+      //     propertyId: property?.id,
+      //     propertyTitle: property?.title,
+      //     investmentAmount: formData.amount,
+      //     timePeriod: formData.timePeriod,
+      //     monthlyEarning: formData.amount * 0.005,
+      //     totalEarnings: formData.amount * 0.005 * formData.timePeriod,
+      //     maturityAmount: formData.amount + formData.amount * 0.005 * formData.timePeriod,
+      //   },
+      // });
     }
   };
 

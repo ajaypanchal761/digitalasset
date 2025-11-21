@@ -198,7 +198,20 @@ function UserIcon({ active }) {
 
 const Avatar = ({ name, avatarUrl, initials }) => {
   if (avatarUrl) {
-    return <img className="avatar-image" src={avatarUrl} alt={name} />;
+    // Optimize Cloudinary URL for avatar (small size)
+    const optimizedUrl = avatarUrl.includes('cloudinary.com') 
+      ? avatarUrl.replace('/upload/', '/upload/w_100,h_100,c_fill,g_face,q_auto,f_auto/')
+      : avatarUrl;
+    
+    return (
+      <img 
+        className="avatar-image" 
+        src={optimizedUrl} 
+        alt={name}
+        loading="lazy"
+        decoding="async"
+      />
+    );
   }
 
   return <span className="avatar-fallback">{initials || name.slice(0, 2).toUpperCase()}</span>;

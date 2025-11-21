@@ -529,10 +529,98 @@ export const getAdminMe = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('❌ Get Admin Me error:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to get admin user',
+    });
+  }
+};
+
+// @desc    Update admin profile
+// @route   PUT /api/admin-auth/profile
+// @access  Private/Admin
+export const updateAdminProfile = async (req, res) => {
+  try {
+    const { name, email, phone, currentPassword, newPassword } = req.body;
+
+    // IMPORTANT: Select password field explicitly to use it for verification
+    const admin = await Admin.findById(req.user.id).select('+password');
+
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: 'Admin not found',
+      });
+    }
+
+    // Update name if provided
+    if (name) {
+      admin.name = name;
+    }
+
+    // Update email if provided (check for uniqueness)
+    if (email && email !== admin.email) {
+      const existingAdmin = await Admin.findOne({ email: email.toLowerCase() });
+      if (existingAdmin && existingAdmin._id.toString() !== admin._id.toString()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already in use',
+        });
+      }
+      admin.email = email.toLowerCase();
+    }
+
+    // Update phone if provided
+    if (phone) {
+      admin.phone = phone;
+    }
+
+    // Update password if provided
+    if (newPassword) {
+      if (!currentPassword) {
+        return res.status(400).json({
+          success: false,
+          message: 'Current password is required to change password',
+        });
+      }
+
+      // Verify current password
+      const isPasswordMatch = await admin.matchPassword(currentPassword);
+      if (!isPasswordMatch) {
+        return res.status(400).json({
+          success: false,
+          message: 'Current password is incorrect',
+        });
+      }
+
+      // Validate new password length
+      if (newPassword.length < 6) {
+        return res.status(400).json({
+          success: false,
+          message: 'New password must be at least 6 characters long',
+        });
+      }
+
+      admin.password = newPassword;
+    }
+
+    await admin.save();
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: {
+        id: admin._id,
+        name: admin.name,
+        email: admin.email,
+        phone: admin.phone,
+        role: admin.role || 'admin',
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to update profile',
     });
   }
 };

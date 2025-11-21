@@ -1,4 +1,5 @@
 import Property from '../models/Property.js';
+import { calculateMonthlyEarning, calculateTotalEarnings, calculateMaturityDate } from '../utils/calculate.js';
 
 // @desc    Get all properties
 // @route   GET /api/properties
@@ -204,6 +205,66 @@ export const updatePropertyStatus = async (req, res) => {
     res.json({
       success: true,
       data: property,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// @desc    Calculate ROI for a property
+// @route   POST /api/properties/:id/calculate-roi
+// @access  Public
+export const calculateROI = async (req, res) => {
+  try {
+    const { investmentAmount } = req.body;
+    const propertyId = req.params.id;
+
+    // Get property to get investment parameters
+    const property = await Property.findById(propertyId);
+
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found',
+      });
+    }
+
+    // Validate investment amount
+    const minInvestment = property.minInvestment || 500000;
+    const amount = Math.max(investmentAmount || minInvestment, minInvestment);
+
+    // Get property parameters
+    const monthlyReturnRate = property.monthlyReturnRate || 0.5;
+    const lockInMonths = property.lockInMonths || 3;
+
+    // Calculate ROI using utility functions
+    const monthlyEarning = calculateMonthlyEarning(amount, monthlyReturnRate);
+    const totalEarnings = calculateTotalEarnings(amount, lockInMonths, monthlyReturnRate);
+    const maturityDate = calculateMaturityDate(new Date(), lockInMonths);
+
+    // Format maturity date
+    const formattedMaturityDate = maturityDate.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+
+    res.json({
+      success: true,
+      data: {
+        investmentAmount: amount,
+        monthlyEarning,
+        totalEarnings,
+        lockInMonths,
+        maturityDate: formattedMaturityDate,
+        maturityDateISO: maturityDate.toISOString(),
+        monthlyReturnRate,
+        minInvestment,
+        withdrawableAmount: amount, // After lock-in period
+      },
     });
   } catch (error) {
     res.status(500).json({
