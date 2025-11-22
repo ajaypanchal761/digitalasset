@@ -336,35 +336,45 @@ export const sendOTP = async (req, res) => {
     let emailSent = false;
     let smsMessageId = null;
 
-    // Send OTP via SMS if phone provided (skip for test numbers)
-    if (normalizedPhone && smsHubIndiaService.isConfigured() && !isTestNumber) {
-      try {
-        console.log(`📱 Attempting to send SMS to ${normalizedPhone}...`);
-        const smsResult = await smsHubIndiaService.sendOTP(normalizedPhone, otp);
-        if (smsResult.success) {
-          smsSent = true;
-          smsMessageId = smsResult.messageId;
-          otpRecord.smsSent = true;
-          otpRecord.smsMessageId = smsMessageId;
-          await otpRecord.save();
-          console.log(`✅ SMS OTP sent to ${normalizedPhone}, Message ID: ${smsMessageId}`);
-        } else {
-          console.warn('⚠️ SMS service returned unsuccessful:', smsResult);
-        }
-      } catch (smsError) {
-        console.error('❌ SMS sending failed:', smsError.message);
-        console.error('❌ SMS error details:', smsError);
-        // Continue even if SMS fails, email might work
-      }
-    } else if (normalizedPhone && isTestNumber) {
-      // For test numbers, mark as sent (even though we didn't send SMS)
+    // TESTING MODE: Disable SMS sending for all users
+    // SMS sending is completely disabled - all users use default OTP 110211
+    if (normalizedPhone) {
+      // Mark as sent without actually sending SMS
       smsSent = true;
       otpRecord.smsSent = true;
       await otpRecord.save();
-      console.log(`📵 Skipped SMS for test number ${normalizedPhone}. Using default OTP ${otp}.`);
-    } else if (normalizedPhone) {
-      console.warn('⚠️ SMS Hub India not configured. Skipping SMS.');
+      console.log(`📵 TESTING MODE: SMS disabled. Using default OTP ${otp} for ${normalizedPhone}.`);
     }
+
+    // COMMENTED OUT: Actual SMS sending (disabled for testing)
+    // if (normalizedPhone && smsHubIndiaService.isConfigured() && !isTestNumber) {
+    //   try {
+    //     console.log(`📱 Attempting to send SMS to ${normalizedPhone}...`);
+    //     const smsResult = await smsHubIndiaService.sendOTP(normalizedPhone, otp);
+    //     if (smsResult.success) {
+    //       smsSent = true;
+    //       smsMessageId = smsResult.messageId;
+    //       otpRecord.smsSent = true;
+    //       otpRecord.smsMessageId = smsMessageId;
+    //       await otpRecord.save();
+    //       console.log(`✅ SMS OTP sent to ${normalizedPhone}, Message ID: ${smsMessageId}`);
+    //     } else {
+    //       console.warn('⚠️ SMS service returned unsuccessful:', smsResult);
+    //     }
+    //   } catch (smsError) {
+    //     console.error('❌ SMS sending failed:', smsError.message);
+    //     console.error('❌ SMS error details:', smsError);
+    //     // Continue even if SMS fails, email might work
+    //   }
+    // } else if (normalizedPhone && isTestNumber) {
+    //   // For test numbers, mark as sent (even though we didn't send SMS)
+    //   smsSent = true;
+    //   otpRecord.smsSent = true;
+    //   await otpRecord.save();
+    //   console.log(`📵 Skipped SMS for test number ${normalizedPhone}. Using default OTP ${otp}.`);
+    // } else if (normalizedPhone) {
+    //   console.warn('⚠️ SMS Hub India not configured. Skipping SMS.');
+    // }
 
     // Send OTP via email if email provided
     if (email) {
@@ -393,8 +403,8 @@ export const sendOTP = async (req, res) => {
 
     res.json({
       success: true,
-      message: isTestNumber ? 'OTP ready (test number - SMS skipped)' : 'OTP sent successfully',
-      method: isTestNumber ? 'Test' : (smsSent ? 'SMS' : 'Email'),
+      message: 'OTP ready (Testing mode - SMS disabled). Use OTP: 110211',
+      method: 'Test',
     });
   } catch (error) {
     console.error('❌ Send OTP error:', error);
