@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
-import { createSocket, getSocketToken } from "../../utils/socket.js";
+import { createSocket, getUserSocketToken } from "../../utils/socket.js";
 import { chatAPI } from "../../services/api.js";
 import logger from "../../utils/logger.js";
 import "./Chat.css";
@@ -94,8 +94,8 @@ const Chat = () => {
           }
         }
 
-        // Initialize socket connection
-        const token = getSocketToken();
+        // Initialize socket connection - use user token specifically
+        const token = getUserSocketToken();
         if (token) {
           const socket = createSocket(token);
           if (socket) {

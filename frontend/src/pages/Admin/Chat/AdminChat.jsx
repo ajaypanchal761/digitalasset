@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { adminAPI } from '../../../services/api';
 import { useToast } from '../../../context/ToastContext.jsx';
-import { createSocket, getSocketToken } from '../../../utils/socket';
+import { createSocket, getAdminSocketToken } from '../../../utils/socket';
 import './AdminChat.css';
 
 const AdminChat = () => {
@@ -20,7 +20,7 @@ const AdminChat = () => {
 
   // Initialize socket connection on mount
   useEffect(() => {
-    const token = getSocketToken();
+    const token = getAdminSocketToken();
     if (!token) {
       console.error('❌ No token found for socket connection');
       return;

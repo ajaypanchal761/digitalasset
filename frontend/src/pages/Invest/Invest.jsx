@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 const Invest = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { listings } = useAppState();
   const { showToast } = useToast();
+  const { user } = useAuth();
   const propertyId = location.state?.propertyId;
   const property = listings.find((p) => (p._id || p.id) === propertyId);
 
@@ -76,21 +78,28 @@ const Invest = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Check KYC status
+    if (!user || user.kycStatus !== 'approved') {
+      showToast('Please complete KYC verification before investing', 'error');
+      navigate('/kyc');
+      return;
+    }
+    
     if (validateForm()) {
-      // Show alert for payment integration
-      showToast('Integrate soon', 'info');
-      // Navigate to payment page with investment data
-      // navigate("/payment", {
-      //   state: {
-      //     propertyId: property?.id,
-      //     propertyTitle: property?.title,
-      //     investmentAmount: formData.amount,
-      //     timePeriod: formData.timePeriod,
-      //     monthlyEarning: formData.amount * 0.005,
-      //     totalEarnings: formData.amount * 0.005 * formData.timePeriod,
-      //     maturityAmount: formData.amount + formData.amount * 0.005 * formData.timePeriod,
-      //   },
-      // });
+      // Navigate to investment request form with investment data
+      navigate("/invest/request", {
+        state: {
+          propertyId: property?._id || property?.id,
+          propertyTitle: property?.title,
+          property: property,
+          investmentAmount: formData.amount,
+          timePeriod: formData.timePeriod,
+          monthlyEarning: formData.amount * 0.005,
+          totalEarnings: formData.amount * 0.005 * formData.timePeriod,
+          maturityAmount: formData.amount + formData.amount * 0.005 * formData.timePeriod,
+        },
+      });
     }
   };
 
@@ -274,7 +283,7 @@ const Invest = () => {
               Cancel
             </button>
             <button type="submit" className="invest-page__btn invest-page__btn--primary">
-              Proceed to Payment
+              Invest Now
             </button>
           </div>
         </form>

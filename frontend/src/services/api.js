@@ -536,6 +536,49 @@ export const chatAPI = {
   },
 };
 
+// ==================== INVESTMENT REQUEST API ====================
+
+export const investmentRequestAPI = {
+  // Create investment request
+  create: async (formData) => {
+    const token = getToken();
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    const response = await fetch(`${API_URL}/investment-requests`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        // Don't set Content-Type for FormData - browser will set it with boundary
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        removeToken();
+        window.location.href = '/auth/login';
+      }
+      throw new Error(data.message || 'Failed to create investment request');
+    }
+
+    return data;
+  },
+
+  // Get user's investment requests
+  getAll: async () => {
+    return apiRequest('/investment-requests');
+  },
+
+  // Get single investment request
+  getById: async (id) => {
+    return apiRequest(`/investment-requests/${id}`);
+  },
+};
+
 // ==================== ADMIN API ====================
 
 export const adminAPI = {
@@ -654,6 +697,29 @@ export const adminAPI = {
     const queryString = new URLSearchParams(params).toString();
     const url = queryString ? `/admin/payouts/history?${queryString}` : '/admin/payouts/history';
     return apiRequest(url);
+  },
+
+  // Get all investment requests
+  getInvestmentRequests: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const url = queryString ? `/admin/investment-requests?${queryString}` : '/admin/investment-requests';
+    return apiRequest(url);
+  },
+
+  // Approve investment request
+  approveInvestmentRequest: async (id, adminNotes) => {
+    return apiRequest(`/admin/investment-requests/${id}/approve`, {
+      method: 'PUT',
+      body: JSON.stringify({ adminNotes }),
+    });
+  },
+
+  // Reject investment request
+  rejectInvestmentRequest: async (id, adminNotes) => {
+    return apiRequest(`/admin/investment-requests/${id}/reject`, {
+      method: 'PUT',
+      body: JSON.stringify({ adminNotes }),
+    });
   },
 };
 

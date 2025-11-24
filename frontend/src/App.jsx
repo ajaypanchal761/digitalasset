@@ -10,6 +10,7 @@ import AuthLayout from "./layouts/AuthLayout.jsx";
 const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard.jsx"));
 const Explore = lazy(() => import("./pages/Explore/Explore.jsx"));
 const Invest = lazy(() => import("./pages/Invest/Invest.jsx"));
+const InvestmentRequest = lazy(() => import("./pages/Invest/InvestmentRequest.jsx"));
 const Payment = lazy(() => import("./pages/Payment/Payment.jsx"));
 const Wallet = lazy(() => import("./pages/Wallet/Wallet.jsx"));
 const ActiveInvestments = lazy(() => import("./pages/Wallet/ActiveInvestments.jsx"));
@@ -40,6 +41,7 @@ const AdminDashboard = lazy(() => import("./pages/Admin/Dashboard/AdminDashboard
 const AdminUsers = lazy(() => import("./pages/Admin/Users/AdminUsers.jsx"));
 const AdminProperties = lazy(() => import("./pages/Admin/Properties/AdminProperties.jsx"));
 const AdminWithdrawals = lazy(() => import("./pages/Admin/Withdrawals/AdminWithdrawals.jsx"));
+const AdminInvestmentRequests = lazy(() => import("./pages/Admin/InvestmentRequests/AdminInvestmentRequests.jsx"));
 const AdminPayouts = lazy(() => import("./pages/Admin/Payouts/AdminPayouts.jsx"));
 const AdminChat = lazy(() => import("./pages/Admin/Chat/AdminChat.jsx"));
 const AdminProfileSettings = lazy(() => import("./pages/Admin/Profile/AdminProfileSettings.jsx"));
@@ -77,6 +79,7 @@ function App() {
             <Route path="property/:id" element={<PropertyDetail />} />
             <Route path="holding/:id" element={<HoldingDetail />} />
             <Route path="invest" element={<Invest />} />
+            <Route path="invest/request" element={<InvestmentRequest />} />
             <Route path="payment" element={<Payment />} />
             <Route path="wallet" element={<Wallet />} />
             <Route path="wallet/active-investments" element={<ActiveInvestments />} />
@@ -123,6 +126,7 @@ function App() {
             <Route path="users" element={<AdminUsers />} />
             <Route path="properties" element={<AdminProperties />} />
             <Route path="withdrawals" element={<AdminWithdrawals />} />
+            <Route path="investment-requests" element={<AdminInvestmentRequests />} />
             <Route path="payouts" element={<AdminPayouts />} />
             <Route path="chat" element={<AdminChat />} />
             <Route path="profile" element={<AdminProfileSettings />} />

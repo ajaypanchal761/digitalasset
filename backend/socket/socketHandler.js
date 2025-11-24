@@ -52,6 +52,29 @@ const socketHandler = (io) => {
           return;
         }
 
+        // Validate socket authentication
+        if (!socket.userType || !socket.userId) {
+          console.error('❌ BACKEND SOCKET - Invalid socket authentication:', {
+            hasUserType: !!socket.userType,
+            hasUserId: !!socket.userId,
+            userType: socket.userType,
+            userId: socket.userId,
+          });
+          socket.emit('error', { message: 'Authentication error: Invalid socket session' });
+          return;
+        }
+
+        // Validate userType is either 'Admin' or 'User'
+        if (socket.userType !== 'Admin' && socket.userType !== 'User') {
+          console.error('❌ BACKEND SOCKET - Invalid userType:', {
+            userType: socket.userType,
+            userId: socket.userId,
+            expectedTypes: ['Admin', 'User'],
+          });
+          socket.emit('error', { message: 'Authentication error: Invalid user type' });
+          return;
+        }
+
         let targetUserId, targetAdminId, senderType, senderId;
 
         // Determine senderType based on who is sending
@@ -69,11 +92,20 @@ const socketHandler = (io) => {
           senderId = socket.userId;
           targetUserId = userId;
           targetAdminId = adminId || socket.userId;
+          
+          // Validation: Ensure we have a target user
+          if (!targetUserId) {
+            console.error('❌ BACKEND SOCKET - Admin sending message without target userId');
+            socket.emit('error', { message: 'User ID is required when sending as admin' });
+            return;
+          }
+          
           console.log('🔴 BACKEND SOCKET - Admin sending message:', {
             senderType,
             senderId,
             targetUserId,
             targetAdminId,
+            validation: '✅ Admin authenticated, sending as Admin',
           });
         } else {
           // User is sending to admin
@@ -92,12 +124,26 @@ const socketHandler = (io) => {
             }
             targetAdminId = admin._id;
           }
+          
           console.log('🔴 BACKEND SOCKET - User sending message:', {
             senderType,
             senderId,
             targetUserId,
             targetAdminId,
+            validation: '✅ User authenticated, sending as User',
           });
+        }
+
+        // Final validation: Ensure senderType matches socket.userType
+        if (senderType !== socket.userType) {
+          console.error('❌ BACKEND SOCKET - CRITICAL: senderType mismatch!', {
+            socketUserType: socket.userType,
+            determinedSenderType: senderType,
+            socketUserId: socket.userId,
+            message: message.substring(0, 30),
+          });
+          socket.emit('error', { message: 'Internal error: Sender type mismatch' });
+          return;
         }
 
         // Find or create chat
@@ -113,6 +159,16 @@ const socketHandler = (io) => {
         // Get the last message (the one we just added)
         const lastMessage = chat.messages[chat.messages.length - 1];
 
+        // Validate saved message has correct senderType
+        if (lastMessage.senderType !== senderType) {
+          console.error('❌ BACKEND SOCKET - CRITICAL: Database senderType mismatch!', {
+            expectedSenderType: senderType,
+            actualSenderType: lastMessage.senderType,
+            messageId: lastMessage._id,
+            socketUserType: socket.userType,
+          });
+        }
+
         // Format message for client
         const messageData = {
           id: lastMessage._id,
@@ -123,15 +179,27 @@ const socketHandler = (io) => {
           createdAt: lastMessage.createdAt,
         };
 
+        // Final validation log
+        const validationPassed = 
+          messageData.senderType === senderType && 
+          messageData.senderType === socket.userType;
+
         console.log('🔴 BACKEND SOCKET - Message saved to database:', {
           messageId: messageData.id,
           senderType: messageData.senderType,
           senderTypeType: typeof messageData.senderType,
           senderId: messageData.senderId,
           message: messageData.message.substring(0, 30),
+          socketUserType: socket.userType,
+          expectedSenderType: senderType,
+          validation: validationPassed ? '✅ PASSED' : '❌ FAILED',
           expectedForUser: messageData.senderType === 'User' ? 'RIGHT (blue - SENT)' : 'LEFT (grey - RECEIVED)',
           expectedForAdmin: messageData.senderType === 'Admin' ? 'RIGHT (blue - SENT)' : 'LEFT (grey - RECEIVED)',
         });
+
+        if (!validationPassed) {
+          console.error('❌ BACKEND SOCKET - VALIDATION FAILED - Message senderType does not match socket userType!');
+        }
 
         // Determine chat room and emit to both parties
         const chatRoom = `chat-${targetUserId}-${targetAdminId}`;

@@ -40,15 +40,41 @@ export const createSocket = (token) => {
 };
 
 /**
- * Get appropriate token (admin or user)
+ * Get appropriate token (admin or user) based on current route
+ * @param {string} pathname - Current pathname (optional, will use window.location if not provided)
  * @returns {string|null} Token string or null
  */
-export const getSocketToken = () => {
-  // Prioritize admin token if exists
+export const getSocketToken = (pathname = null) => {
+  const currentPath = pathname || (typeof window !== 'undefined' ? window.location.pathname : '');
+  
+  // Determine route type
+  const isAdminRoute = currentPath.startsWith('/admin') || currentPath.startsWith('/admin-auth');
+  
   const adminToken = localStorage.getItem('adminToken');
   const userToken = localStorage.getItem('token');
   
-  return adminToken || userToken || null;
+  // On admin routes, use admin token; otherwise use user token
+  if (isAdminRoute) {
+    return adminToken || null;
+  } else {
+    return userToken || null;
+  }
+};
+
+/**
+ * Get user token specifically (for user chat)
+ * @returns {string|null} User token or null
+ */
+export const getUserSocketToken = () => {
+  return localStorage.getItem('token') || null;
+};
+
+/**
+ * Get admin token specifically (for admin chat)
+ * @returns {string|null} Admin token or null
+ */
+export const getAdminSocketToken = () => {
+  return localStorage.getItem('adminToken') || null;
 };
 
 

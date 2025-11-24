@@ -23,6 +23,7 @@ import adminRoutes from './admin.routes.js';
 import adminAuthRoutes from './adminAuth.routes.js';
 import uploadRoutes from './upload.routes.js';
 import chatRoutes from './chat.routes.js';
+import investmentRequestRoutes from './investmentRequest.routes.js';
 
 router.use('/auth', authRoutes);
 router.use('/properties', propertyRoutes);
@@ -34,6 +35,7 @@ router.use('/profile', profileRoutes);
 router.use('/admin', adminRoutes);
 router.use('/admin-auth', adminAuthRoutes);
 router.use('/upload', uploadRoutes);
+router.use('/investment-requests', investmentRequestRoutes);
 router.use('/', chatRoutes);
 
 export default router;

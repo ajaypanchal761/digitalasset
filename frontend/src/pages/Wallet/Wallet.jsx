@@ -1,14 +1,17 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
+import { investmentRequestAPI } from "../../services/api.js";
 
 const Wallet = () => {
   const { wallet, holdings, listings, loading, error } = useAppState();
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const [activeTab, setActiveTab] = useState("overview"); // overview, transactions, investments
+  const [activeTab, setActiveTab] = useState("overview"); // overview, transactions, investments, requests
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [investmentRequests, setInvestmentRequests] = useState([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
   const [withdrawForm, setWithdrawForm] = useState({
     amount: 0,
     bankAccount: "",
@@ -31,6 +34,26 @@ const Wallet = () => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
   };
+
+  // Fetch investment requests
+  useEffect(() => {
+    const fetchInvestmentRequests = async () => {
+      if (activeTab === "requests") {
+        setLoadingRequests(true);
+        try {
+          const response = await investmentRequestAPI.getAll();
+          if (response.success) {
+            setInvestmentRequests(response.data || []);
+          }
+        } catch (error) {
+          console.error("Error fetching investment requests:", error);
+        } finally {
+          setLoadingRequests(false);
+        }
+      }
+    };
+    fetchInvestmentRequests();
+  }, [activeTab]);
 
   // Generate transactions from holdings
   const transactions = useMemo(() => {
@@ -174,6 +197,12 @@ const Wallet = () => {
             onClick={() => setActiveTab("investments")}
           >
             Investments
+          </button>
+          <button
+            className={`wallet-page__tab ${activeTab === "requests" ? "wallet-page__tab--active" : ""}`}
+            onClick={() => setActiveTab("requests")}
+          >
+            Requests
           </button>
         </div>
 
@@ -427,6 +456,144 @@ const Wallet = () => {
                   })
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Investment Requests Tab */}
+        {activeTab === "requests" && (
+          <div className="wallet-page__content">
+            <div className="wallet-page__requests-section">
+              <h2 className="wallet-page__section-title">My Investment Requests</h2>
+              {loadingRequests ? (
+                <div className="wallet-page__empty">
+                  <p>Loading investment requests...</p>
+                </div>
+              ) : investmentRequests.length === 0 ? (
+                <div className="wallet-page__empty">
+                  <p>No investment requests yet. Submit a request to get started.</p>
+                  <button className="wallet-page__empty-btn" onClick={() => navigate("/explore")}>
+                    Browse Properties
+                  </button>
+                </div>
+              ) : (
+                <div className="wallet-page__requests-list">
+                  {investmentRequests.map((request) => {
+                    const property = request.propertyId;
+                    const status = request.status;
+                    const isRejected = status === "rejected";
+                    const isPending = status === "pending";
+                    const isApproved = status === "approved";
+
+                    return (
+                      <div key={request._id || request.id} className="wallet-page__request-card">
+                        <div className="wallet-page__request-header">
+                          <div className="wallet-page__request-info">
+                            <h3 className="wallet-page__request-property">
+                              {property?.title || "Unknown Property"}
+                            </h3>
+                            <span className="wallet-page__request-date">
+                              {formatDate(request.createdAt)}
+                            </span>
+                          </div>
+                          <span
+                            className={`wallet-page__request-status wallet-page__request-status--${status}`}
+                          >
+                            {status === "pending" && "Pending"}
+                            {status === "approved" && "Approved"}
+                            {status === "rejected" && "Rejected"}
+                          </span>
+                        </div>
+
+                        <div className="wallet-page__request-details">
+                          <div className="wallet-page__request-detail-row">
+                            <span className="wallet-page__request-label">Investment Amount:</span>
+                            <span className="wallet-page__request-value">
+                              {formatCurrency(request.amountInvested, walletData.currency)}
+                            </span>
+                          </div>
+                          <div className="wallet-page__request-detail-row">
+                            <span className="wallet-page__request-label">Investment Period:</span>
+                            <span className="wallet-page__request-value">
+                              {request.timePeriod} months
+                            </span>
+                          </div>
+                          {isApproved && request.approvedAt && (
+                            <div className="wallet-page__request-detail-row">
+                              <span className="wallet-page__request-label">Approved On:</span>
+                              <span className="wallet-page__request-value">
+                                {formatDate(request.approvedAt)}
+                              </span>
+                            </div>
+                          )}
+                          {isRejected && request.rejectedAt && (
+                            <div className="wallet-page__request-detail-row">
+                              <span className="wallet-page__request-label">Rejected On:</span>
+                              <span className="wallet-page__request-value">
+                                {formatDate(request.rejectedAt)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Rejection Reason Section */}
+                        {isRejected && request.adminNotes && (
+                          <div className="wallet-page__rejection-section">
+                            <div className="wallet-page__rejection-header">
+                              <svg
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                              </svg>
+                              <h4 className="wallet-page__rejection-title">Rejection Reason</h4>
+                            </div>
+                            <div className="wallet-page__rejection-content">
+                              <p>{request.adminNotes}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Admin Notes for Approved Requests (if any) */}
+                        {isApproved && request.adminNotes && (
+                          <div className="wallet-page__admin-notes-section">
+                            <div className="wallet-page__admin-notes-header">
+                              <svg
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                              </svg>
+                              <h4 className="wallet-page__admin-notes-title">Admin Notes</h4>
+                            </div>
+                            <div className="wallet-page__admin-notes-content">
+                              <p>{request.adminNotes}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         )}

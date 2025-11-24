@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { adminAuthAPI } from '../../services/api';
-import { createSocket, getSocketToken } from '../../utils/socket';
+import { createSocket, getAdminSocketToken } from '../../utils/socket';
 import { formatRelativeTime } from '../../utils/timeUtils';
 import { playNotificationSound } from '../../utils/notificationSound';
 
@@ -172,7 +172,7 @@ const AdminHeader = ({ userName = 'Admin User', userAvatar = null, userEmail = n
       return;
     }
 
-    const token = getSocketToken();
+    const token = getAdminSocketToken();
     if (!token) {
       return;
     }
@@ -223,6 +223,23 @@ const AdminHeader = ({ userName = 'Admin User', userAvatar = null, userEmail = n
       console.log('📢 New chat message notification:', notification);
       const newNotification = {
         id: `chat-${Date.now()}-${Math.random()}`,
+        ...notification,
+        isRead: false,
+      };
+      setNotifications((prev) => [newNotification, ...prev]);
+      
+      // Show browser notification
+      showBrowserNotification(newNotification);
+      
+      // Play sound
+      playNotificationSound();
+    });
+
+    // Listen for new investment request
+    socket.on('new-investment-request', (notification) => {
+      console.log('📢 New investment request notification:', notification);
+      const newNotification = {
+        id: `investment-${Date.now()}-${Math.random()}`,
         ...notification,
         isRead: false,
       };

@@ -17,6 +17,11 @@ import {
   getPayoutHistory,
   generateMonthlyPayouts,
 } from '../controllers/payout.controller.js';
+import {
+  getAdminInvestmentRequests,
+  approveInvestmentRequest,
+  rejectInvestmentRequest,
+} from '../controllers/investmentRequest.controller.js';
 import { admin } from '../middleware/admin.middleware.js';
 
 const router = express.Router();
@@ -35,6 +40,11 @@ router.delete('/users/:id', deleteUser);
 router.get('/withdrawals', getWithdrawals);
 router.put('/withdrawals/:id/approve', approveWithdrawal);
 router.put('/withdrawals/:id/reject', rejectWithdrawal);
+
+// Investment request routes
+router.get('/investment-requests', getAdminInvestmentRequests);
+router.put('/investment-requests/:id/approve', approveInvestmentRequest);
+router.put('/investment-requests/:id/reject', rejectInvestmentRequest);
 
 // Payout routes
 router.get('/payouts', getPayouts);

@@ -41,6 +41,22 @@ export const uploadDocument = upload.single('document');
 // Upload multiple documents
 export const uploadDocuments = upload.array('documents', 10);
 
+// Upload transaction proof (images only)
+export const uploadTransactionProof = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept only images
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files (JPG, PNG) are allowed for transaction proof'), false);
+    }
+  },
+}).single('document');
+
 // Upload KYC documents (multiple named fields)
 export const uploadKYCDocuments = upload.fields([
   { name: 'panCard', maxCount: 1 },

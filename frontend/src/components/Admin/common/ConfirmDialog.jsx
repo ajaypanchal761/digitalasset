@@ -3,15 +3,26 @@ import { useEffect } from 'react';
 const ConfirmDialog = ({ 
   isOpen, 
   onClose, 
+  onCancel,
   onConfirm, 
   title = 'Confirm Action', 
   message = 'Are you sure you want to proceed?',
   confirmLabel = 'Confirm',
+  confirmText,
   cancelLabel = 'Cancel',
-  variant = 'default' // default, danger
+  variant = 'default', // default, danger
+  showInput = false,
+  inputValue = '',
+  onInputChange,
+  inputPlaceholder = '',
+  confirmButtonClass = ''
 }) => {
+  const isDialogOpen = isOpen !== undefined ? isOpen : true; // Default to true if not provided (for backward compatibility)
+  const handleCancel = onCancel || onClose;
+  const confirmButtonText = confirmText || confirmLabel;
+
   useEffect(() => {
-    if (isOpen) {
+    if (isDialogOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -19,23 +30,27 @@ const ConfirmDialog = ({
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isOpen]);
+  }, [isDialogOpen]);
 
-  if (!isOpen) return null;
+  if (!isDialogOpen) return null;
 
   const handleConfirm = () => {
     onConfirm();
-    onClose();
+    if (onClose) onClose();
+  };
+
+  const handleCancelClick = () => {
+    if (handleCancel) handleCancel();
   };
 
   return (
-    <div className="confirm-dialog__overlay" onClick={onClose}>
+    <div className="confirm-dialog__overlay" onClick={handleCancelClick}>
       <div className="confirm-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="confirm-dialog__header">
           <h3 className="confirm-dialog__title">{title}</h3>
           <button 
             className="confirm-dialog__close"
-            onClick={onClose}
+            onClick={handleCancelClick}
             aria-label="Close"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -46,21 +61,32 @@ const ConfirmDialog = ({
         </div>
         <div className="confirm-dialog__body">
           <p className="confirm-dialog__message">{message}</p>
+          {showInput && (
+            <div className="confirm-dialog__input-container">
+              <textarea
+                className="confirm-dialog__input"
+                value={inputValue}
+                onChange={(e) => onInputChange && onInputChange(e.target.value)}
+                placeholder={inputPlaceholder}
+                rows={4}
+              />
+            </div>
+          )}
         </div>
         <div className="confirm-dialog__footer">
           <button 
             className="confirm-dialog__button confirm-dialog__button--cancel"
-            onClick={onClose}
+            onClick={handleCancelClick}
           >
             {cancelLabel}
           </button>
           <button 
             className={`confirm-dialog__button confirm-dialog__button--confirm ${
               variant === 'danger' ? 'confirm-dialog__button--danger' : ''
-            }`}
+            } ${confirmButtonClass}`}
             onClick={handleConfirm}
           >
-            {confirmLabel}
+            {confirmButtonText}
           </button>
         </div>
       </div>

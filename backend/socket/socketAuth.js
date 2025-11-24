@@ -40,6 +40,14 @@ export const authenticateSocket = async (socket, next) => {
     socket.userType = userType;
     socket.user = user;
 
+    // Log authentication for debugging
+    console.log('🔐 SOCKET AUTH - Authenticated:', {
+      userId: socket.userId,
+      userType: socket.userType,
+      userModel: userType === 'Admin' ? 'Admin' : 'User',
+      hasUser: !!user,
+    });
+
     next();
   } catch (error) {
     console.error('Socket authentication error:', error);
