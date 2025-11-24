@@ -18,6 +18,8 @@ const AdminInvestmentRequests = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
   const [adminNotes, setAdminNotes] = useState('');
+  const [showFullScreenImage, setShowFullScreenImage] = useState(false);
+  const [fullScreenImageUrl, setFullScreenImageUrl] = useState(null);
 
   useEffect(() => {
     fetchInvestmentRequests();
@@ -361,6 +363,18 @@ const AdminInvestmentRequests = () => {
                       alt="Transaction proof"
                       className="admin-investment-requests__proof-image"
                     />
+                    <button
+                      onClick={() => {
+                        setFullScreenImageUrl(selectedRequest.transactionProof);
+                        setShowFullScreenImage(true);
+                      }}
+                      className="admin-investment-requests__view-fullscreen-btn"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                      </svg>
+                      View Full Screen
+                    </button>
                   </div>
                 ) : (
                   <p>No transaction proof uploaded</p>
@@ -409,6 +423,45 @@ const AdminInvestmentRequests = () => {
           confirmText={confirmAction?.type === 'approve' ? 'Approve' : 'Reject'}
           confirmButtonClass={confirmAction?.type === 'approve' ? 'confirm-dialog__btn--approve' : 'confirm-dialog__btn--reject'}
         />
+      )}
+
+      {/* Full Screen Image Viewer */}
+      {showFullScreenImage && fullScreenImageUrl && (
+        <div className="admin-investment-requests__fullscreen-overlay" onClick={() => setShowFullScreenImage(false)}>
+          <div className="admin-investment-requests__fullscreen-container" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-investment-requests__fullscreen-header">
+              <h3>Transaction Proof</h3>
+              <button
+                onClick={() => setShowFullScreenImage(false)}
+                className="admin-investment-requests__fullscreen-close"
+                aria-label="Close"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <div className="admin-investment-requests__fullscreen-content">
+              <img
+                src={fullScreenImageUrl}
+                alt="Transaction proof - Full screen"
+                className="admin-investment-requests__fullscreen-image"
+              />
+            </div>
+            <div className="admin-investment-requests__fullscreen-footer">
+              <button
+                onClick={() => setShowFullScreenImage(false)}
+                className="admin-investment-requests__fullscreen-back-btn"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                </svg>
+                Back
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
