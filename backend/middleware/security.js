@@ -21,13 +21,17 @@ export const securityHeaders = helmet({
 // Rate limiting - General API
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: env.NODE_ENV === 'production' ? 100 : 1000, // Much higher for development
   message: {
     success: false,
     error: 'Too many requests from this IP, please try again later.',
   },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting in development for localhost
+    return env.NODE_ENV === 'development' && req.ip === '::1';
+  },
 });
 
 // Rate limiting - Auth routes (stricter)

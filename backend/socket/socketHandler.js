@@ -54,14 +54,29 @@ const socketHandler = (io) => {
 
         let targetUserId, targetAdminId, senderType, senderId;
 
+        // Determine senderType based on who is sending
+        console.log('🔴 BACKEND SOCKET - Processing send-message:', {
+          socketUserType: socket.userType,
+          socketUserId: socket.userId,
+          receivedUserId: userId,
+          receivedAdminId: adminId,
+          message: message.substring(0, 30),
+        });
+        
         if (socket.userType === 'Admin') {
-          // Admin sending to user
+          // Admin is sending to user
           senderType = 'Admin';
           senderId = socket.userId;
           targetUserId = userId;
           targetAdminId = adminId || socket.userId;
+          console.log('🔴 BACKEND SOCKET - Admin sending message:', {
+            senderType,
+            senderId,
+            targetUserId,
+            targetAdminId,
+          });
         } else {
-          // User sending to admin
+          // User is sending to admin
           senderType = 'User';
           senderId = socket.userId;
           targetUserId = socket.userId;
@@ -77,6 +92,12 @@ const socketHandler = (io) => {
             }
             targetAdminId = admin._id;
           }
+          console.log('🔴 BACKEND SOCKET - User sending message:', {
+            senderType,
+            senderId,
+            targetUserId,
+            targetAdminId,
+          });
         }
 
         // Find or create chat
@@ -102,14 +123,31 @@ const socketHandler = (io) => {
           createdAt: lastMessage.createdAt,
         };
 
-        // Determine chat room
-        const chatRoom = `chat-${targetUserId}-${targetAdminId}`;
+        console.log('🔴 BACKEND SOCKET - Message saved to database:', {
+          messageId: messageData.id,
+          senderType: messageData.senderType,
+          senderTypeType: typeof messageData.senderType,
+          senderId: messageData.senderId,
+          message: messageData.message.substring(0, 30),
+          expectedForUser: messageData.senderType === 'User' ? 'RIGHT (blue - SENT)' : 'LEFT (grey - RECEIVED)',
+          expectedForAdmin: messageData.senderType === 'Admin' ? 'RIGHT (blue - SENT)' : 'LEFT (grey - RECEIVED)',
+        });
 
-        // Emit to both parties in the chat room
+        // Determine chat room and emit to both parties
+        const chatRoom = `chat-${targetUserId}-${targetAdminId}`;
+        console.log('🔴 BACKEND SOCKET - Emitting to chat room:', {
+          chatRoom,
+          targetUserId,
+          targetAdminId,
+          messageData,
+        });
+        
         io.to(chatRoom).emit('receive-message', {
           chatId: chat._id.toString(),
           message: messageData,
         });
+        
+        console.log('🔴 BACKEND SOCKET - Message emitted successfully');
 
         // Also emit conversation update to both parties
         const conversationUpdate = {

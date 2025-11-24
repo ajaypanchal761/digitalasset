@@ -39,16 +39,53 @@ const Chat = () => {
     const initializeChat = async () => {
       try {
         // Fetch messages from API
+        console.log('🔵 USER CHAT - Fetching messages from API...');
         const messagesResponse = await chatAPI.getMessages();
+        console.log('🔵 USER CHAT - API Response:', {
+          success: messagesResponse.success,
+          hasData: !!messagesResponse.data,
+          messageCount: messagesResponse.data?.messages?.length || 0,
+          rawResponse: messagesResponse,
+        });
+        
         if (messagesResponse.success && messagesResponse.data) {
-          const formattedMessages = messagesResponse.data.messages.map(msg => ({
-            id: msg.id,
-            sender: msg.senderType === 'User' ? 'user' : 'admin',
-            text: msg.message,
-            timestamp: formatMessageTime(msg.createdAt),
-            createdAt: msg.createdAt,
-            senderType: msg.senderType,
-          }));
+          console.log('🔵 USER CHAT - Raw messages from API:', messagesResponse.data.messages);
+          
+          const formattedMessages = messagesResponse.data.messages.map((msg, index) => {
+            // WhatsApp-like: senderType === 'User' means message sent by current user (right/blue)
+            const senderType = String(msg.senderType || '').trim();
+            const isFromUser = senderType === 'User';
+            
+            console.log(`🔵 USER CHAT - Message ${index + 1} formatting:`, {
+              id: msg.id || msg._id,
+              originalSenderType: msg.senderType,
+              normalizedSenderType: senderType,
+              senderTypeType: typeof msg.senderType,
+              isFromUser,
+              expectedSide: isFromUser ? 'RIGHT (blue - SENT)' : 'LEFT (grey - RECEIVED)',
+              text: msg.message?.substring(0, 30),
+              senderId: msg.senderId,
+            });
+            
+            return {
+              id: msg.id || msg._id,
+              sender: isFromUser ? 'user' : 'admin',
+              text: msg.message,
+              timestamp: formatMessageTime(msg.createdAt),
+              createdAt: msg.createdAt,
+              senderType: msg.senderType, // Keep original for reference
+              senderId: msg.senderId,
+            };
+          });
+          
+          // Sort messages by creation time (oldest first)
+          formattedMessages.sort((a, b) => {
+            const timeA = new Date(a.createdAt).getTime();
+            const timeB = new Date(b.createdAt).getTime();
+            return timeA - timeB;
+          });
+          
+          console.log('🔵 USER CHAT - Formatted messages ready to display:', formattedMessages);
           setMessages(formattedMessages);
           
           // Store admin ID if available
@@ -80,24 +117,72 @@ const Chat = () => {
 
             // Listen for incoming messages
             socket.on('receive-message', (data) => {
+              console.log('🔵 USER CHAT - Socket message received (raw):', data);
               const { message } = data;
+              
+              console.log('🔵 USER CHAT - Processing socket message:', {
+                id: message.id || message._id,
+                originalSenderType: message.senderType,
+                senderTypeType: typeof message.senderType,
+                senderId: message.senderId,
+                text: message.message?.substring(0, 30),
+                createdAt: message.createdAt,
+              });
+              
+              // WhatsApp-like: senderType === 'User' means message sent by current user (right/blue)
+              const senderType = String(message.senderType || '').trim();
+              const isFromUser = senderType === 'User';
+              
+              console.log('🔵 USER CHAT - Message classification:', {
+                normalizedSenderType: senderType,
+                isFromUser,
+                expectedSide: isFromUser ? 'RIGHT (blue - SENT)' : 'LEFT (grey - RECEIVED)',
+                comparison: `"${senderType}" === "User" = ${senderType === 'User'}`,
+              });
+              
               const formattedMessage = {
-                id: message.id,
-                sender: message.senderType === 'User' ? 'user' : 'admin',
+                id: message.id || message._id,
+                sender: isFromUser ? 'user' : 'admin',
                 text: message.message,
                 timestamp: formatMessageTime(message.createdAt),
                 createdAt: message.createdAt,
-                senderType: message.senderType,
+                senderType: message.senderType, // Keep original
+                senderId: message.senderId,
               };
               
+              console.log('🔵 USER CHAT - Formatted message:', formattedMessage);
+              
               setMessages(prev => {
-                // Check if message already exists
-                const exists = prev.some(msg => 
-                  msg.id === formattedMessage.id || 
-                  (msg.id && msg.id.toString() === formattedMessage.id.toString())
-                );
-                if (exists) return prev;
-                return [...prev, formattedMessage];
+                // Check if message already exists (by ID or by content + time to avoid duplicates)
+                const exists = prev.some(msg => {
+                  if (msg.id && formattedMessage.id) {
+                    return msg.id.toString() === formattedMessage.id.toString();
+                  }
+                  // Also check by content and time if IDs don't match
+                  return msg.text === formattedMessage.text && 
+                         Math.abs(new Date(msg.createdAt).getTime() - new Date(formattedMessage.createdAt).getTime()) < 1000;
+                });
+                if (exists) {
+                  return prev;
+                }
+                
+                // Remove any temp messages with same content
+                const filtered = prev.filter(msg => {
+                  if (msg.id && msg.id.toString().startsWith('temp-')) {
+                    // Remove temp message if real message is arriving
+                    return msg.text !== formattedMessage.text;
+                  }
+                  return true;
+                });
+                
+                // Add new message and sort by time
+                const updated = [...filtered, formattedMessage];
+                updated.sort((a, b) => {
+                  const timeA = new Date(a.createdAt).getTime();
+                  const timeB = new Date(b.createdAt).getTime();
+                  return timeA - timeB;
+                });
+                return updated;
               });
             });
 
@@ -133,24 +218,24 @@ const Chat = () => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
-  // Prevent body scroll when chat page is mounted
-  useEffect(() => {
-    const originalStyle = window.getComputedStyle(document.body).overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = originalStyle;
-    };
-  }, []);
+  // Don't prevent body scroll - let the page scroll naturally to prevent overlap
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (inputMessage.trim() === "" || sending || !socketRef.current) return;
 
     const messageText = inputMessage.trim();
+    console.log('🔵 USER CHAT - Sending message:', {
+      text: messageText,
+      userId: user.id || user._id,
+      adminId: adminIdRef.current,
+      hasSocket: !!socketRef.current,
+    });
+    
     setInputMessage("");
     setSending(true);
 
-    // Optimistically add message
+    // Optimistically add message (always from user since user is sending)
     const tempMessage = {
       id: `temp-${Date.now()}`,
       sender: "user",
@@ -158,22 +243,51 @@ const Chat = () => {
       timestamp: formatMessageTime(new Date()),
       createdAt: new Date(),
       senderType: 'User',
+      senderId: user.id || user._id,
     };
+    
+    console.log('🔵 USER CHAT - Temp message created:', tempMessage);
+    
     setMessages(prev => [...prev, tempMessage]);
 
     try {
       // Send message via socket
       if (socketRef.current && user?.id && adminIdRef.current) {
+        console.log('🔵 USER CHAT - Emitting message via socket:', {
+          message: messageText,
+          userId: user.id,
+          adminId: adminIdRef.current,
+          socketId: socketRef.current.id,
+        });
+        
         socketRef.current.emit('send-message', {
           message: messageText,
           userId: user.id,
           adminId: adminIdRef.current,
         });
+        
+        console.log('🔵 USER CHAT - Message emitted to socket');
 
-        // Remove temp message after a short delay (socket response should replace it)
+        // Remove temp message after socket confirms (the receive-message event will add the real one)
+        // Use a longer timeout to ensure socket message arrives first
         setTimeout(() => {
-          setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
-        }, 1000);
+          setMessages(prev => {
+            // Only remove temp if we haven't received the real message yet
+            const hasRealMessage = prev.some(msg => 
+              msg.text === messageText && 
+              msg.id && 
+              !msg.id.toString().startsWith('temp-') &&
+              Math.abs(new Date(msg.createdAt).getTime() - new Date(tempMessage.createdAt).getTime()) < 5000
+            );
+            
+            if (hasRealMessage) {
+              // Real message arrived, remove temp
+              return prev.filter(msg => msg.id !== tempMessage.id);
+            }
+            // Keep temp for now, will be removed when real message arrives
+            return prev;
+          });
+        }, 2000);
       } else {
         // Fallback to API if socket is not available
         await chatAPI.sendMessage(messageText, adminIdRef.current);
@@ -226,17 +340,40 @@ const Chat = () => {
             <p>No messages yet. Start the conversation!</p>
           </div>
         ) : (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              className={`chat-message ${message.sender === "user" ? "chat-message--user" : "chat-message--admin"}`}
-            >
-              <div className={`chat-message__bubble ${message.sender === "user" ? "chat-message__bubble--user" : "chat-message__bubble--admin"}`}>
-                <p className="chat-message__text">{message.text}</p>
+          messages.map((message, index) => {
+            // WhatsApp-like behavior for USER chat:
+            // - senderType === 'User' → Message sent by current user → Right side (blue) = SENT
+            // - senderType === 'Admin' → Message received from admin → Left side (grey) = RECEIVED
+            const senderType = String(message.senderType || '').trim();
+            const isUserMessage = senderType === 'User';
+            
+            if (index < 3 || messages.length - index <= 3) {
+              console.log(`🔵 USER CHAT - Rendering message ${index + 1}/${messages.length}:`, {
+                id: message.id,
+                originalSenderType: message.senderType,
+                normalizedSenderType: senderType,
+                senderTypeType: typeof message.senderType,
+                isUserMessage,
+                expectedSide: isUserMessage ? 'RIGHT (blue - SENT)' : 'LEFT (grey - RECEIVED)',
+                className: isUserMessage ? 'chat-message--user' : 'chat-message--admin',
+                bubbleClass: isUserMessage ? 'chat-message__bubble--user' : 'chat-message__bubble--admin',
+                text: message.text?.substring(0, 30),
+                comparison: `"${senderType}" === "User" = ${senderType === 'User'}`,
+              });
+            }
+            
+            return (
+              <div
+                key={message.id || `msg-${message.createdAt}-${Math.random()}`}
+                className={`chat-message ${isUserMessage ? "chat-message--user" : "chat-message--admin"}`}
+              >
+                <div className={`chat-message__bubble ${isUserMessage ? "chat-message__bubble--user" : "chat-message__bubble--admin"}`}>
+                  <p className="chat-message__text">{message.text}</p>
+                </div>
+                <span className="chat-message__timestamp">{message.timestamp}</span>
               </div>
-              <span className="chat-message__timestamp">{message.timestamp}</span>
-            </div>
-          ))
+            );
+          })
         )}
         <div ref={messagesEndRef} />
       </div>

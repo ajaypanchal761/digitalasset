@@ -16,25 +16,33 @@ export const getAdminConversations = async (req, res) => {
       .lean();
 
     // Format conversations with user info and last message
-    const conversations = chats.map(chat => {
-      const user = chat.userId;
-      const lastMessage = chat.messages && chat.messages.length > 0
-        ? chat.messages[chat.messages.length - 1]
-        : null;
+    const conversations = chats
+      .filter(chat => chat.userId !== null && chat.userId !== undefined) // Filter out chats with deleted users
+      .map(chat => {
+        const user = chat.userId;
+        const lastMessage = chat.messages && chat.messages.length > 0
+          ? chat.messages[chat.messages.length - 1]
+          : null;
 
-      return {
-        chatId: chat._id,
-        userId: user._id,
-        userName: user.name || 'Unknown User',
-        userEmail: user.email || '',
-        userPhone: user.phone || '',
-        userAvatar: user.avatarUrl || null,
-        lastMessage: lastMessage?.message || chat.lastMessage || 'No messages yet',
-        lastMessageAt: lastMessage?.createdAt || chat.lastMessageAt || chat.createdAt,
-        unreadCount: chat.unreadCount || 0,
-        isRead: lastMessage ? lastMessage.isRead : true,
-      };
-    });
+        // Safety check: if user is null/undefined, skip this chat
+        if (!user || !user._id) {
+          return null;
+        }
+
+        return {
+          chatId: chat._id?.toString() || chat._id,
+          userId: user._id?.toString() || user._id,
+          userName: user.name || 'Unknown User',
+          userEmail: user.email || '',
+          userPhone: user.phone || '',
+          userAvatar: user.avatarUrl || null,
+          lastMessage: lastMessage?.message || chat.lastMessage || 'No messages yet',
+          lastMessageAt: lastMessage?.createdAt || chat.lastMessageAt || chat.createdAt,
+          unreadCount: chat.unreadCount || 0,
+          isRead: lastMessage ? lastMessage.isRead : true,
+        };
+      })
+      .filter(conv => conv !== null); // Remove any null entries
 
     res.json({
       success: true,
@@ -77,6 +85,14 @@ export const getChatMessages = async (req, res) => {
     // Mark messages as read (admin is reading)
     await chat.markAsRead(adminId, 'Admin');
 
+    // Check if user exists (might be deleted)
+    if (!chat.userId || !chat.userId._id) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found for this chat',
+      });
+    }
+
     // Format messages
     const messages = chat.messages.map(msg => ({
       id: msg._id,
@@ -94,10 +110,10 @@ export const getChatMessages = async (req, res) => {
         chatId: chat._id,
         user: {
           id: chat.userId._id,
-          name: chat.userId.name,
-          email: chat.userId.email,
-          phone: chat.userId.phone,
-          avatarUrl: chat.userId.avatarUrl,
+          name: chat.userId.name || 'Unknown User',
+          email: chat.userId.email || '',
+          phone: chat.userId.phone || '',
+          avatarUrl: chat.userId.avatarUrl || null,
         },
         messages,
         unreadCount: 0, // Reset after reading
@@ -242,6 +258,14 @@ export const getUserMessages = async (req, res) => {
     // Mark messages as read (user is reading)
     await chat.markAsRead(userId, 'User');
 
+    // Check if admin exists (might be deleted)
+    if (!chat.adminId || !chat.adminId._id) {
+      return res.status(404).json({
+        success: false,
+        message: 'Admin not found for this chat',
+      });
+    }
+
     // Format messages
     const messages = chat.messages.map(msg => ({
       id: msg._id,
@@ -259,8 +283,8 @@ export const getUserMessages = async (req, res) => {
         chatId: chat._id,
         admin: {
           id: chat.adminId._id,
-          name: chat.adminId.name,
-          email: chat.adminId.email,
+          name: chat.adminId.name || 'Admin',
+          email: chat.adminId.email || '',
         },
         messages,
       },

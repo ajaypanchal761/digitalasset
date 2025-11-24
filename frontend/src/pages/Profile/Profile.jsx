@@ -139,6 +139,27 @@ const Profile = () => {
       onClick: () => navigate("/wallet"),
     },
     {
+      id: "help",
+      label: "Help Center",
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <circle cx="12" cy="12" r="10" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+      onClick: () => navigate("/help"),
+    },
+    {
+      id: "support",
+      label: "Contact Support",
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+      onClick: () => navigate("/chat"),
+    },
+    {
       id: "sell",
       label: "Sell Property",
       icon: (

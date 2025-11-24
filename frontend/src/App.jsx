@@ -27,6 +27,10 @@ const PropertySaleOffline = lazy(() => import("./pages/PropertySaleOffline/Prope
 const TransferOwnership = lazy(() => import("./pages/TransferOwnership/TransferOwnership.jsx"));
 const Chat = lazy(() => import("./pages/Chat/Chat.jsx"));
 const Holdings = lazy(() => import("./pages/Holdings/Holdings.jsx"));
+const Help = lazy(() => import("./pages/Help/Help.jsx"));
+const FAQ = lazy(() => import("./pages/FAQ/FAQ.jsx"));
+const Support = lazy(() => import("./pages/Support/Support.jsx"));
+const ArticleDetail = lazy(() => import("./pages/Help/ArticleDetail.jsx"));
 const Login = lazy(() => import("./pages/Auth/Login.jsx"));
 const Register = lazy(() => import("./pages/Auth/Register.jsx"));
 const VerifyEmail = lazy(() => import("./pages/Auth/VerifyEmail.jsx"));
@@ -88,6 +92,10 @@ function App() {
             <Route path="kyc" element={<KYC />} />
             <Route path="chat" element={<Chat />} />
             <Route path="holdings" element={<Holdings />} />
+            <Route path="help" element={<Help />} />
+            <Route path="help/:articleId" element={<ArticleDetail />} />
+            <Route path="faq" element={<FAQ />} />
+            <Route path="support" element={<Support />} />
           </Route>
 
           <Route path="/auth" element={<AuthLayout />}>

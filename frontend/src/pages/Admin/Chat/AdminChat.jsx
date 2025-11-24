@@ -67,8 +67,20 @@ const AdminChat = () => {
 
     // Listen for incoming messages
     const handleReceiveMessage = (data) => {
+      console.log('🟢 ADMIN CHAT - Socket message received (raw):', data);
       const { chatId, message } = data;
-      console.log('📨 Received message via socket:', { chatId, message });
+      
+      console.log('🟢 ADMIN CHAT - Processing socket message:', {
+        chatId,
+        messageId: message.id || message._id,
+        originalSenderType: message.senderType,
+        senderTypeType: typeof message.senderType,
+        senderId: message.senderId,
+        text: message.message?.substring(0, 30),
+        createdAt: message.createdAt,
+        isAdmin: message.senderType === 'Admin',
+        expectedSide: message.senderType === 'Admin' ? 'RIGHT (blue - SENT)' : 'LEFT (grey - RECEIVED)',
+      });
       
       // Always update conversation list when a message is received
       setConversations(prev =>
@@ -123,7 +135,6 @@ const AdminChat = () => {
               return !(isTemp && sameText && msg.senderType === message.senderType);
             });
             
-            console.log('✅ Adding message to chat:', message);
             return [...filtered, message];
           });
         }
@@ -232,21 +243,41 @@ const AdminChat = () => {
 
   const fetchMessages = async (userId) => {
     try {
-      console.log('📥 Fetching messages for user:', userId);
+      console.log('🟢 ADMIN CHAT - Fetching messages for user:', userId);
       const response = await adminAPI.getChatMessages(userId);
-      console.log('📥 Messages response:', response);
+      
+      console.log('🟢 ADMIN CHAT - API Response:', {
+        success: response.success,
+        hasData: !!response.data,
+        messageCount: response.data?.messages?.length || 0,
+        rawResponse: response,
+      });
       
       if (response.success && response.data) {
-        const formattedMessages = (response.data.messages || []).map(msg => ({
-          id: msg.id || msg._id,
-          senderId: msg.senderId,
-          senderType: msg.senderType,
-          message: msg.message,
-          isRead: msg.isRead,
-          createdAt: msg.createdAt,
-        }));
+        console.log('🟢 ADMIN CHAT - Raw messages from API:', response.data.messages);
         
-        console.log('📥 Formatted messages:', formattedMessages);
+        const formattedMessages = (response.data.messages || []).map((msg, index) => {
+          console.log(`🟢 ADMIN CHAT - Message ${index + 1} formatting:`, {
+            id: msg.id || msg._id,
+            originalSenderType: msg.senderType,
+            senderTypeType: typeof msg.senderType,
+            senderId: msg.senderId,
+            text: msg.message?.substring(0, 30),
+            isAdmin: msg.senderType === 'Admin',
+            expectedSide: msg.senderType === 'Admin' ? 'RIGHT (blue - SENT)' : 'LEFT (grey - RECEIVED)',
+          });
+          
+          return {
+            id: msg.id || msg._id,
+            senderId: msg.senderId,
+            senderType: msg.senderType,
+            message: msg.message,
+            isRead: msg.isRead,
+            createdAt: msg.createdAt,
+          };
+        });
+        
+        console.log('🟢 ADMIN CHAT - Formatted messages ready to display:', formattedMessages);
         setMessages(formattedMessages);
         
         // Update conversation unread count after fetching
@@ -333,6 +364,13 @@ const AdminChat = () => {
     }
 
     const messageText = inputMessage.trim();
+    console.log('🟢 ADMIN CHAT - Sending message:', {
+      text: messageText,
+      adminId: currentAdminIdRef.current,
+      userId: selectedUser?.userId,
+      hasSocket: !!socketRef.current,
+    });
+    
     setInputMessage('');
     setSending(true);
 
@@ -345,24 +383,33 @@ const AdminChat = () => {
       isRead: false,
       createdAt: new Date(),
     };
+    
+    console.log('🟢 ADMIN CHAT - Temp message created:', tempMessage);
     setMessages(prev => [...prev, tempMessage]);
 
     try {
-      console.log('📤 Sending message via socket:', {
-        message: messageText,
-        userId: selectedUser.userId,
-        adminId: currentAdminIdRef.current,
-        socketId: socketRef.current.id,
-      });
-      
       // Send message via socket
-      socketRef.current.emit('send-message', {
-        message: messageText,
-        userId: selectedUser.userId,
-        adminId: currentAdminIdRef.current,
-      });
-
-      console.log('✅ Message emitted to socket');
+      if (socketRef.current && selectedUser?.userId) {
+        console.log('🟢 ADMIN CHAT - Emitting message via socket:', {
+          message: messageText,
+          userId: selectedUser.userId,
+          adminId: currentAdminIdRef.current,
+          socketId: socketRef.current.id,
+        });
+        
+        socketRef.current.emit('send-message', {
+          message: messageText,
+          userId: selectedUser.userId,
+          adminId: currentAdminIdRef.current,
+        });
+        
+        console.log('🟢 ADMIN CHAT - Message emitted to socket');
+      } else {
+        console.error('🟢 ADMIN CHAT - Cannot send: Missing socket or userId', {
+          hasSocket: !!socketRef.current,
+          userId: selectedUser?.userId,
+        });
+      }
 
       // The socket will emit 'receive-message' which will update the UI
       // The real message from socket will replace the temp message
@@ -547,23 +594,45 @@ const AdminChat = () => {
                     <p>No messages yet. Start the conversation!</p>
                   </div>
                 ) : (
-                  messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`admin-chat__message ${
-                        message.senderType === 'Admin'
-                          ? 'admin-chat__message--admin'
-                          : 'admin-chat__message--user'
-                      }`}
-                    >
-                      <div className="admin-chat__message-bubble">
-                        <p className="admin-chat__message-text">{message.message}</p>
-                        <span className="admin-chat__message-time">
-                          {formatMessageTime(message.createdAt)}
-                        </span>
+                  messages.map((message, index) => {
+                    // WhatsApp-like behavior for ADMIN chat:
+                    // - senderType === 'Admin' → Message sent by current admin → Right side (blue) = SENT
+                    // - senderType === 'User' → Message received from user → Left side (grey) = RECEIVED
+                    const senderType = String(message.senderType || '').trim();
+                    const isAdminMessage = senderType === 'Admin';
+                    
+                    if (index < 3 || messages.length - index <= 3) {
+                      console.log(`🟢 ADMIN CHAT - Rendering message ${index + 1}/${messages.length}:`, {
+                        id: message.id,
+                        originalSenderType: message.senderType,
+                        normalizedSenderType: senderType,
+                        senderTypeType: typeof message.senderType,
+                        isAdminMessage,
+                        expectedSide: isAdminMessage ? 'RIGHT (blue - SENT)' : 'LEFT (grey - RECEIVED)',
+                        className: isAdminMessage ? 'admin-chat__message--admin' : 'admin-chat__message--user',
+                        text: message.message?.substring(0, 30),
+                        comparison: `"${senderType}" === "Admin" = ${senderType === 'Admin'}`,
+                      });
+                    }
+                    
+                    return (
+                      <div
+                        key={message.id}
+                        className={`admin-chat__message ${
+                          isAdminMessage
+                            ? 'admin-chat__message--admin'
+                            : 'admin-chat__message--user'
+                        }`}
+                      >
+                        <div className="admin-chat__message-bubble">
+                          <p className="admin-chat__message-text">{message.message}</p>
+                          <span className="admin-chat__message-time">
+                            {formatMessageTime(message.createdAt)}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
                 <div ref={messagesEndRef} />
               </div>

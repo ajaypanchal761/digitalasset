@@ -156,6 +156,17 @@
   box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
 }
 
+/* Remove padding and styling when chat page is inside */
+.app-content__page > .chat-page {
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: #ffffff !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+
 /* Full-width for all pages on desktop/webview only (except chat page) */
 @media (min-width: 769px) {
   /* Make app-content full-width for all pages except chat */
@@ -172,6 +183,24 @@
     border-radius: 0;
     padding: 0;
     box-shadow: none;
+  }
+  
+  /* Ensure chat page container is full width */
+  .app-content__page:has(.chat-page) {
+    padding: 0 !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Ensure app-content is full width when chat is present */
+  .app-content:has(.chat-page) {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
   }
 
   /* Wallet summary card margin for pages that show it */
@@ -343,16 +372,15 @@
 
 /* Make chat page full-screen */
 .app-content__page > .chat-page {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100vw;
+  position: relative;
+  width: 100% !important;
+  max-width: 100% !important;
   height: 100vh;
-  margin: 0;
-  border-radius: 0;
-  z-index: 1000;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  z-index: 1;
+  background: #ffffff !important;
 }
 
 .wallet-summary-card {
