@@ -579,6 +579,60 @@ export const investmentRequestAPI = {
   },
 };
 
+// ==================== TRANSFER REQUEST API ====================
+
+export const transferRequestAPI = {
+  // Check if holding is eligible for withdrawal (3 months passed)
+  checkEligibility: async (holdingId) => {
+    return apiRequest(`/withdrawals/eligible/${holdingId}`);
+  },
+
+  // Get available buyers (all users except current user)
+  getAvailableBuyers: async () => {
+    return apiRequest('/transfer-requests/users/available-buyers');
+  },
+
+  // Create transfer request
+  create: async (buyerId, holdingId, salePrice) => {
+    return apiRequest('/transfer-requests', {
+      method: 'POST',
+      body: JSON.stringify({ buyerId, holdingId, salePrice }),
+    });
+  },
+
+  // Get received requests (for buyer)
+  getReceived: async () => {
+    return apiRequest('/transfer-requests/received');
+  },
+
+  // Get sent requests (for seller)
+  getSent: async () => {
+    return apiRequest('/transfer-requests/sent');
+  },
+
+  // Buyer responds to request (accept/decline)
+  respond: async (requestId, response) => {
+    return apiRequest(`/transfer-requests/${requestId}/respond`, {
+      method: 'PUT',
+      body: JSON.stringify({ response }),
+    });
+  },
+
+  // Seller initiates transfer (moves to admin approval)
+  initiateTransfer: async (requestId) => {
+    return apiRequest(`/transfer-requests/${requestId}/initiate-transfer`, {
+      method: 'POST',
+    });
+  },
+
+  // Cancel transfer request
+  cancel: async (requestId) => {
+    return apiRequest(`/transfer-requests/${requestId}/cancel`, {
+      method: 'PUT',
+    });
+  },
+};
+
 // ==================== ADMIN API ====================
 
 export const adminAPI = {
@@ -717,6 +771,29 @@ export const adminAPI = {
   // Reject investment request
   rejectInvestmentRequest: async (id, adminNotes) => {
     return apiRequest(`/admin/investment-requests/${id}/reject`, {
+      method: 'PUT',
+      body: JSON.stringify({ adminNotes }),
+    });
+  },
+
+  // Get all transfer requests
+  getTransferRequests: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const url = queryString ? `/admin/transfer-requests?${queryString}` : '/admin/transfer-requests';
+    return apiRequest(url);
+  },
+
+  // Approve transfer request
+  approveTransferRequest: async (id, adminNotes) => {
+    return apiRequest(`/admin/transfer-requests/${id}/approve`, {
+      method: 'PUT',
+      body: JSON.stringify({ adminNotes }),
+    });
+  },
+
+  // Reject transfer request
+  rejectTransferRequest: async (id, adminNotes) => {
+    return apiRequest(`/admin/transfer-requests/${id}/reject`, {
       method: 'PUT',
       body: JSON.stringify({ adminNotes }),
     });
@@ -900,6 +977,19 @@ export const adminAuthAPI = {
     });
   },
 
+  // Get admin bank details (public endpoint for investment request page)
+  getBankDetails: async () => {
+    return apiRequest('/admin-auth/bank-details');
+  },
+
+  // Update admin bank details
+  updateBankDetails: async (bankDetails) => {
+    return apiRequest('/admin-auth/bank-details', {
+      method: 'PUT',
+      body: JSON.stringify(bankDetails),
+    });
+  },
+
   // Forgot password - request password reset
   forgotPassword: async (email) => {
     return apiRequest('/admin-auth/forgot-password', {
@@ -934,4 +1024,7 @@ export default {
   admin: adminAPI,
   adminAuth: adminAuthAPI,
   upload: uploadAPI,
+  transferRequest: transferRequestAPI,
+  investmentRequest: investmentRequestAPI,
+  chat: chatAPI,
 };

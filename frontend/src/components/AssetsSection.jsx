@@ -12,8 +12,9 @@ const AssetsSection = () => {
   };
 
   const handleWithdraw = (holding) => {
-    // Navigate to withdraw-info page with holding ID
-    navigate("/withdraw-info", { state: { holdingId: holding.id } });
+    // Navigate to withdraw-info page with holding ID - use _id if available, otherwise id
+    const holdingId = holding._id || holding.id;
+    navigate("/withdraw-info", { state: { holdingId } });
   };
 
   // Show loading state

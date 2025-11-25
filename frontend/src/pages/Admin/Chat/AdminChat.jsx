@@ -12,6 +12,7 @@ const AdminChat = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [showUserList, setShowUserList] = useState(true); // For mobile: show list first
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const socketRef = useRef(null);
@@ -183,6 +184,35 @@ const AdminChat = () => {
     fetchConversations();
   }, []);
 
+  // Handle initial mobile/desktop state and window resize
+  useEffect(() => {
+    const handleResize = () => {
+      const isMobile = window.innerWidth <= 768;
+      if (isMobile) {
+        // On mobile, show list if no user selected, show chat if user is selected
+        setShowUserList(!selectedUser);
+      } else {
+        // On desktop, always show both (list is always visible)
+        setShowUserList(true);
+      }
+    };
+
+    // Set initial state
+    handleResize();
+
+    // Listen for resize events
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [selectedUser]);
+
+  // Update showUserList when selectedUser changes on mobile
+  useEffect(() => {
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+      setShowUserList(!selectedUser);
+    }
+  }, [selectedUser]);
+
   // Fetch messages and join chat room when user is selected
   useEffect(() => {
     if (selectedUser && selectedUser.userId) {
@@ -229,8 +259,10 @@ const AdminChat = () => {
       const response = await adminAPI.getChatConversations();
       if (response.success) {
         setConversations(response.data || []);
-        // Auto-select first conversation if available
-        if (response.data && response.data.length > 0 && !selectedUser) {
+        // On mobile, don't auto-select - show list first
+        // On desktop, auto-select first conversation
+        const isMobile = window.innerWidth <= 768;
+        if (!isMobile && response.data && response.data.length > 0 && !selectedUser) {
           setSelectedUser(response.data[0]);
         }
       }
@@ -238,6 +270,25 @@ const AdminChat = () => {
       console.error('Failed to fetch conversations:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle user selection - on mobile, hide list and show chat
+  const handleUserSelect = (user) => {
+    setSelectedUser(user);
+    // On mobile, hide the user list when a user is selected
+    if (window.innerWidth <= 768) {
+      setShowUserList(false);
+    }
+  };
+
+  // Handle back button - show user list on mobile
+  const handleBackToList = () => {
+    setShowUserList(true);
+    // Optionally clear selected user on mobile
+    if (window.innerWidth <= 768) {
+      setSelectedUser(null);
+      setMessages([]);
     }
   };
 
@@ -504,10 +555,10 @@ const AdminChat = () => {
   }
 
   return (
-    <div className="admin-chat">
+    <div className="admin-chat admin-chat--page">
       <div className="admin-chat__container">
         {/* Sidebar - User List */}
-        <aside className="admin-chat__sidebar">
+        <aside className={`admin-chat__sidebar ${showUserList ? 'admin-chat__sidebar--visible' : ''}`}>
           <div className="admin-chat__sidebar-header">
             <h2 className="admin-chat__sidebar-title">Conversations</h2>
             <button
@@ -533,7 +584,7 @@ const AdminChat = () => {
                   className={`admin-chat__user-item ${
                     selectedUser?.userId === conv.userId ? 'admin-chat__user-item--active' : ''
                   }`}
-                  onClick={() => setSelectedUser(conv)}
+                  onClick={() => handleUserSelect(conv)}
                 >
                   <div className="admin-chat__user-avatar">
                     {conv.userAvatar ? (
@@ -564,11 +615,20 @@ const AdminChat = () => {
         </aside>
 
         {/* Main Chat Area */}
-        <main className="admin-chat__main">
+        <main className={`admin-chat__main ${!showUserList ? 'admin-chat__main--visible' : ''}`}>
           {selectedUser ? (
             <>
               {/* Chat Header */}
               <header className="admin-chat__header">
+                <button
+                  className="admin-chat__back-btn"
+                  onClick={handleBackToList}
+                  title="Back to conversations"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
                 <div className="admin-chat__header-avatar">
                   {selectedUser.userAvatar ? (
                     <img 

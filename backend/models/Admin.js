@@ -32,6 +32,24 @@ const adminSchema = new mongoose.Schema({
   permissions: [{
     type: String,
   }],
+  bankDetails: {
+    accountHolderName: {
+      type: String,
+      trim: true,
+    },
+    accountNumber: {
+      type: String,
+      trim: true,
+    },
+    ifscCode: {
+      type: String,
+      trim: true,
+    },
+    bankName: {
+      type: String,
+      trim: true,
+    },
+  },
 }, {
   timestamps: true,
 });

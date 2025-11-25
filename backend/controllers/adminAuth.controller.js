@@ -756,3 +756,68 @@ export const resetAdminPassword = async (req, res) => {
   }
 };
 
+// @desc    Get admin bank details
+// @route   GET /api/admin-auth/bank-details
+// @access  Public (for investment request page)
+export const getAdminBankDetails = async (req, res) => {
+  try {
+    const admin = await Admin.findOne().select('bankDetails');
+
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: 'Admin not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: admin.bankDetails || null,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get bank details',
+    });
+  }
+};
+
+// @desc    Update admin bank details
+// @route   PUT /api/admin-auth/bank-details
+// @access  Private/Admin
+export const updateAdminBankDetails = async (req, res) => {
+  try {
+    const { accountHolderName, accountNumber, ifscCode, bankName } = req.body;
+
+    const admin = await Admin.findById(req.user.id);
+
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: 'Admin not found',
+      });
+    }
+
+    // Update bank details
+    admin.bankDetails = {
+      accountHolderName: accountHolderName || admin.bankDetails?.accountHolderName || '',
+      accountNumber: accountNumber || admin.bankDetails?.accountNumber || '',
+      ifscCode: ifscCode || admin.bankDetails?.ifscCode || '',
+      bankName: bankName || admin.bankDetails?.bankName || '',
+    };
+
+    await admin.save();
+
+    res.json({
+      success: true,
+      message: 'Bank details updated successfully',
+      data: admin.bankDetails,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to update bank details',
+    });
+  }
+};
+

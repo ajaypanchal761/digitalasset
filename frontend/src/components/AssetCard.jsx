@@ -15,9 +15,19 @@ const AssetCard = ({ holding, onViewDetail, onWithdraw }) => {
     return diffDays > 0 ? diffDays : 0;
   };
 
+  // Check if 3 months (90 days) have passed since purchase
+  const checkThreeMonthsPassed = () => {
+    if (!holding.purchaseDate) return false;
+    const purchaseDate = new Date(holding.purchaseDate);
+    const today = new Date();
+    const daysSincePurchase = Math.floor((today - purchaseDate) / (1000 * 60 * 60 * 24));
+    return daysSincePurchase >= 90;
+  };
+
   const daysRemaining = holding.daysRemaining !== undefined ? holding.daysRemaining : calculateDaysRemaining();
   const isMatured = holding.status === "matured" || daysRemaining === 0;
-  const canWithdraw = isMatured && holding.canWithdrawInvestment !== false;
+  const threeMonthsPassed = checkThreeMonthsPassed();
+  const canWithdraw = threeMonthsPassed && holding.canWithdrawInvestment !== false;
 
   return (
     <div className="asset-card">

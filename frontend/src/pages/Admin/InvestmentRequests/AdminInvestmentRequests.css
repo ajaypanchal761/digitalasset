@@ -639,32 +639,76 @@
     padding: 1rem;
   }
 
+  .admin-investment-requests__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .admin-investment-requests__title {
+    font-size: 1.5rem;
+    line-height: 1.2;
+  }
+
+  .admin-investment-requests__subtitle {
+    font-size: 0.875rem;
+  }
+
   .admin-investment-requests__stats {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .admin-investment-requests__stat {
+    width: 100%;
+    padding: 1rem;
   }
 
   .admin-investment-requests__filters {
     flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
   }
 
   .admin-investment-requests__search {
     min-width: 100%;
+    width: 100%;
+  }
+
+  .admin-investment-requests__filter-group {
+    width: 100%;
+  }
+
+  .admin-investment-requests__clear-filters {
+    width: 100%;
+    justify-content: center;
   }
 
   .admin-investment-requests__table-container {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.75rem;
   }
 
   .admin-investment-requests__table {
     min-width: 800px;
   }
 
+  .admin-investment-requests__table th,
+  .admin-investment-requests__table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.8rem;
+  }
+
   .admin-investment-requests__actions {
     flex-direction: column;
+    gap: 0.5rem;
   }
 
   .admin-investment-requests__action-btn {
     width: 100%;
+    justify-content: center;
   }
 
   .admin-investment-requests__fullscreen-container {

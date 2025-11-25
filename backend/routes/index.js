@@ -24,6 +24,7 @@ import adminAuthRoutes from './adminAuth.routes.js';
 import uploadRoutes from './upload.routes.js';
 import chatRoutes from './chat.routes.js';
 import investmentRequestRoutes from './investmentRequest.routes.js';
+import transferRequestRoutes from './transferRequest.routes.js';
 
 router.use('/auth', authRoutes);
 router.use('/properties', propertyRoutes);
@@ -36,6 +37,7 @@ router.use('/admin', adminRoutes);
 router.use('/admin-auth', adminAuthRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/investment-requests', investmentRequestRoutes);
+router.use('/transfer-requests', transferRequestRoutes);
 router.use('/', chatRoutes);
 
 export default router;

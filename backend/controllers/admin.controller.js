@@ -3,6 +3,7 @@ import Property from '../models/Property.js';
 import Withdrawal from '../models/Withdrawal.js';
 import Holding from '../models/Holding.js';
 import Transaction from '../models/Transaction.js';
+import PropertyTransferRequest from '../models/PropertyTransferRequest.js';
 
 // @desc    Get all users
 // @route   GET /api/admin/users
@@ -477,6 +478,248 @@ export const getDashboardStats = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+// @desc    Get all transfer requests
+// @route   GET /api/admin/transfer-requests
+// @access  Private/Admin
+export const getTransferRequests = async (req, res) => {
+  try {
+    const { status, page = 1, limit = 20 } = req.query;
+
+    const query = {};
+    if (status) {
+      query.status = status;
+    }
+
+    const requests = await PropertyTransferRequest.find(query)
+      .populate('sellerId', 'name email phone')
+      .populate('buyerId', 'name email phone')
+      .populate('propertyId', 'title description imageUrl')
+      .populate('holdingId', 'amountInvested purchaseDate monthlyEarning')
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip((parseInt(page) - 1) * parseInt(limit));
+
+    const total = await PropertyTransferRequest.countDocuments(query);
+
+    res.json({
+      success: true,
+      count: requests.length,
+      total,
+      page: parseInt(page),
+      pages: Math.ceil(total / parseInt(limit)),
+      data: requests,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to fetch transfer requests',
+    });
+  }
+};
+
+// @desc    Approve transfer request
+// @route   PUT /api/admin/transfer-requests/:id/approve
+// @access  Private/Admin
+export const approveTransferRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { adminNotes } = req.body;
+
+    const transferRequest = await PropertyTransferRequest.findById(id)
+      .populate('sellerId', 'name email phone wallet')
+      .populate('buyerId', 'name email phone')
+      .populate('holdingId')
+      .populate('propertyId', 'title');
+
+    if (!transferRequest) {
+      return res.status(404).json({
+        success: false,
+        message: 'Transfer request not found',
+      });
+    }
+
+    if (transferRequest.status !== 'admin_pending') {
+      return res.status(400).json({
+        success: false,
+        message: 'Transfer request is not pending admin approval',
+      });
+    }
+
+    // Update transfer request status
+    transferRequest.status = 'admin_approved';
+    transferRequest.adminNotes = adminNotes || '';
+    transferRequest.adminResponseDate = new Date();
+    await transferRequest.save();
+
+    // Transfer holding ownership
+    const holding = await Holding.findById(transferRequest.holdingId);
+    if (!holding) {
+      return res.status(404).json({
+        success: false,
+        message: 'Holding not found',
+      });
+    }
+
+    // Update holding owner
+    const oldUserId = holding.userId;
+    holding.userId = transferRequest.buyerId._id;
+    await holding.save();
+
+    // Credit seller's wallet with sale price
+    const seller = await User.findById(transferRequest.sellerId._id);
+    if (seller) {
+      seller.wallet.balance = (seller.wallet.balance || 0) + transferRequest.salePrice;
+      await seller.save();
+
+      // Create transaction record for seller
+      await Transaction.create({
+        userId: seller._id,
+        type: 'credit',
+        amount: transferRequest.salePrice,
+        description: `Property sale: ${transferRequest.propertyId.title}`,
+        status: 'completed',
+        reference: `TRANSFER-${transferRequest._id}`,
+      });
+    }
+
+    // Create transaction record for buyer (debit)
+    await Transaction.create({
+      userId: transferRequest.buyerId._id,
+      type: 'debit',
+      amount: transferRequest.salePrice,
+      description: `Property purchase: ${transferRequest.propertyId.title}`,
+      status: 'completed',
+      reference: `TRANSFER-${transferRequest._id}`,
+    });
+
+    // Mark transfer as completed
+    transferRequest.status = 'completed';
+    transferRequest.transferCompletedDate = new Date();
+    await transferRequest.save();
+
+    // Emit notifications via Socket.io
+    try {
+      const { getSocketInstance } = await import('../utils/socketInstance.js');
+      const io = getSocketInstance();
+      
+      if (io) {
+        // Notify seller
+        io.to(transferRequest.sellerId._id.toString()).emit('notification', {
+          type: 'transfer-approved',
+          title: 'Transfer Request Approved',
+          message: `Your property transfer to ${transferRequest.buyerId.name} has been approved`,
+          transferRequestId: transferRequest._id.toString(),
+        });
+
+        // Notify buyer
+        io.to(transferRequest.buyerId._id.toString()).emit('notification', {
+          type: 'transfer-approved',
+          title: 'Property Transfer Approved',
+          message: `You are now the owner of ${transferRequest.propertyId.title}`,
+          transferRequestId: transferRequest._id.toString(),
+        });
+      }
+    } catch (socketError) {
+      console.error('Error sending socket notification:', socketError);
+    }
+
+    const populatedRequest = await PropertyTransferRequest.findById(id)
+      .populate('sellerId', 'name email phone')
+      .populate('buyerId', 'name email phone')
+      .populate('propertyId', 'title')
+      .populate('holdingId', 'amountInvested purchaseDate');
+
+    res.json({
+      success: true,
+      message: 'Transfer request approved and ownership transferred successfully',
+      data: populatedRequest,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to approve transfer request',
+    });
+  }
+};
+
+// @desc    Reject transfer request
+// @route   PUT /api/admin/transfer-requests/:id/reject
+// @access  Private/Admin
+export const rejectTransferRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { adminNotes } = req.body;
+
+    const transferRequest = await PropertyTransferRequest.findById(id)
+      .populate('sellerId', 'name email phone')
+      .populate('buyerId', 'name email phone')
+      .populate('propertyId', 'title');
+
+    if (!transferRequest) {
+      return res.status(404).json({
+        success: false,
+        message: 'Transfer request not found',
+      });
+    }
+
+    if (transferRequest.status !== 'admin_pending') {
+      return res.status(400).json({
+        success: false,
+        message: 'Transfer request is not pending admin approval',
+      });
+    }
+
+    // Update transfer request status
+    transferRequest.status = 'admin_rejected';
+    transferRequest.adminNotes = adminNotes || '';
+    transferRequest.adminResponseDate = new Date();
+    await transferRequest.save();
+
+    // Emit notifications via Socket.io
+    try {
+      const { getSocketInstance } = await import('../utils/socketInstance.js');
+      const io = getSocketInstance();
+      
+      if (io) {
+        // Notify seller
+        io.to(transferRequest.sellerId._id.toString()).emit('notification', {
+          type: 'transfer-rejected',
+          title: 'Transfer Request Rejected',
+          message: `Your property transfer request has been rejected by admin`,
+          transferRequestId: transferRequest._id.toString(),
+        });
+
+        // Notify buyer
+        io.to(transferRequest.buyerId._id.toString()).emit('notification', {
+          type: 'transfer-rejected',
+          title: 'Transfer Request Rejected',
+          message: `The property transfer request has been rejected by admin`,
+          transferRequestId: transferRequest._id.toString(),
+        });
+      }
+    } catch (socketError) {
+      console.error('Error sending socket notification:', socketError);
+    }
+
+    const populatedRequest = await PropertyTransferRequest.findById(id)
+      .populate('sellerId', 'name email phone')
+      .populate('buyerId', 'name email phone')
+      .populate('propertyId', 'title')
+      .populate('holdingId', 'amountInvested purchaseDate');
+
+    res.json({
+      success: true,
+      message: 'Transfer request rejected successfully',
+      data: populatedRequest,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to reject transfer request',
     });
   }
 };

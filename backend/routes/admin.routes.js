@@ -10,6 +10,9 @@ import {
   approveWithdrawal,
   rejectWithdrawal,
   getDashboardStats,
+  getTransferRequests,
+  approveTransferRequest,
+  rejectTransferRequest,
 } from '../controllers/admin.controller.js';
 import {
   getPayouts,
@@ -51,6 +54,11 @@ router.get('/payouts', getPayouts);
 router.post('/payouts/process', processPayouts);
 router.get('/payouts/history', getPayoutHistory);
 router.post('/payouts/generate', generateMonthlyPayouts);
+
+// Transfer request routes
+router.get('/transfer-requests', getTransferRequests);
+router.put('/transfer-requests/:id/approve', approveTransferRequest);
+router.put('/transfer-requests/:id/reject', rejectTransferRequest);
 
 export default router;
 

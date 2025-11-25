@@ -155,15 +155,17 @@ const AdminLayout = () => {
   return (
     <div className="admin-shell">
       {/* Mobile Menu Toggle */}
-      <button 
-        className="admin-mobile-toggle"
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        aria-label="Toggle menu"
-      >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M3 12h18M3 6h18M3 18h18"/>
-        </svg>
-      </button>
+      {!sidebarOpen && (
+        <button 
+          className="admin-mobile-toggle"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          aria-label="Toggle menu"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 9l6 6 6-6"/>
+          </svg>
+        </button>
+      )}
 
       {/* Sidebar Overlay for Mobile */}
       {sidebarOpen && (
@@ -174,6 +176,18 @@ const AdminLayout = () => {
       )}
 
       <aside className={`admin-sidebar ${sidebarOpen ? 'admin-sidebar--open' : ''}`}>
+        {/* Close Button for Mobile */}
+        <button 
+          className="admin-sidebar__close-btn"
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Close menu"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        
         <div className="admin-brand">
           <NavLink to="/admin/dashboard" onClick={() => setSidebarOpen(false)}>
             <span className="admin-brand-icon">

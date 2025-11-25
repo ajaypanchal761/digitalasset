@@ -6,7 +6,13 @@ const WithdrawInfo = () => {
   const location = useLocation();
   const { holdings } = useAppState();
   const holdingId = location.state?.holdingId; // If coming from specific holding
-  const holding = holdingId ? holdings.find((h) => h.id === holdingId) : null;
+  
+  // More robust holding lookup - convert both to strings for comparison
+  const holding = holdingId ? holdings.find((h) => {
+    const hId = (h._id || h.id)?.toString();
+    const searchId = holdingId?.toString();
+    return hId === searchId;
+  }) : null;
 
   const formatCurrency = (value, currency = "INR") =>
     new Intl.NumberFormat("en-IN", {
@@ -57,7 +63,7 @@ const WithdrawInfo = () => {
             <div className="withdraw-info-page__step-number">1</div>
             <div className="withdraw-info-page__step-content">
               <h4 className="withdraw-info-page__step-title">Contact Owner or Find Buyer</h4>
-              <p className="withdraw-info-page__step-text">Contact the property owner for sale options or find an offline buyer yourself</p>
+              <p className="withdraw-info-page__step-text">Contact the property owner for sale options or find a buyer from the platform</p>
             </div>
           </div>
 
@@ -102,7 +108,7 @@ const WithdrawInfo = () => {
               <span className="withdraw-info-page__option-badge">Recommended</span>
             </div>
 
-            <div className="withdraw-info-page__option-card" onClick={() => navigate("/property-sale/offline", { state: { holdingId } })}>
+            <div className="withdraw-info-page__option-card" onClick={() => navigate("/find-buyer", { state: { holdingId } })}>
               <div className="withdraw-info-page__option-icon withdraw-info-page__option-icon--green">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path
@@ -115,8 +121,8 @@ const WithdrawInfo = () => {
                   <path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <h4 className="withdraw-info-page__option-title">Find Offline Buyer</h4>
-              <p className="withdraw-info-page__option-text">Find a buyer outside the platform and notify us when buyer is found</p>
+              <h4 className="withdraw-info-page__option-title">Find Buyer</h4>
+              <p className="withdraw-info-page__option-text">Find a buyer from the platform to purchase your property holding</p>
             </div>
           </div>
         </div>
@@ -154,8 +160,8 @@ const WithdrawInfo = () => {
           <button className="withdraw-info-page__btn withdraw-info-page__btn--primary" onClick={() => navigate("/contact-owner", { state: { holdingId } })}>
             Contact Owner
           </button>
-          <button className="withdraw-info-page__btn withdraw-info-page__btn--outline" onClick={() => navigate("/property-sale/offline", { state: { holdingId } })}>
-            Find Offline Buyer
+          <button className="withdraw-info-page__btn withdraw-info-page__btn--outline" onClick={() => navigate("/find-buyer", { state: { holdingId } })}>
+            Find Buyer
           </button>
         </div>
       </div>

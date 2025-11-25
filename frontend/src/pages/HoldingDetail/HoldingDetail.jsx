@@ -46,8 +46,17 @@ const HoldingDetail = () => {
     return diffMonths;
   }, [holding]);
 
+  // Check if 3 months (90 days) have passed since purchase
+  const checkThreeMonthsPassed = useMemo(() => {
+    if (!holding?.purchaseDate) return false;
+    const purchaseDate = new Date(holding.purchaseDate);
+    const today = new Date();
+    const daysSincePurchase = Math.floor((today - purchaseDate) / (1000 * 60 * 60 * 24));
+    return daysSincePurchase >= 90;
+  }, [holding]);
+
   const isMatured = holding?.status === "matured" || calculateDaysRemaining === 0;
-  const canWithdrawInvestment = isMatured && holding?.canWithdrawInvestment !== false;
+  const canWithdrawInvestment = checkThreeMonthsPassed && holding?.canWithdrawInvestment !== false;
   const canWithdrawEarnings = holding?.canWithdrawEarnings !== false;
 
   const totalExpectedEarnings = useMemo(() => {
@@ -260,8 +269,8 @@ const HoldingDetail = () => {
               disabled={!canWithdrawInvestment}
               onClick={() => {
                 if (canWithdrawInvestment) {
-                  // Handle investment withdrawal
-                  console.log("Withdraw investment:", holding);
+                  const holdingId = holding._id || holding.id;
+                  navigate("/withdraw-info", { state: { holdingId } });
                 }
               }}
             >

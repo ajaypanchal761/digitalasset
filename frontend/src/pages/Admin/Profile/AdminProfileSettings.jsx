@@ -45,9 +45,38 @@ const AdminProfileSettings = () => {
     confirmPassword: "",
   });
 
+  const [bankDetails, setBankDetails] = useState({
+    accountHolderName: "",
+    accountNumber: "",
+    ifscCode: "",
+    bankName: "",
+  });
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingBankDetails, setSavingBankDetails] = useState(false);
   const [showPasswordSection, setShowPasswordSection] = useState(false);
+
+  // Fetch bank details on component mount
+  useEffect(() => {
+    const fetchBankDetails = async () => {
+      try {
+        const response = await adminAuthAPI.getBankDetails();
+        if (response.success && response.data) {
+          setBankDetails({
+            accountHolderName: response.data.accountHolderName || "",
+            accountNumber: response.data.accountNumber || "",
+            ifscCode: response.data.ifscCode || "",
+            bankName: response.data.bankName || "",
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching bank details:', error);
+      }
+    };
+
+    fetchBankDetails();
+  }, []);
 
   // Update form data when authUser loads
   useEffect(() => {
@@ -76,6 +105,38 @@ const AdminProfileSettings = () => {
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleBankDetailsChange = (e) => {
+    const { name, value } = e.target;
+    setBankDetails((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSaveBankDetails = async () => {
+    if (!authUser) {
+      showToast("Please log in to update bank details", "error");
+      navigate("/admin-auth/login");
+      return;
+    }
+
+    try {
+      setSavingBankDetails(true);
+
+      const response = await adminAuthAPI.updateBankDetails(bankDetails);
+
+      if (response.success) {
+        showToast("Bank details updated successfully!", "success");
+      } else {
+        showToast(response.message || "Failed to update bank details", "error");
+      }
+    } catch (error) {
+      showToast(error.message || "Failed to update bank details. Please try again.", "error");
+    } finally {
+      setSavingBankDetails(false);
+    }
   };
 
   const handleSave = async () => {
@@ -296,6 +357,83 @@ const AdminProfileSettings = () => {
               className="admin-profile-settings__input admin-profile-settings__input--phone"
               placeholder="Enter your phone number"
             />
+          </div>
+        </div>
+
+        {/* Bank Details Section */}
+        <div className="admin-profile-settings__section">
+          <div className="admin-profile-settings__section-header">
+            <h2 className="admin-profile-settings__section-title">Bank Details</h2>
+            <button
+              type="button"
+              className="admin-profile-settings__save-btn admin-profile-settings__save-btn--small"
+              onClick={handleSaveBankDetails}
+              disabled={savingBankDetails}
+            >
+              {savingBankDetails ? "Saving..." : "Save Bank Details"}
+            </button>
+          </div>
+
+          <div className="admin-profile-settings__bank-details-fields">
+            <div className="admin-profile-settings__field">
+              <label htmlFor="accountHolderName" className="admin-profile-settings__label">
+                Account Holder Name
+              </label>
+              <input
+                type="text"
+                id="accountHolderName"
+                name="accountHolderName"
+                value={bankDetails.accountHolderName}
+                onChange={handleBankDetailsChange}
+                className="admin-profile-settings__input"
+                placeholder="Enter account holder name"
+              />
+            </div>
+
+            <div className="admin-profile-settings__field">
+              <label htmlFor="accountNumber" className="admin-profile-settings__label">
+                Account Number
+              </label>
+              <input
+                type="text"
+                id="accountNumber"
+                name="accountNumber"
+                value={bankDetails.accountNumber}
+                onChange={handleBankDetailsChange}
+                className="admin-profile-settings__input"
+                placeholder="Enter account number"
+              />
+            </div>
+
+            <div className="admin-profile-settings__field">
+              <label htmlFor="ifscCode" className="admin-profile-settings__label">
+                IFSC Code
+              </label>
+              <input
+                type="text"
+                id="ifscCode"
+                name="ifscCode"
+                value={bankDetails.ifscCode}
+                onChange={handleBankDetailsChange}
+                className="admin-profile-settings__input"
+                placeholder="Enter IFSC code"
+              />
+            </div>
+
+            <div className="admin-profile-settings__field">
+              <label htmlFor="bankName" className="admin-profile-settings__label">
+                Bank Name
+              </label>
+              <input
+                type="text"
+                id="bankName"
+                name="bankName"
+                value={bankDetails.bankName}
+                onChange={handleBankDetailsChange}
+                className="admin-profile-settings__input"
+                placeholder="Enter bank name"
+              />
+            </div>
           </div>
         </div>
 

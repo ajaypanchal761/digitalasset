@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "../../context/ToastContext.jsx";
-import { investmentRequestAPI } from "../../services/api.js";
+import { investmentRequestAPI, adminAuthAPI } from "../../services/api.js";
 import "./InvestmentRequest.css";
 
 const InvestmentRequest = () => {
@@ -19,6 +19,8 @@ const InvestmentRequest = () => {
   const [transactionProofPreview, setTransactionProofPreview] = useState(null);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bankDetails, setBankDetails] = useState(null);
+  const [loadingBankDetails, setLoadingBankDetails] = useState(true);
 
   useEffect(() => {
     // Redirect if no state data
@@ -27,6 +29,25 @@ const InvestmentRequest = () => {
       navigate('/explore');
     }
   }, [propertyId, investmentAmount, navigate, showToast]);
+
+  useEffect(() => {
+    // Fetch admin bank details
+    const fetchBankDetails = async () => {
+      try {
+        setLoadingBankDetails(true);
+        const response = await adminAuthAPI.getBankDetails();
+        if (response.success) {
+          setBankDetails(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching bank details:', error);
+      } finally {
+        setLoadingBankDetails(false);
+      }
+    };
+
+    fetchBankDetails();
+  }, []);
 
   const formatCurrency = (value, currency = "INR") =>
     new Intl.NumberFormat("en-IN", {
@@ -235,6 +256,31 @@ const InvestmentRequest = () => {
             </div>
           </div>
         </div>
+
+        {/* Bank Details Section */}
+        {!loadingBankDetails && bankDetails && (
+          <div className="investment-request-page__bank-details">
+            <h3 className="investment-request-page__bank-details-title">Bank Details for Payment</h3>
+            <div className="investment-request-page__bank-details-content">
+              <div className="investment-request-page__bank-details-item">
+                <span className="investment-request-page__bank-details-label">Account Holder Name</span>
+                <span className="investment-request-page__bank-details-value">{bankDetails.accountHolderName || 'N/A'}</span>
+              </div>
+              <div className="investment-request-page__bank-details-item">
+                <span className="investment-request-page__bank-details-label">Account Number</span>
+                <span className="investment-request-page__bank-details-value">{bankDetails.accountNumber || 'N/A'}</span>
+              </div>
+              <div className="investment-request-page__bank-details-item">
+                <span className="investment-request-page__bank-details-label">IFSC Code</span>
+                <span className="investment-request-page__bank-details-value">{bankDetails.ifscCode || 'N/A'}</span>
+              </div>
+              <div className="investment-request-page__bank-details-item">
+                <span className="investment-request-page__bank-details-label">Bank Name</span>
+                <span className="investment-request-page__bank-details-value">{bankDetails.bankName || 'N/A'}</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Investment Request Form */}
         <form onSubmit={handleSubmit} className="investment-request-page__form">

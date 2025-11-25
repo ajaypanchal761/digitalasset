@@ -8,6 +8,8 @@ import {
   updateAdminProfile,
   forgotAdminPassword,
   resetAdminPassword,
+  getAdminBankDetails,
+  updateAdminBankDetails,
 } from '../controllers/adminAuth.controller.js';
 import { adminProtect } from '../middleware/adminAuth.middleware.js';
 import { authLimiter } from '../middleware/security.js';
@@ -23,6 +25,8 @@ router.post('/login', loginAdmin);
 router.post('/login-otp', loginAdminWithOTP);
 router.get('/me', adminProtect, getAdminMe);
 router.put('/profile', adminProtect, updateAdminProfile);
+router.get('/bank-details', getAdminBankDetails);
+router.put('/bank-details', adminProtect, updateAdminBankDetails);
 router.post('/forgot-password', forgotAdminPassword);
 router.post('/reset-password', resetAdminPassword);
 
