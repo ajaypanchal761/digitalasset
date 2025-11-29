@@ -48,10 +48,17 @@ const PropertyCard = ({ property, onInvest, onClick }) => {
                 className="property-card__invest-btn"
                 onClick={(e) => {
                   e.stopPropagation();
+                  // Check if property is active before allowing investment
+                  if (property.status !== 'active') {
+                    alert(`This property is ${property.status}. Only active properties are available for investment.`);
+                    return;
+                  }
                   onInvest(property);
                 }}
+                disabled={property.status !== 'active'}
+                title={property.status !== 'active' ? `This property is ${property.status}. Only active properties are available for investment.` : 'Invest in this property'}
               >
-                Invest Now
+                {property.status === 'active' ? 'Invest Now' : `Property ${property.status?.charAt(0).toUpperCase() + property.status?.slice(1) || 'Unavailable'}`}
               </button>
             )}
           </div>

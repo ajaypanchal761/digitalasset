@@ -4,6 +4,7 @@ import Withdrawal from '../models/Withdrawal.js';
 import Holding from '../models/Holding.js';
 import Transaction from '../models/Transaction.js';
 import PropertyTransferRequest from '../models/PropertyTransferRequest.js';
+import { calculateMonthlyEarning, calculateMaturityDate, calculateNextPayoutDate } from '../utils/calculate.js';
 
 // @desc    Get all users
 // @route   GET /api/admin/users
@@ -310,20 +311,130 @@ export const deleteUser = async (req, res) => {
 // @access  Private/Admin
 export const getWithdrawals = async (req, res) => {
   try {
-    const { status, page = 1, limit = 20 } = req.query;
+    const { status, search, page = 1, limit = 20 } = req.query;
 
-    const query = {};
-    if (status) {
-      query.status = status;
+    // Build match query for aggregation
+    const matchQuery = {};
+    if (status && status !== 'all') {
+      // Map frontend status to backend status
+      if (status === 'completed') {
+        matchQuery.status = { $in: ['approved', 'processed'] };
+      } else {
+        matchQuery.status = status;
+      }
     }
 
-    const withdrawals = await Withdrawal.find(query)
-      .populate('userId', 'name email phone')
-      .sort({ createdAt: -1 })
-      .limit(parseInt(limit))
-      .skip((parseInt(page) - 1) * parseInt(limit));
+    // Build aggregation pipeline
+    const pipeline = [
+      // Match withdrawals by status
+      { $match: Object.keys(matchQuery).length > 0 ? matchQuery : {} },
+      // Lookup user information
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'userInfo'
+        }
+      },
+      {
+        $unwind: {
+          path: '$userInfo',
+          preserveNullAndEmptyArrays: true
+        }
+      }
+    ];
 
-    const total = await Withdrawal.countDocuments(query);
+    // Add search filter if provided
+    if (search && search.trim()) {
+      const searchRegex = { $regex: search.trim(), $options: 'i' };
+      pipeline.push({
+        $match: {
+          $or: [
+            { 'userInfo.name': searchRegex },
+            { 'userInfo.email': searchRegex },
+            { 'userInfo.phone': searchRegex },
+            { 'bankDetails.accountNumber': searchRegex },
+            { 'bankDetails.ifscCode': searchRegex },
+            { 'bankDetails.accountHolderName': searchRegex },
+            { _id: { $regex: search.trim(), $options: 'i' } }
+          ]
+        }
+      });
+    }
+
+    // Add sorting, skip, and limit
+    pipeline.push(
+      { $sort: { createdAt: -1 } },
+      { $skip: (parseInt(page) - 1) * parseInt(limit) },
+      { $limit: parseInt(limit) }
+    );
+
+    // Project fields to match expected structure
+    pipeline.push({
+      $project: {
+        _id: 1,
+        userId: 1,
+        amount: 1,
+        type: 1,
+        bankDetails: 1,
+        status: 1,
+        adminNotes: 1,
+        processedBy: 1,
+        processedAt: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        'userId': {
+          _id: '$userInfo._id',
+          name: '$userInfo.name',
+          email: '$userInfo.email',
+          phone: '$userInfo.phone'
+        }
+      }
+    });
+
+    // Execute aggregation for data
+    const withdrawals = await Withdrawal.aggregate(pipeline);
+
+    // Get total count with same filters
+    const countPipeline = [
+      { $match: Object.keys(matchQuery).length > 0 ? matchQuery : {} },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'userInfo'
+        }
+      },
+      {
+        $unwind: {
+          path: '$userInfo',
+          preserveNullAndEmptyArrays: true
+        }
+      }
+    ];
+
+    if (search && search.trim()) {
+      const searchRegex = { $regex: search.trim(), $options: 'i' };
+      countPipeline.push({
+        $match: {
+          $or: [
+            { 'userInfo.name': searchRegex },
+            { 'userInfo.email': searchRegex },
+            { 'userInfo.phone': searchRegex },
+            { 'bankDetails.accountNumber': searchRegex },
+            { 'bankDetails.ifscCode': searchRegex },
+            { 'bankDetails.accountHolderName': searchRegex },
+            { _id: { $regex: search.trim(), $options: 'i' } }
+          ]
+        }
+      });
+    }
+
+    countPipeline.push({ $count: 'total' });
+    const countResult = await Withdrawal.aggregate(countPipeline);
+    const total = countResult.length > 0 ? countResult[0].total : 0;
 
     res.json({
       success: true,
@@ -366,13 +477,26 @@ export const approveWithdrawal = async (req, res) => {
     const user = await User.findById(withdrawal.userId);
 
     if (withdrawal.type === 'investment') {
-      // Deduct from user's locked amount
+      // Deduct from user's locked amount and total investments
       user.wallet.lockedAmount -= withdrawal.amount;
       user.wallet.totalInvestments -= withdrawal.amount;
+      // Deduct from balance (principal is being withdrawn)
+      user.wallet.balance -= withdrawal.amount;
     } else if (withdrawal.type === 'earnings') {
-      // Deduct from earnings
+      // Deduct from earnings and balance
       user.wallet.earningsReceived -= withdrawal.amount;
+      user.wallet.balance -= withdrawal.amount;
     }
+
+    // Recalculate withdrawable balance (matured investments + earnings)
+    // This ensures consistency after any withdrawal
+    const holdings = await Holding.find({ userId: withdrawal.userId });
+    const maturedHoldings = holdings.filter(h => {
+      const maturityDate = new Date(h.maturityDate);
+      return maturityDate <= new Date();
+    });
+    const maturedInvestmentAmount = maturedHoldings.reduce((sum, h) => sum + h.amountInvested, 0);
+    user.wallet.withdrawableBalance = maturedInvestmentAmount + (user.wallet.earningsReceived || 0);
 
     await user.save();
 
@@ -495,8 +619,8 @@ export const getTransferRequests = async (req, res) => {
     }
 
     const requests = await PropertyTransferRequest.find(query)
-      .populate('sellerId', 'name email phone')
-      .populate('buyerId', 'name email phone')
+      .populate('sellerId', 'name email phone kycStatus')
+      .populate('buyerId', 'name email phone kycStatus')
       .populate('propertyId', 'title description imageUrl')
       .populate('holdingId', 'amountInvested purchaseDate monthlyEarning')
       .sort({ createdAt: -1 })
@@ -531,9 +655,9 @@ export const approveTransferRequest = async (req, res) => {
 
     const transferRequest = await PropertyTransferRequest.findById(id)
       .populate('sellerId', 'name email phone wallet')
-      .populate('buyerId', 'name email phone')
+      .populate('buyerId', 'name email phone wallet')
       .populate('holdingId')
-      .populate('propertyId', 'title');
+      .populate('propertyId', 'title monthlyReturnRate');
 
     if (!transferRequest) {
       return res.status(404).json({
@@ -549,13 +673,39 @@ export const approveTransferRequest = async (req, res) => {
       });
     }
 
+    // Validate buyer has sufficient balance
+    const buyer = await User.findById(transferRequest.buyerId._id);
+    if (!buyer) {
+      return res.status(404).json({
+        success: false,
+        message: 'Buyer not found',
+      });
+    }
+
+    const buyerBalance = buyer.wallet?.balance || 0;
+    if (buyerBalance < transferRequest.salePrice) {
+      return res.status(400).json({
+        success: false,
+        message: `Buyer has insufficient balance. Required: ₹${transferRequest.salePrice.toLocaleString('en-IN')}, Available: ₹${buyerBalance.toLocaleString('en-IN')}`,
+      });
+    }
+
+    // Get property to access monthlyReturnRate
+    const property = await Property.findById(transferRequest.propertyId._id);
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found',
+      });
+    }
+
     // Update transfer request status
     transferRequest.status = 'admin_approved';
     transferRequest.adminNotes = adminNotes || '';
     transferRequest.adminResponseDate = new Date();
     await transferRequest.save();
 
-    // Transfer holding ownership
+    // Transfer holding ownership and reset with new 3-month lock period
     const holding = await Holding.findById(transferRequest.holdingId);
     if (!holding) {
       return res.status(404).json({
@@ -564,15 +714,41 @@ export const approveTransferRequest = async (req, res) => {
       });
     }
 
-    // Update holding owner
+    // Save original investment amount before updating
+    const originalInvestmentAmount = holding.amountInvested;
+
+    // Calculate new dates and values for buyer
+    const transferDate = new Date();
+    const newPurchaseDate = transferDate;
+    const newMaturityDate = calculateMaturityDate(newPurchaseDate, 3);
+    const newNextPayoutDate = calculateNextPayoutDate(newPurchaseDate);
+    
+    // Calculate monthly earning based on sale price (not original investment)
+    const monthlyReturnRate = property.monthlyReturnRate || 0.5;
+    const newMonthlyEarning = calculateMonthlyEarning(transferRequest.salePrice, monthlyReturnRate);
+
+    // Update holding with new owner and reset lock period
     const oldUserId = holding.userId;
     holding.userId = transferRequest.buyerId._id;
+    holding.purchaseDate = newPurchaseDate;
+    holding.maturityDate = newMaturityDate;
+    holding.status = 'lock-in';
+    holding.canWithdrawInvestment = false;
+    holding.lockInMonths = 3;
+    holding.totalEarningsReceived = 0;
+    holding.payoutCount = 0;
+    holding.nextPayoutDate = newNextPayoutDate;
+    holding.lastPayoutDate = null;
+    holding.monthlyEarning = newMonthlyEarning;
+    holding.amountInvested = transferRequest.salePrice; // Update to sale price
     await holding.save();
 
     // Credit seller's wallet with sale price
     const seller = await User.findById(transferRequest.sellerId._id);
     if (seller) {
       seller.wallet.balance = (seller.wallet.balance || 0) + transferRequest.salePrice;
+      // Update seller's locked amount (reduce by original investment)
+      seller.wallet.lockedAmount = Math.max(0, (seller.wallet.lockedAmount || 0) - originalInvestmentAmount);
       await seller.save();
 
       // Create transaction record for seller
@@ -585,6 +761,12 @@ export const approveTransferRequest = async (req, res) => {
         reference: `TRANSFER-${transferRequest._id}`,
       });
     }
+
+    // Update buyer's wallet
+    buyer.wallet.balance = (buyer.wallet.balance || 0) - transferRequest.salePrice;
+    buyer.wallet.lockedAmount = (buyer.wallet.lockedAmount || 0) + transferRequest.salePrice;
+    buyer.wallet.totalInvestments = (buyer.wallet.totalInvestments || 0) + transferRequest.salePrice;
+    await buyer.save();
 
     // Create transaction record for buyer (debit)
     await Transaction.create({
@@ -615,12 +797,28 @@ export const approveTransferRequest = async (req, res) => {
           transferRequestId: transferRequest._id.toString(),
         });
 
-        // Notify buyer
+        // Notify buyer with detailed information
+        const maturityDateFormatted = newMaturityDate.toLocaleDateString('en-IN', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        });
+        const purchaseDateFormatted = newPurchaseDate.toLocaleDateString('en-IN', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        });
+        
         io.to(transferRequest.buyerId._id.toString()).emit('notification', {
           type: 'transfer-approved',
           title: 'Property Transfer Approved',
-          message: `You are now the owner of ${transferRequest.propertyId.title}`,
+          message: `You are now the owner of ${transferRequest.propertyId.title}. Purchase date: ${purchaseDateFormatted}, Maturity date: ${maturityDateFormatted}, Monthly earning: ₹${newMonthlyEarning.toLocaleString('en-IN')}`,
           transferRequestId: transferRequest._id.toString(),
+          holdingId: holding._id.toString(),
+          purchaseDate: newPurchaseDate,
+          maturityDate: newMaturityDate,
+          monthlyEarning: newMonthlyEarning,
+          lockInMonths: 3,
         });
       }
     } catch (socketError) {

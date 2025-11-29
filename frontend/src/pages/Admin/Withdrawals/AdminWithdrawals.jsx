@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAdmin } from '../../../context/AdminContext';
 import { useToast } from '../../../context/ToastContext.jsx';
@@ -30,6 +30,8 @@ const AdminWithdrawals = () => {
   const [selectedIds, setSelectedIds] = useState([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [totalWithdrawals, setTotalWithdrawals] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Check for search query from navigation state (from header search)
   useEffect(() => {
@@ -65,44 +67,71 @@ const AdminWithdrawals = () => {
     };
   }, []);
 
-  // Filter withdrawals
-  const filteredWithdrawals = useMemo(() => {
-    if (!withdrawals || withdrawals.length === 0) return [];
+  // Fetch withdrawals with server-side search, filtering, and pagination
+  useEffect(() => {
+    let isMounted = true;
     
-    return withdrawals.filter(withdrawal => {
-      const searchLower = searchQuery.toLowerCase();
-      const matchesSearch = 
-        (withdrawal.userName?.toLowerCase() || '').includes(searchLower) ||
-        (withdrawal.userEmail?.toLowerCase() || '').includes(searchLower) ||
-        (withdrawal.id?.toLowerCase() || '').includes(searchLower) ||
-        (withdrawal._id?.toLowerCase() || '').includes(searchLower);
-      
-      // Map status filter to handle both 'approved' and 'completed'
-      let statusToMatch = statusFilter;
-      if (statusFilter === 'completed') {
-        statusToMatch = 'completed'; // Frontend uses 'completed'
-      } else if (statusFilter === 'all') {
-        statusToMatch = 'all';
-      }
-      
-      const matchesStatus = statusToMatch === 'all' || withdrawal.status === statusToMatch || 
-                           (statusToMatch === 'completed' && withdrawal.status === 'approved');
-      
-      return matchesSearch && matchesStatus;
-    });
-  }, [withdrawals, searchQuery, statusFilter]);
+    const fetchData = async () => {
+      const params = {
+        page: currentPage,
+        limit: pageSize,
+      };
 
-  // Pagination
-  const totalPages = Math.ceil(filteredWithdrawals.length / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedWithdrawals = filteredWithdrawals.slice(startIndex, endIndex);
+      // Add search parameter if provided
+      if (searchQuery.trim()) {
+        params.search = searchQuery.trim();
+      }
+
+      // Add status filter if not 'all'
+      if (statusFilter !== 'all') {
+        // Map frontend status to backend status
+        if (statusFilter === 'completed') {
+          params.status = 'approved'; // Backend uses 'approved' for completed
+        } else {
+          params.status = statusFilter;
+        }
+      }
+
+      try {
+        const response = await fetchWithdrawals(params);
+        if (isMounted && response.success) {
+          setTotalWithdrawals(response.total || 0);
+          setTotalPages(response.pages || 1);
+        }
+      } catch (error) {
+        if (isMounted) {
+          console.error('Error fetching withdrawals:', error);
+        }
+      }
+    };
+
+    // Debounce search to avoid too many API calls
+    const timeoutId = setTimeout(() => {
+      fetchData();
+    }, searchQuery ? 500 : 0); // 500ms delay for search, immediate for other changes
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, [searchQuery, statusFilter, currentPage, pageSize, fetchWithdrawals]);
+
+  // Note: Re-fetch after approve/reject is handled by AdminContext's updateWithdrawalStatus
+  // which calls fetchWithdrawals() and updates the withdrawals state
+  // The main useEffect above will handle re-fetching with current filters when needed
+
+  // Note: Statistics are calculated from current withdrawals data
+  // For accurate stats across all withdrawals, a separate stats endpoint would be needed
+
+  // Use withdrawals directly (already filtered and paginated by backend)
+  const paginatedWithdrawals = withdrawals || [];
 
   const handleClearFilters = () => {
     setSearchQuery('');
     setStatusFilter('all');
     setCurrentPage(1);
     setSelectedIds([]);
+    // Fetch will be triggered by useEffect
   };
 
   const handleViewWithdrawal = (withdrawal) => {
@@ -153,19 +182,25 @@ const AdminWithdrawals = () => {
       setShowConfirmDialog(false);
       setConfirmAction(null);
       
-      // Refresh withdrawals list
-      await refreshWithdrawals();
+      // Refresh withdrawals list with current filters
+      await fetchWithdrawalsWithFilters();
     } catch (error) {
       console.error('❌ AdminWithdrawals - Error in bulk action:', error);
       showToast(`Failed to ${confirmAction.type} withdrawals: ${error.message}`, 'error');
     }
   };
 
-  const pendingCount = withdrawals.filter(w => w.status === 'pending').length;
-  const processingCount = withdrawals.filter(w => w.status === 'processing' || w.status === 'approved').length;
-  const totalPendingAmount = withdrawals
-    .filter(w => w.status === 'pending' || w.status === 'processing' || w.status === 'approved')
+  // Statistics - calculate from all withdrawals for stats
+  // Use current withdrawals for stats calculation
+  const statsData = withdrawals;
+  const pendingCount = statsData.filter(w => w.status === 'pending').length;
+  const processingCount = statsData.filter(w => w.status === 'processing' || w.status === 'approved' || w.status === 'completed').length;
+  const totalPendingAmount = statsData
+    .filter(w => w.status === 'pending' || w.status === 'processing' || w.status === 'approved' || w.status === 'completed')
     .reduce((sum, w) => sum + (w.amount || 0), 0);
+  
+  // Use total from backend for total withdrawals count
+  const displayTotalWithdrawals = totalWithdrawals || statsData.length;
 
   // Show loading state
   if (withdrawalsLoading) {
@@ -237,7 +272,7 @@ const AdminWithdrawals = () => {
       <div className="admin-withdrawals__stats">
         <div className="admin-withdrawals__stat">
           <span className="admin-withdrawals__stat-label">Total Withdrawals</span>
-          <span className="admin-withdrawals__stat-value">{withdrawals.length}</span>
+          <span className="admin-withdrawals__stat-value">{displayTotalWithdrawals}</span>
         </div>
         <div className="admin-withdrawals__stat admin-withdrawals__stat--pending">
           <span className="admin-withdrawals__stat-label">Pending</span>
@@ -264,7 +299,13 @@ const AdminWithdrawals = () => {
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
-              setCurrentPage(1);
+              setCurrentPage(1); // Reset to first page on search
+            }}
+            onKeyDown={(e) => {
+              // Trigger search on Enter key
+              if (e.key === 'Enter') {
+                setCurrentPage(1);
+              }
             }}
             className="admin-withdrawals__search-input"
           />
@@ -280,7 +321,7 @@ const AdminWithdrawals = () => {
             value={statusFilter}
             onChange={(e) => {
               setStatusFilter(e.target.value);
-              setCurrentPage(1);
+              setCurrentPage(1); // Reset to first page on filter change
             }}
             className="admin-withdrawals__filter-select"
           >
@@ -343,6 +384,7 @@ const AdminWithdrawals = () => {
                 />
               </th>
               <th>User</th>
+              <th>Type</th>
               <th>Amount</th>
               <th>Bank Details</th>
               <th>Request Date</th>
@@ -353,7 +395,7 @@ const AdminWithdrawals = () => {
           <tbody>
             {paginatedWithdrawals.length === 0 ? (
               <tr>
-                <td colSpan="7" className="admin-withdrawals__empty">
+                <td colSpan="8" className="admin-withdrawals__empty">
                   No withdrawals found matching your criteria.
                 </td>
               </tr>
@@ -380,6 +422,15 @@ const AdminWithdrawals = () => {
                           <div className="admin-withdrawals__user-email">{withdrawal.userEmail || 'N/A'}</div>
                         </div>
                       </div>
+                    </td>
+                    <td>
+                      <span className={`admin-withdrawals__type-badge admin-withdrawals__type-badge--${withdrawal.type || 'unknown'}`}>
+                        {withdrawal.type === 'investment'
+                          ? 'Investment'
+                          : withdrawal.type === 'earnings'
+                          ? 'Earnings'
+                          : (withdrawal.type || 'Other')}
+                      </span>
                     </td>
                     <td className="admin-withdrawals__amount">
                       {formatCurrency(withdrawal.amount || 0)}
@@ -416,10 +467,10 @@ const AdminWithdrawals = () => {
       </div>
 
       {/* Pagination */}
-      {filteredWithdrawals.length > 0 && (
+      {totalWithdrawals > 0 && (
         <div className="admin-withdrawals__pagination">
           <div className="admin-withdrawals__pagination-info">
-            Showing {startIndex + 1} to {Math.min(endIndex, filteredWithdrawals.length)} of {filteredWithdrawals.length} withdrawals
+            Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalWithdrawals)} of {totalWithdrawals} withdrawals
           </div>
           <div className="admin-withdrawals__pagination-controls">
             <select

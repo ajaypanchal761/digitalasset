@@ -79,13 +79,22 @@ const WithdrawalDetail = ({ withdrawal, onClose }) => {
               </div>
             </section>
 
-            {/* Amount Section */}
+            {/* Amount & Type Section */}
             <section className="withdrawal-detail__section">
-              <h3 className="withdrawal-detail__section-title">Amount</h3>
+              <h3 className="withdrawal-detail__section-title">Amount & Type</h3>
               <div className="withdrawal-detail__amount-display">
                 <span className="withdrawal-detail__amount-value">
                   {formatCurrency(withdrawal.amount)}
                 </span>
+                {withdrawal.type && (
+                  <span className="withdrawal-detail__type-badge">
+                    {withdrawal.type === 'investment'
+                      ? 'Investment Withdrawal'
+                      : withdrawal.type === 'earnings'
+                      ? 'Earnings Withdrawal'
+                      : withdrawal.type}
+                  </span>
+                )}
               </div>
             </section>
 

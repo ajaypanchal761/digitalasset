@@ -17,7 +17,8 @@ const AdminUsers = () => {
     refreshUsers,
     fetchUserDetail
   } = useAdmin();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(''); // Input value (what user types)
+  const [activeSearchQuery, setActiveSearchQuery] = useState(''); // Actual search term used for API calls
   const [accountFilter, setAccountFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -32,6 +33,7 @@ const AdminUsers = () => {
         timestamp: new Date().toISOString()
       });
       setSearchQuery(location.state.searchQuery);
+      setActiveSearchQuery(location.state.searchQuery); // Also set active search
       setCurrentPage(1); // Reset to first page
       // Clear the state to prevent re-applying on re-renders
       window.history.replaceState({ ...location.state, searchQuery: undefined }, '');
@@ -48,6 +50,7 @@ const AdminUsers = () => {
           timestamp: new Date().toISOString()
         });
         setSearchQuery(query);
+        setActiveSearchQuery(query); // Also set active search
         setCurrentPage(1);
       }
     };
@@ -63,73 +66,54 @@ const AdminUsers = () => {
 
   const handleClearFilters = () => {
     setSearchQuery('');
+    setActiveSearchQuery(''); // Clear active search too
     setAccountFilter('all');
     setCurrentPage(1);
   };
 
-  // Debounce search query to avoid too many API calls
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
-  const lastFetchTimeRef = useRef(0);
-  const fetchTimeoutRef = useRef(null);
-  
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
-      setCurrentPage(1); // Reset to first page when search changes
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+  // Handler for search button click or Enter key
+  const handleSearch = () => {
+    setActiveSearchQuery(searchQuery); // Use current input value for search
+    setCurrentPage(1); // Reset to first page
+  };
 
-  // Fetch users when filters change with debouncing
-  useEffect(() => {
-    // Clear any pending timeout
-    if (fetchTimeoutRef.current) {
-      clearTimeout(fetchTimeoutRef.current);
+  // Handle Enter key in search input
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
     }
+  };
 
-    // Debounce: wait at least 500ms between requests
-    const now = Date.now();
-    const timeSinceLastFetch = now - lastFetchTimeRef.current;
-    const debounceDelay = Math.max(0, 500 - timeSinceLastFetch);
-
-    fetchTimeoutRef.current = setTimeout(() => {
-      const params = {
-        page: currentPage,
-        limit: pageSize,
-      };
-      
-      if (debouncedSearchQuery.trim()) {
-        params.search = debouncedSearchQuery.trim();
-      }
-      
-      if (accountFilter !== 'all') {
-        params.status = accountFilter;
-      }
-      
-      console.log('📋 AdminUsers - Fetching users with params:', params);
-      lastFetchTimeRef.current = Date.now();
-      
-      fetchUsers(params).then((response) => {
-        // Update pagination info from API response
-        if (response?.total !== undefined) {
-          setTotalUsers(response.total);
-        }
-        if (response?.pages !== undefined) {
-          setTotalPages(response.pages);
-        }
-      }).catch((error) => {
-        console.error('❌ AdminUsers - Error fetching users:', error);
-      });
-    }, debounceDelay);
-
-    // Cleanup timeout on unmount or dependency change
-    return () => {
-      if (fetchTimeoutRef.current) {
-        clearTimeout(fetchTimeoutRef.current);
-      }
+  // Fetch users when filters change (only when activeSearchQuery changes, not on every keystroke)
+  useEffect(() => {
+    const params = {
+      page: currentPage,
+      limit: pageSize,
     };
+    
+    if (activeSearchQuery.trim()) {
+      params.search = activeSearchQuery.trim();
+    }
+    
+    if (accountFilter !== 'all') {
+      params.status = accountFilter;
+    }
+    
+    console.log('📋 AdminUsers - Fetching users with params:', params);
+    
+    fetchUsers(params).then((response) => {
+      // Update pagination info from API response
+      if (response?.total !== undefined) {
+        setTotalUsers(response.total);
+      }
+      if (response?.pages !== undefined) {
+        setTotalPages(response.pages);
+      }
+    }).catch((error) => {
+      console.error('❌ AdminUsers - Error fetching users:', error);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, pageSize, debouncedSearchQuery, accountFilter]); // fetchUsers is stable (memoized with useCallback)
+  }, [currentPage, pageSize, activeSearchQuery, accountFilter]); // Use activeSearchQuery instead of debouncedSearchQuery
 
   // Log component state changes
   useEffect(() => {
@@ -237,15 +221,22 @@ const AdminUsers = () => {
             placeholder="Search by name, email, or phone..."
             value={searchQuery}
             onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
+              setSearchQuery(e.target.value); // Only update input, don't trigger search
             }}
+            onKeyDown={handleSearchKeyDown}
             className="admin-users__search-input"
           />
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="admin-users__search-icon">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="m21 21-4.35-4.35"/>
-          </svg>
+          <button
+            type="button"
+            onClick={handleSearch}
+            className="admin-users__search-btn"
+            aria-label="Search"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="admin-users__search-icon">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+          </button>
         </div>
 
         <div className="admin-users__filter-group">

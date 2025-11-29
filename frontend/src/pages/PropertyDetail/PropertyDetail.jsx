@@ -50,8 +50,11 @@ const PropertyDetail = () => {
       }
     };
 
-    if (id) {
+    if (id && id !== 'undefined') {
       fetchProperty();
+    } else {
+      setPropertyError('Invalid property ID');
+      setPropertyLoading(false);
     }
   }, [id]);
 
@@ -230,22 +233,32 @@ const PropertyDetail = () => {
             </svg>
             Back
           </button>
-          <button onClick={() => {
-            if (!calculateROI || !property) return;
-            navigate("/invest", { 
-              state: { 
-                propertyId: property._id || property.id,
-                propertyTitle: property.title,
-                investmentAmount: calculateROI.investmentAmount,
-                monthlyEarning: calculateROI.monthlyEarning,
-                totalEarnings: calculateROI.totalEarnings,
-                lockInMonths: calculateROI.lockInMonths,
-                maturityDate: calculateROI.maturityDate,
-                monthlyReturnRate: property.monthlyReturnRate || 0.5,
-              } 
-            });
-          }} className="property-detail__invest-btn property-detail__invest-btn--top">
-            Invest Now
+          <button 
+            onClick={() => {
+              if (!calculateROI || !property) return;
+              // Check if property is active before allowing investment
+              if (property.status !== 'active') {
+                alert(`This property is ${property.status}. Only active properties are available for investment.`);
+                return;
+              }
+              navigate("/invest", { 
+                state: { 
+                  propertyId: property._id || property.id,
+                  propertyTitle: property.title,
+                  investmentAmount: calculateROI.investmentAmount,
+                  monthlyEarning: calculateROI.monthlyEarning,
+                  totalEarnings: calculateROI.totalEarnings,
+                  lockInMonths: calculateROI.lockInMonths,
+                  maturityDate: calculateROI.maturityDate,
+                  monthlyReturnRate: property.monthlyReturnRate || 0.5,
+                } 
+              });
+            }} 
+            className="property-detail__invest-btn property-detail__invest-btn--top"
+            disabled={property.status !== 'active'}
+            title={property.status !== 'active' ? `This property is ${property.status}. Only active properties are available for investment.` : 'Invest in this property'}
+          >
+            {property.status === 'active' ? 'Invest Now' : `Property ${property.status.charAt(0).toUpperCase() + property.status.slice(1)}`}
           </button>
         </div>
         <div className="property-detail__header-box">
@@ -513,22 +526,32 @@ const PropertyDetail = () => {
 
       {/* Bottom Invest Now Button */}
       <div className="property-detail__bottom-action">
-        <button onClick={() => {
-          if (!calculateROI || !property) return;
-          navigate("/invest", { 
-            state: { 
-              propertyId: property._id || property.id,
-              propertyTitle: property.title,
-              investmentAmount: calculateROI.investmentAmount,
-              monthlyEarning: calculateROI.monthlyEarning,
-              totalEarnings: calculateROI.totalEarnings,
-              lockInMonths: calculateROI.lockInMonths,
-              maturityDate: calculateROI.maturityDate,
-              monthlyReturnRate: property.monthlyReturnRate || 0.5,
-            } 
-          });
-        }} className="property-detail__invest-btn property-detail__invest-btn--large">
-          Invest Now
+        <button 
+          onClick={() => {
+            if (!calculateROI || !property) return;
+            // Check if property is active before allowing investment
+            if (property.status !== 'active') {
+              alert(`This property is ${property.status}. Only active properties are available for investment.`);
+              return;
+            }
+            navigate("/invest", { 
+              state: { 
+                propertyId: property._id || property.id,
+                propertyTitle: property.title,
+                investmentAmount: calculateROI.investmentAmount,
+                monthlyEarning: calculateROI.monthlyEarning,
+                totalEarnings: calculateROI.totalEarnings,
+                lockInMonths: calculateROI.lockInMonths,
+                maturityDate: calculateROI.maturityDate,
+                monthlyReturnRate: property.monthlyReturnRate || 0.5,
+              } 
+            });
+          }} 
+          className="property-detail__invest-btn property-detail__invest-btn--large"
+          disabled={property.status !== 'active'}
+          title={property.status !== 'active' ? `This property is ${property.status}. Only active properties are available for investment.` : 'Invest in this property'}
+        >
+          {property.status === 'active' ? 'Invest Now' : `Property ${property.status.charAt(0).toUpperCase() + property.status.slice(1)}`}
         </button>
       </div>
     </div>

@@ -86,6 +86,13 @@ const Invest = () => {
       return;
     }
     
+    // Check if property is active
+    if (property && property.status !== 'active') {
+      showToast(`This property is ${property.status}. Only active properties are available for investment.`, 'error');
+      navigate('/explore');
+      return;
+    }
+    
     if (validateForm()) {
       // Navigate to investment request form with investment data
       navigate("/invest/request", {

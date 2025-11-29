@@ -5,6 +5,9 @@
   padding: 1rem;
   background: #f8fafc;
   padding-bottom: 6rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .buyer-requests-page__container {

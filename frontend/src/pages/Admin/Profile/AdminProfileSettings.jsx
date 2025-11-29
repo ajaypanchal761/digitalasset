@@ -56,6 +56,7 @@ const AdminProfileSettings = () => {
   const [saving, setSaving] = useState(false);
   const [savingBankDetails, setSavingBankDetails] = useState(false);
   const [showPasswordSection, setShowPasswordSection] = useState(false);
+  const [showBankDetailsSection, setShowBankDetailsSection] = useState(false);
 
   // Fetch bank details on component mount
   useEffect(() => {
@@ -366,15 +367,15 @@ const AdminProfileSettings = () => {
             <h2 className="admin-profile-settings__section-title">Bank Details</h2>
             <button
               type="button"
-              className="admin-profile-settings__save-btn admin-profile-settings__save-btn--small"
-              onClick={handleSaveBankDetails}
-              disabled={savingBankDetails}
+              className="admin-profile-settings__toggle-btn"
+              onClick={() => setShowBankDetailsSection(!showBankDetailsSection)}
             >
-              {savingBankDetails ? "Saving..." : "Save Bank Details"}
+              {showBankDetailsSection ? "Hide" : "Show Bank Details"}
             </button>
           </div>
 
-          <div className="admin-profile-settings__bank-details-fields">
+          {showBankDetailsSection && (
+            <div className="admin-profile-settings__bank-details-fields">
             <div className="admin-profile-settings__field">
               <label htmlFor="accountHolderName" className="admin-profile-settings__label">
                 Account Holder Name
@@ -434,7 +435,19 @@ const AdminProfileSettings = () => {
                 placeholder="Enter bank name"
               />
             </div>
+
+            <div className="admin-profile-settings__save-bank-details-container">
+              <button
+                type="button"
+                className="admin-profile-settings__save-btn admin-profile-settings__save-btn--small"
+                onClick={handleSaveBankDetails}
+                disabled={savingBankDetails}
+              >
+                {savingBankDetails ? "Saving..." : "Save Bank Details"}
+              </button>
+            </div>
           </div>
+          )}
         </div>
 
         {/* Password Section */}
@@ -498,6 +511,28 @@ const AdminProfileSettings = () => {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Save Changes Button */}
+        <div className="admin-profile-settings__save-changes-container">
+          <button
+            type="button"
+            className="admin-profile-settings__save-changes-btn"
+            onClick={handleSave}
+            aria-label="Save changes"
+            disabled={saving}
+          >
+            {saving ? (
+              <span>Saving...</span>
+            ) : (
+              <>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 6L9 17L4 12" />
+                </svg>
+                <span>Save Changes</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>

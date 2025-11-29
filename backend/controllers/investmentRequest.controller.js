@@ -53,6 +53,14 @@ export const createInvestmentRequest = async (req, res) => {
       });
     }
 
+    // Validate property status - only active properties can accept investments
+    if (property.status !== 'active') {
+      return res.status(400).json({
+        success: false,
+        message: `This property is ${property.status}. Only active properties are available for investment.`,
+      });
+    }
+
     // Validate investment amount
     if (amountInvested < property.minInvestment) {
       return res.status(400).json({

@@ -48,6 +48,7 @@ const AdminPayouts = lazy(() => import("./pages/Admin/Payouts/AdminPayouts.jsx")
 const AdminChat = lazy(() => import("./pages/Admin/Chat/AdminChat.jsx"));
 const AdminProfileSettings = lazy(() => import("./pages/Admin/Profile/AdminProfileSettings.jsx"));
 const AdminTransferRequests = lazy(() => import("./pages/Admin/TransferRequests/AdminTransferRequests.jsx"));
+const OwnershipDealing = lazy(() => import("./pages/Admin/OwnershipDealing/OwnershipDealing.jsx"));
 const AdminLogin = lazy(() => import("./pages/Admin/Auth/AdminLogin.jsx"));
 const AdminRegister = lazy(() => import("./pages/Admin/Auth/AdminRegister.jsx"));
 const AdminVerifyOtp = lazy(() => import("./pages/Admin/Auth/AdminVerifyOtp.jsx"));
@@ -133,6 +134,7 @@ function App() {
             <Route path="withdrawals" element={<AdminWithdrawals />} />
             <Route path="investment-requests" element={<AdminInvestmentRequests />} />
             <Route path="transfer-requests" element={<AdminTransferRequests />} />
+            <Route path="ownership-dealing" element={<OwnershipDealing />} />
             <Route path="payouts" element={<AdminPayouts />} />
             <Route path="chat" element={<AdminChat />} />
             <Route path="profile" element={<AdminProfileSettings />} />

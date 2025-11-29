@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { adminAPI } from '../../../services/api.js';
 import { useToast } from '../../../context/ToastContext.jsx';
@@ -16,20 +16,41 @@ const AdminPayouts = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [totalPayouts, setTotalPayouts] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [selectedIds, setSelectedIds] = useState([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
 
-  // Fetch payouts
-  const fetchPayouts = async () => {
+  // Fetch payouts with server-side search, filtering, and pagination
+  const fetchPayouts = useCallback(async () => {
     try {
       setPayoutsLoading(true);
       setPayoutsError(null);
-      const response = await adminAPI.getPayouts({ status: statusFilter === 'all' ? '' : statusFilter });
+      
+      const params = {
+        page: currentPage,
+        limit: pageSize,
+      };
+
+      // Add status filter if not 'all'
+      if (statusFilter !== 'all') {
+        params.status = statusFilter;
+      }
+
+      // Add search parameter if provided
+      if (searchQuery.trim()) {
+        params.search = searchQuery.trim();
+      }
+
+      const response = await adminAPI.getPayouts(params);
       if (response.success) {
         setPayouts(response.data || []);
+        setTotalPayouts(response.total || 0);
+        setTotalPages(response.pages || 1);
       } else {
         setPayoutsError(response.message || 'Failed to fetch payouts');
+        setPayouts([]);
       }
     } catch (error) {
       console.error('Error fetching payouts:', error);
@@ -38,11 +59,17 @@ const AdminPayouts = () => {
     } finally {
       setPayoutsLoading(false);
     }
-  };
+  }, [statusFilter, searchQuery, currentPage, pageSize]);
 
+  // Fetch payouts when filters, search, or pagination changes
   useEffect(() => {
-    fetchPayouts();
-  }, [statusFilter]);
+    // Debounce search to avoid too many API calls
+    const timeoutId = setTimeout(() => {
+      fetchPayouts();
+    }, searchQuery ? 500 : 0);
+
+    return () => clearTimeout(timeoutId);
+  }, [fetchPayouts, searchQuery]);
 
   // Check for search query from navigation state
   useEffect(() => {
@@ -69,30 +96,8 @@ const AdminPayouts = () => {
     };
   }, []);
 
-  // Filter payouts
-  const filteredPayouts = useMemo(() => {
-    if (!payouts || payouts.length === 0) return [];
-    
-    return payouts.filter(payout => {
-      const searchLower = searchQuery.toLowerCase();
-      const matchesSearch = 
-        (payout.userName?.toLowerCase() || '').includes(searchLower) ||
-        (payout.userEmail?.toLowerCase() || '').includes(searchLower) ||
-        (payout.propertyName?.toLowerCase() || '').includes(searchLower) ||
-        (payout.id?.toLowerCase() || '').includes(searchLower) ||
-        (payout._id?.toLowerCase() || '').includes(searchLower);
-      
-      const matchesStatus = statusFilter === 'all' || payout.status === statusFilter;
-      
-      return matchesSearch && matchesStatus;
-    });
-  }, [payouts, searchQuery, statusFilter]);
-
-  // Pagination
-  const totalPages = Math.ceil(filteredPayouts.length / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedPayouts = filteredPayouts.slice(startIndex, endIndex);
+  // Use payouts directly (already filtered and paginated by backend)
+  const paginatedPayouts = payouts || [];
 
   const handleClearFilters = () => {
     setSearchQuery('');
@@ -123,8 +128,30 @@ const AdminPayouts = () => {
     setShowConfirmDialog(true);
   };
 
+  const handleGeneratePayouts = async () => {
+    try {
+      setPayoutsLoading(true);
+      const response = await adminAPI.generateMonthlyPayouts();
+      if (response.success) {
+        showToast(
+          `Successfully generated ${response.data?.created || 0} payout(s)`,
+          'success'
+        );
+        await fetchPayouts(); // Refresh the list
+      } else {
+        showToast(response.message || 'Failed to generate payouts', 'error');
+      }
+    } catch (error) {
+      console.error('Error generating payouts:', error);
+      showToast(error.message || 'Failed to generate payouts', 'error');
+    } finally {
+      setPayoutsLoading(false);
+    }
+  };
+
   const handleProcessAllPending = () => {
-    const pendingIds = filteredPayouts
+    // Use all payouts, not filtered, to process ALL pending payouts
+    const pendingIds = payouts
       .filter(p => p.status === 'pending')
       .map(p => p.id || p._id);
     
@@ -142,7 +169,13 @@ const AdminPayouts = () => {
     
     try {
       if (confirmAction.type === 'process') {
-        await adminAPI.processPayouts(confirmAction.ids);
+        const response = await adminAPI.processPayouts(confirmAction.ids);
+        if (response.success) {
+          // Show success message from backend
+          showToast(response.message || `Successfully processed ${confirmAction.ids.length} payout(s)`, 'success');
+        } else {
+          showToast(response.message || 'Failed to process payouts', 'error');
+        }
       }
       
       setSelectedIds([]);
@@ -157,6 +190,9 @@ const AdminPayouts = () => {
     }
   };
 
+  // Statistics - calculate from current page data
+  // Note: For accurate stats across all payouts, we'd need a separate stats endpoint
+  // For now, we calculate from the current page data
   const pendingCount = payouts.filter(p => p.status === 'pending').length;
   const processedCount = payouts.filter(p => p.status === 'processed' || p.status === 'completed').length;
   const totalPendingAmount = payouts
@@ -165,6 +201,9 @@ const AdminPayouts = () => {
   const totalProcessedAmount = payouts
     .filter(p => p.status === 'processed' || p.status === 'completed')
     .reduce((sum, p) => sum + (p.amount || 0), 0);
+  
+  // Use total from backend for total payouts count - ensure it's always a number
+  const displayTotalPayouts = (totalPayouts && totalPayouts > 0) ? totalPayouts : (payouts && payouts.length ? payouts.length : 0);
 
   // Show loading state
   if (payoutsLoading) {
@@ -227,20 +266,40 @@ const AdminPayouts = () => {
             Manage and process monthly payouts for investments
           </p>
         </div>
-        <button
-          onClick={handleProcessAllPending}
-          className="admin-payouts__process-all-btn"
-          disabled={pendingCount === 0}
-        >
-          Process All Pending
-        </button>
+        <div className="admin-payouts__header-buttons">
+          <button
+            onClick={handleGeneratePayouts}
+            className="admin-payouts__generate-btn"
+            disabled={payoutsLoading}
+            style={{
+              padding: '0.625rem 1.25rem',
+              backgroundColor: '#10b981',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.5rem',
+              cursor: payoutsLoading ? 'not-allowed' : 'pointer',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              opacity: payoutsLoading ? 0.6 : 1,
+            }}
+          >
+            {payoutsLoading ? 'Generating...' : 'Generate Monthly Payouts'}
+          </button>
+          <button
+            onClick={handleProcessAllPending}
+            className="admin-payouts__process-all-btn"
+            disabled={pendingCount === 0}
+          >
+            Process All Pending
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
       <div className="admin-payouts__stats">
         <div className="admin-payouts__stat">
           <span className="admin-payouts__stat-label">Total Payouts</span>
-          <span className="admin-payouts__stat-value">{payouts.length}</span>
+          <span className="admin-payouts__stat-value">{displayTotalPayouts}</span>
         </div>
         <div className="admin-payouts__stat admin-payouts__stat--pending">
           <span className="admin-payouts__stat-label">Pending</span>
@@ -273,7 +332,13 @@ const AdminPayouts = () => {
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
-              setCurrentPage(1);
+              setCurrentPage(1); // Reset to first page on search
+            }}
+            onKeyDown={(e) => {
+              // Trigger search on Enter key
+              if (e.key === 'Enter') {
+                setCurrentPage(1);
+              }
             }}
             className="admin-payouts__search-input"
           />
@@ -402,7 +467,12 @@ const AdminPayouts = () => {
                           className="admin-payouts__action-btn admin-payouts__action-btn--process"
                           onClick={async () => {
                             try {
-                              await adminAPI.processPayouts([payoutId]);
+                              const response = await adminAPI.processPayouts([payoutId]);
+                              if (response.success) {
+                                showToast(response.message || 'Payout processed successfully', 'success');
+                              } else {
+                                showToast(response.message || 'Failed to process payout', 'error');
+                              }
                               await fetchPayouts();
                             } catch (error) {
                               showToast(`Failed to process payout: ${error.message}`, 'error');
@@ -423,10 +493,10 @@ const AdminPayouts = () => {
       </div>
 
       {/* Pagination */}
-      {filteredPayouts.length > 0 && (
+      {totalPayouts > 0 && (
         <div className="admin-payouts__pagination">
           <div className="admin-payouts__pagination-info">
-            Showing {startIndex + 1} to {Math.min(endIndex, filteredPayouts.length)} of {filteredPayouts.length} payouts
+            Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalPayouts)} of {totalPayouts} payouts
           </div>
           <div className="admin-payouts__pagination-controls">
             <select

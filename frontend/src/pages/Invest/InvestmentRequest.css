@@ -10,6 +10,9 @@
   box-sizing: border-box;
   padding-bottom: 6rem;
   background: #f8fafc;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .investment-request-page__container {

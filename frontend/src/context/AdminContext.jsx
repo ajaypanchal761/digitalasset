@@ -1244,21 +1244,21 @@ export const AdminProvider = ({ children }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]); // Re-fetch when route changes
 
-  // Fetch withdrawals when on withdrawals page
-  useEffect(() => {
-    const isWithdrawalsPage = location.pathname === '/admin/withdrawals';
-    if (isWithdrawalsPage) {
-      fetchWithdrawals();
-    }
-    
-    // Cleanup: abort any ongoing request on unmount
-    return () => {
-      if (fetchWithdrawalsAbortController.current) {
-        fetchWithdrawalsAbortController.current.abort();
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname, fetchWithdrawals]); // Fetch when route changes to withdrawals page
+  // Note: Withdrawals are now fetched by the AdminWithdrawals component itself
+  // This prevents duplicate fetches and infinite loops
+  // The component handles fetching with proper filters and pagination
+  // useEffect(() => {
+  //   const isWithdrawalsPage = location.pathname === '/admin/withdrawals';
+  //   if (isWithdrawalsPage) {
+  //     fetchWithdrawals();
+  //   }
+  //   
+  //   return () => {
+  //     if (fetchWithdrawalsAbortController.current) {
+  //       fetchWithdrawalsAbortController.current.abort();
+  //     }
+  //   };
+  // }, [location.pathname, fetchWithdrawals]);
 
   const value = useMemo(
     () => ({

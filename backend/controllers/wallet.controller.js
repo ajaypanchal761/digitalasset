@@ -16,14 +16,15 @@ export const getWallet = async (req, res) => {
       });
     }
 
-    // Calculate withdrawable balance from matured holdings
+    // Calculate withdrawable balance from matured holdings + earnings
     const holdings = await Holding.find({ userId: req.user.id });
     const maturedHoldings = holdings.filter(h => {
       const maturityDate = new Date(h.maturityDate);
       return maturityDate <= new Date();
     });
 
-    const withdrawableBalance = maturedHoldings.reduce((sum, h) => sum + h.amountInvested, 0);
+    const maturedInvestmentAmount = maturedHoldings.reduce((sum, h) => sum + h.amountInvested, 0);
+    const withdrawableBalance = maturedInvestmentAmount + (user.wallet.earningsReceived || 0);
 
     // Update user wallet
     user.wallet.withdrawableBalance = withdrawableBalance;

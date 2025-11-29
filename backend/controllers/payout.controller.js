@@ -10,53 +10,161 @@ import { calculateMonthlyEarning } from '../utils/calculate.js';
 // @access  Private/Admin
 export const getPayouts = async (req, res) => {
   try {
-    const { status, userId, holdingId, page = 1, limit = 50 } = req.query;
+    const { status, userId, holdingId, page = 1, limit = 50, search } = req.query;
 
-    const query = {};
+    // Build match query for aggregation
+    const matchQuery = {};
     if (status && status !== 'all') {
-      query.status = status;
+      matchQuery.status = status;
     }
     if (userId) {
-      query.userId = userId;
+      matchQuery.userId = userId;
     }
     if (holdingId) {
-      query.holdingId = holdingId;
+      matchQuery.holdingId = holdingId;
     }
 
-    const payouts = await Payout.find(query)
-      .populate('userId', 'name email')
-      .populate('propertyId', 'title')
-      .populate('holdingId', 'amountInvested')
-      .sort({ payoutDate: -1 })
-      .limit(parseInt(limit))
-      .skip((parseInt(page) - 1) * parseInt(limit));
+    // Build aggregation pipeline
+    const pipeline = [
+      // Match payouts by status and filters
+      { $match: Object.keys(matchQuery).length > 0 ? matchQuery : {} },
+      // Lookup user information
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'userInfo'
+        }
+      },
+      {
+        $unwind: {
+          path: '$userInfo',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      // Lookup property information
+      {
+        $lookup: {
+          from: 'properties',
+          localField: 'propertyId',
+          foreignField: '_id',
+          as: 'propertyInfo'
+        }
+      },
+      {
+        $unwind: {
+          path: '$propertyInfo',
+          preserveNullAndEmptyArrays: true
+        }
+      }
+    ];
 
-    const total = await Payout.countDocuments(query);
+    // Add search filter if provided
+    if (search && search.trim()) {
+      const searchRegex = { $regex: search.trim(), $options: 'i' };
+      pipeline.push({
+        $match: {
+          $or: [
+            { 'userInfo.name': searchRegex },
+            { 'userInfo.email': searchRegex },
+            { 'propertyInfo.title': searchRegex },
+            { _id: { $regex: search.trim(), $options: 'i' } }
+          ]
+        }
+      });
+    }
 
-    // Format response
-    const formattedPayouts = payouts.map(payout => ({
-      _id: payout._id,
-      id: payout._id,
-      userName: payout.userId?.name || 'Unknown',
-      userEmail: payout.userId?.email || 'N/A',
-      propertyName: payout.propertyId?.title || 'N/A',
-      amount: payout.amount || 0,
-      payoutDate: payout.payoutDate,
-      nextPayoutDate: payout.nextPayoutDate,
-      status: payout.status || 'pending',
-      month: payout.month,
-      year: payout.year,
-      processedAt: payout.processedAt,
-      createdAt: payout.createdAt,
-    }));
+    // Add sorting, skip, and limit
+    pipeline.push(
+      { $sort: { payoutDate: -1 } },
+      { $skip: (parseInt(page) - 1) * parseInt(limit) },
+      { $limit: parseInt(limit) }
+    );
+
+    // Project fields to match expected structure
+    pipeline.push({
+      $project: {
+        _id: 1,
+        id: '$_id',
+        userId: 1,
+        propertyId: 1,
+        holdingId: 1,
+        amount: 1,
+        payoutDate: 1,
+        nextPayoutDate: 1,
+        status: 1,
+        month: 1,
+        year: 1,
+        processedAt: 1,
+        createdAt: 1,
+        userName: { $ifNull: ['$userInfo.name', 'Unknown'] },
+        userEmail: { $ifNull: ['$userInfo.email', 'N/A'] },
+        propertyName: { $ifNull: ['$propertyInfo.title', 'N/A'] },
+      }
+    });
+
+    // Execute aggregation for data
+    const payouts = await Payout.aggregate(pipeline);
+
+    // Get total count with same filters
+    const countPipeline = [
+      { $match: Object.keys(matchQuery).length > 0 ? matchQuery : {} },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'userInfo'
+        }
+      },
+      {
+        $unwind: {
+          path: '$userInfo',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $lookup: {
+          from: 'properties',
+          localField: 'propertyId',
+          foreignField: '_id',
+          as: 'propertyInfo'
+        }
+      },
+      {
+        $unwind: {
+          path: '$propertyInfo',
+          preserveNullAndEmptyArrays: true
+        }
+      }
+    ];
+
+    if (search && search.trim()) {
+      const searchRegex = { $regex: search.trim(), $options: 'i' };
+      countPipeline.push({
+        $match: {
+          $or: [
+            { 'userInfo.name': searchRegex },
+            { 'userInfo.email': searchRegex },
+            { 'propertyInfo.title': searchRegex },
+            { _id: { $regex: search.trim(), $options: 'i' } }
+          ]
+        }
+      });
+    }
+
+    countPipeline.push({ $count: 'total' });
+    const countResult = await Payout.aggregate(countPipeline);
+    const total = countResult.length > 0 ? countResult[0].total : 0;
 
     res.json({
       success: true,
-      count: formattedPayouts.length,
+      count: payouts.length,
       total,
       page: parseInt(page),
       pages: Math.ceil(total / parseInt(limit)),
-      data: formattedPayouts || [],
+      data: payouts || [],
     });
   } catch (error) {
     console.error('Error in getPayouts:', error);

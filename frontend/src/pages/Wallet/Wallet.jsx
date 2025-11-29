@@ -1,17 +1,22 @@
 import { useState, useMemo, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
-import { investmentRequestAPI } from "../../services/api.js";
+import { investmentRequestAPI, transferRequestAPI, walletAPI, withdrawalAPI } from "../../services/api.js";
 
 const Wallet = () => {
   const { wallet, holdings, listings, loading, error } = useAppState();
   const navigate = useNavigate();
+  const location = useLocation();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState("overview"); // overview, transactions, investments, requests
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [investmentRequests, setInvestmentRequests] = useState([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
+  const [buyerRequests, setBuyerRequests] = useState([]);
+  const [loadingBuyerRequests, setLoadingBuyerRequests] = useState(false);
+  const [transactions, setTransactions] = useState([]);
+  const [loadingTransactions, setLoadingTransactions] = useState(false);
   const [withdrawForm, setWithdrawForm] = useState({
     amount: 0,
     bankAccount: "",
@@ -55,65 +60,79 @@ const Wallet = () => {
     fetchInvestmentRequests();
   }, [activeTab]);
 
-  // Generate transactions from holdings
-  const transactions = useMemo(() => {
-    if (!holdings || holdings.length === 0) return [];
-    
-    const txs = [];
-    holdings.forEach((holding) => {
-      const holdingId = holding._id || holding.id;
-      const propertyId = holding.propertyId?._id || holding.propertyId || holding.property;
-      const property = listings.find((p) => (p._id || p.id) === propertyId);
-      const propertyName = holding.name || property?.title || "Property";
-      
-      // Investment transaction
-      txs.push({
-        id: `inv-${holdingId}`,
-        date: holding.purchaseDate,
-        type: "investment",
-        amount: holding.amountInvested || 0,
-        description: `Investment in ${propertyName}`,
-        status: "completed",
-        propertyId: propertyId,
-        holdingId: holdingId,
-      });
+  // Open withdraw modal when navigated from a holding (e.g. "Withdraw Earnings" button)
+  useEffect(() => {
+    if (location.state && location.state.openWithdrawModal) {
+      setShowWithdrawModal(true);
 
-      // Earnings transactions (monthly)
-      if (holding.totalEarningsReceived > 0) {
-        const monthsSincePurchase = Math.floor((new Date() - new Date(holding.purchaseDate)) / (1000 * 60 * 60 * 24 * 30));
-        for (let i = 1; i <= monthsSincePurchase && i <= (holding.lockInMonths || 3); i++) {
-          const earningDate = new Date(holding.purchaseDate);
-          earningDate.setMonth(earningDate.getMonth() + i);
-          txs.push({
-            id: `earn-${holdingId}-${i}`,
-            date: earningDate.toISOString().split("T")[0],
-            type: "earning",
-            amount: holding.monthlyEarning || (holding.amountInvested || 0) * 0.005,
-            description: `Monthly earning from ${propertyName}`,
-            status: "completed",
-            propertyId: propertyId,
-            holdingId: holdingId,
-          });
+      // Optionally prefill amount if provided
+      if (location.state.prefillAmount) {
+        setWithdrawForm((prev) => ({
+          ...prev,
+          amount: location.state.prefillAmount,
+        }));
+      }
+    }
+  }, [location.state]);
+
+  // Fetch buyer requests (transfer requests received from sellers)
+  useEffect(() => {
+    const fetchBuyerRequests = async () => {
+      // Fetch for both overview and requests tabs
+      if (activeTab === "requests" || activeTab === "overview") {
+        setLoadingBuyerRequests(true);
+        try {
+          const response = await transferRequestAPI.getReceived();
+          if (response.success) {
+            setBuyerRequests(response.data || []);
+          }
+        } catch (error) {
+          console.error("Error fetching buyer requests:", error);
+        } finally {
+          setLoadingBuyerRequests(false);
         }
       }
-    });
+    };
+    fetchBuyerRequests();
+  }, [activeTab]);
 
-    // Sort by date (newest first)
-    return txs.sort((a, b) => new Date(b.date) - new Date(a.date));
-  }, [holdings, listings]);
+  // Fetch transactions from backend API
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      if (activeTab === "transactions") {
+        setLoadingTransactions(true);
+        try {
+          const response = await walletAPI.getTransactions();
+          if (response.success) {
+            setTransactions(response.data || []);
+          } else {
+            setTransactions([]);
+          }
+        } catch (error) {
+          console.error("Error fetching transactions:", error);
+          setTransactions([]);
+        } finally {
+          setLoadingTransactions(false);
+        }
+      }
+    };
+    fetchTransactions();
+  }, [activeTab]);
 
   // Calculate summary stats
   const stats = useMemo(() => {
+    // Use wallet.earningsReceived for total earnings (matches "Earnings Received" field)
+    const totalEarnings = wallet?.earningsReceived || 0;
+    
     if (!holdings || holdings.length === 0) {
       return {
-        totalEarnings: 0,
+        totalEarnings,
         totalInvested: 0,
         maturedInvestments: 0,
         activeInvestments: 0,
       };
     }
     
-    const totalEarnings = holdings.reduce((sum, h) => sum + (h.totalEarningsReceived || 0), 0);
     const totalInvested = holdings.reduce((sum, h) => sum + (h.amountInvested || 0), 0);
     const maturedInvestments = holdings.filter((h) => h.status === "matured").length;
     
@@ -123,7 +142,7 @@ const Wallet = () => {
       maturedInvestments,
       activeInvestments: holdings.length - maturedInvestments,
     };
-  }, [holdings]);
+  }, [holdings, wallet]);
 
   // Show loading state
   if (loading) {
@@ -168,6 +187,12 @@ const Wallet = () => {
     withdrawableBalance: 0,
     lockedAmount: 0,
   };
+
+  // For current flow we only support earnings withdrawals from wallet.
+  // Backend validates earnings withdrawals against wallet.earningsReceived,
+  // so we align the front-end max amount with the same value to avoid
+  // allowing amounts that the backend would later reject.
+  const maxEarningsWithdrawAmount = walletData.earningsReceived || 0;
 
   return (
     <div className="wallet-page">
@@ -342,6 +367,49 @@ const Wallet = () => {
               </div>
             </div>
 
+            {/* Buy Requests Summary Card */}
+            <div className="wallet-page__buy-requests-card-wrapper">
+              <div 
+                className="wallet-page__buy-requests-card"
+                onClick={() => {
+                  setActiveTab("requests");
+                  // Scroll to buy requests section
+                  setTimeout(() => {
+                    const element = document.querySelector('.wallet-page__requests-section:last-of-type');
+                    if (element) {
+                      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                  }, 100);
+                }}
+              >
+                <div className="wallet-page__buy-requests-content">
+                  <div className="wallet-page__buy-requests-left">
+                    <div className="wallet-page__buy-requests-icon">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M9 8H15M9 12H15M9 16H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <circle cx="18" cy="6" r="4" fill="currentColor" />
+                      </svg>
+                    </div>
+                    <div className="wallet-page__buy-requests-info">
+                      <span className="wallet-page__buy-requests-label">Buy Requests</span>
+                      <span className="wallet-page__buy-requests-value">
+                        {buyerRequests.length > 0 
+                          ? `${buyerRequests.filter(r => r.buyerResponse === "pending" && r.status === "pending").length} Pending` 
+                          : "No Requests"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="wallet-page__buy-requests-view-all">
+                    <span>View All</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="wallet-page__quick-actions">
               <button className="wallet-page__action-btn wallet-page__action-btn--primary" onClick={() => navigate("/explore")}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -362,43 +430,76 @@ const Wallet = () => {
         {/* Transactions Tab */}
         {activeTab === "transactions" && (
           <div className="wallet-page__content">
-            <div className="wallet-page__table-container">
-              <div className="wallet-page__table-header">
-                <span className="wallet-page__table-header-item">Date</span>
-                <span className="wallet-page__table-header-item">Type</span>
-                <span className="wallet-page__table-header-item">Description</span>
-                <span className="wallet-page__table-header-item">Amount</span>
-                <span className="wallet-page__table-header-item">Status</span>
+            {loadingTransactions ? (
+              <div className="wallet-page__empty">
+                <p>Loading transactions...</p>
               </div>
-              <div className="wallet-page__table-body">
-                {transactions.length === 0 ? (
-                  <div className="wallet-page__empty">
-                    <p>No transactions yet</p>
-                  </div>
-                ) : (
-                  transactions.map((tx) => (
-                    <div key={tx.id} className="wallet-page__table-row wallet-page__table-row--clickable" onClick={() => tx.holdingId && navigate(`/holding/${tx.holdingId}`)}>
-                      <span className="wallet-page__table-cell" data-label="Date">{formatDate(tx.date)}</span>
-                      <span className="wallet-page__table-cell" data-label="Type">
-                        <span className={`wallet-page__type-badge wallet-page__type-badge--${tx.type}`}>
-                          {tx.type === "investment" ? "Investment" : "Earning"}
-                        </span>
-                      </span>
-                      <span className="wallet-page__table-cell wallet-page__table-cell--description" data-label="Description">{tx.description}</span>
-                      <span className={`wallet-page__table-cell wallet-page__table-cell--amount ${tx.type === "earning" ? "wallet-page__table-cell--green" : ""}`} data-label="Amount">
-                        {tx.type === "earning" ? "+" : "-"}
-                        {formatCurrency(tx.amount, walletData.currency)}
-                      </span>
-                      <span className="wallet-page__table-cell" data-label="Status">
-                        <span className={`wallet-page__status-badge wallet-page__status-badge--${tx.status}`}>
-                          {tx.status === "completed" ? "Completed" : tx.status}
-                        </span>
-                      </span>
+            ) : (
+              <div className="wallet-page__table-container">
+                <div className="wallet-page__table-header">
+                  <span className="wallet-page__table-header-item">Date</span>
+                  <span className="wallet-page__table-header-item">Type</span>
+                  <span className="wallet-page__table-header-item">Description</span>
+                  <span className="wallet-page__table-header-item">Amount</span>
+                  <span className="wallet-page__table-header-item">Status</span>
+                </div>
+                <div className="wallet-page__table-body">
+                  {transactions.length === 0 ? (
+                    <div className="wallet-page__empty">
+                      <p>No transactions yet</p>
                     </div>
-                  ))
-                )}
+                  ) : (
+                    transactions.map((tx) => {
+                      const transactionId = tx._id || tx.id;
+                      const transactionDate = tx.createdAt || tx.date;
+                      const isPositive = tx.type === "earning" || tx.type === "credit";
+                      const isNegative = tx.type === "investment" || tx.type === "debit" || tx.type === "withdrawal";
+                      
+                      // Format type for display
+                      const typeDisplay = {
+                        investment: "Investment",
+                        earning: "Earning",
+                        withdrawal: "Withdrawal",
+                        credit: "Credit",
+                        debit: "Debit"
+                      }[tx.type] || tx.type;
+
+                      return (
+                        <div 
+                          key={transactionId} 
+                          className="wallet-page__table-row wallet-page__table-row--clickable" 
+                          onClick={() => tx.holdingId && navigate(`/holding/${tx.holdingId}`)}
+                        >
+                          <span className="wallet-page__table-cell" data-label="Date">
+                            {formatDate(transactionDate)}
+                          </span>
+                          <span className="wallet-page__table-cell" data-label="Type">
+                            <span className={`wallet-page__type-badge wallet-page__type-badge--${tx.type}`}>
+                              {typeDisplay}
+                            </span>
+                          </span>
+                          <span className="wallet-page__table-cell wallet-page__table-cell--description" data-label="Description">
+                            {tx.description}
+                          </span>
+                          <span 
+                            className={`wallet-page__table-cell wallet-page__table-cell--amount ${isPositive ? "wallet-page__table-cell--green" : ""}`} 
+                            data-label="Amount"
+                          >
+                            {isPositive ? "+" : isNegative ? "-" : ""}
+                            {formatCurrency(tx.amount, walletData.currency)}
+                          </span>
+                          <span className="wallet-page__table-cell" data-label="Status">
+                            <span className={`wallet-page__status-badge wallet-page__status-badge--${tx.status}`}>
+                              {tx.status === "completed" ? "Completed" : tx.status === "pending" ? "Pending" : tx.status === "failed" ? "Failed" : tx.status}
+                            </span>
+                          </span>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
 
@@ -464,7 +565,7 @@ const Wallet = () => {
                             className="wallet-page__view-btn"
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigate(`/holding/${holding.id}`);
+                              navigate(`/holding/${holdingId}`);
                             }}
                           >
                             View
@@ -614,6 +715,202 @@ const Wallet = () => {
                 </div>
               )}
             </div>
+
+            {/* Buy Requests Section (Transfer Requests from Sellers) */}
+            <div className="wallet-page__requests-section" style={{ marginTop: "3rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+                <h2 className="wallet-page__section-title">Buy Requests</h2>
+                <button 
+                  className="wallet-page__view-all-btn"
+                  onClick={() => navigate("/buyer-requests")}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    fontSize: "0.875rem",
+                    color: "#3b82f6",
+                    background: "transparent",
+                    border: "1px solid #3b82f6",
+                    borderRadius: "0.5rem",
+                    cursor: "pointer",
+                    transition: "all 0.2s"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = "#3b82f6";
+                    e.target.style.color = "white";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = "transparent";
+                    e.target.style.color = "#3b82f6";
+                  }}
+                >
+                  View All
+                </button>
+              </div>
+              {loadingBuyerRequests ? (
+                <div className="wallet-page__empty">
+                  <p>Loading buy requests...</p>
+                </div>
+              ) : buyerRequests.length === 0 ? (
+                <div className="wallet-page__empty">
+                  <p>No buy requests received yet.</p>
+                  <p style={{ fontSize: "0.875rem", color: "#64748b", marginTop: "0.5rem" }}>
+                    Sellers will send you transfer requests here when they want to sell their holdings.
+                  </p>
+                </div>
+              ) : (
+                <div className="wallet-page__requests-list">
+                  {buyerRequests.slice(0, 3).map((request) => {
+                    const seller = request.sellerId;
+                    const property = request.propertyId;
+                    const holding = request.holdingId;
+                    const canRespond = request.buyerResponse === "pending" && request.status === "pending";
+
+                    const getStatusBadge = () => {
+                      if (request.status === "completed") {
+                        return <span className="wallet-page__request-status wallet-page__request-status--approved">Completed</span>;
+                      }
+                      if (request.status === "admin_approved") {
+                        return <span className="wallet-page__request-status wallet-page__request-status--approved">Approved</span>;
+                      }
+                      if (request.status === "admin_rejected" || request.status === "rejected") {
+                        return <span className="wallet-page__request-status wallet-page__request-status--rejected">Rejected</span>;
+                      }
+                      if (request.status === "admin_pending") {
+                        return <span className="wallet-page__request-status wallet-page__request-status--pending">Admin Review</span>;
+                      }
+                      if (request.buyerResponse === "accepted") {
+                        return <span className="wallet-page__request-status wallet-page__request-status--approved">Accepted</span>;
+                      }
+                      if (request.buyerResponse === "declined") {
+                        return <span className="wallet-page__request-status wallet-page__request-status--rejected">Declined</span>;
+                      }
+                      return <span className="wallet-page__request-status wallet-page__request-status--pending">Pending Response</span>;
+                    };
+
+                    return (
+                      <div key={request._id || request.id} className="wallet-page__request-card">
+                        <div className="wallet-page__request-header">
+                          <div className="wallet-page__request-info">
+                            <h3 className="wallet-page__request-property">
+                              {property?.title || "Unknown Property"}
+                            </h3>
+                            <span className="wallet-page__request-date">
+                              From: {seller?.name || "N/A"} • {formatDate(request.createdAt)}
+                            </span>
+                          </div>
+                          {getStatusBadge()}
+                        </div>
+
+                        <div className="wallet-page__request-details">
+                          <div className="wallet-page__request-detail-row">
+                            <span className="wallet-page__request-label">Seller:</span>
+                            <span className="wallet-page__request-value">{seller?.name || "N/A"}</span>
+                          </div>
+                          <div className="wallet-page__request-detail-row">
+                            <span className="wallet-page__request-label">Investment Amount:</span>
+                            <span className="wallet-page__request-value">
+                              {formatCurrency(holding?.amountInvested || 0, walletData.currency)}
+                            </span>
+                          </div>
+                          <div className="wallet-page__request-detail-row">
+                            <span className="wallet-page__request-label">Monthly Earning:</span>
+                            <span className="wallet-page__request-value">
+                              {formatCurrency(holding?.monthlyEarning || 0, walletData.currency)}/month
+                            </span>
+                          </div>
+                          <div className="wallet-page__request-detail-row">
+                            <span className="wallet-page__request-label">Sale Price:</span>
+                            <span className="wallet-page__request-value" style={{ color: "#3b82f6", fontWeight: "600" }}>
+                              {formatCurrency(request.salePrice, walletData.currency)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {canRespond && (
+                          <div style={{ 
+                            display: "flex", 
+                            gap: "0.75rem", 
+                            marginTop: "1rem",
+                            paddingTop: "1rem",
+                            borderTop: "1px solid #e5e7eb"
+                          }}>
+                            <button
+                              className="wallet-page__action-btn wallet-page__action-btn--primary"
+                              onClick={async () => {
+                                try {
+                                  const response = await transferRequestAPI.respond(request._id || request.id, "accepted");
+                                  if (response.success) {
+                                    showToast("Request accepted successfully!", "success");
+                                    // Refresh buyer requests
+                                    const refreshResponse = await transferRequestAPI.getReceived();
+                                    if (refreshResponse.success) {
+                                      setBuyerRequests(refreshResponse.data || []);
+                                    }
+                                  } else {
+                                    showToast(response.message || "Failed to accept request", "error");
+                                  }
+                                } catch (error) {
+                                  console.error("Error accepting request:", error);
+                                  showToast(error.message || "Failed to accept request", "error");
+                                }
+                              }}
+                              style={{ flex: 1 }}
+                            >
+                              Accept
+                            </button>
+                            <button
+                              className="wallet-page__action-btn wallet-page__action-btn--outline"
+                              onClick={async () => {
+                                try {
+                                  const response = await transferRequestAPI.respond(request._id || request.id, "declined");
+                                  if (response.success) {
+                                    showToast("Request declined", "success");
+                                    // Refresh buyer requests
+                                    const refreshResponse = await transferRequestAPI.getReceived();
+                                    if (refreshResponse.success) {
+                                      setBuyerRequests(refreshResponse.data || []);
+                                    }
+                                  } else {
+                                    showToast(response.message || "Failed to decline request", "error");
+                                  }
+                                } catch (error) {
+                                  console.error("Error declining request:", error);
+                                  showToast(error.message || "Failed to decline request", "error");
+                                }
+                              }}
+                              style={{ flex: 1 }}
+                            >
+                              Decline
+                            </button>
+                          </div>
+                        )}
+
+                        {!canRespond && (
+                          <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid #e5e7eb" }}>
+                            <button
+                              className="wallet-page__view-btn"
+                              onClick={() => navigate("/buyer-requests")}
+                              style={{ width: "100%" }}
+                            >
+                              View Details
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {buyerRequests.length > 3 && (
+                    <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
+                      <button
+                        className="wallet-page__view-btn"
+                        onClick={() => navigate("/buyer-requests")}
+                      >
+                        View All {buyerRequests.length} Requests
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -648,14 +945,15 @@ const Wallet = () => {
                 {/* Withdrawal Form */}
                 <form
                   className="withdraw-modal__form"
-                  onSubmit={(e) => {
+                  onSubmit={async (e) => {
                     e.preventDefault();
-                    // Validate and submit withdrawal
+
+                    // Validate form fields
                     const errors = {};
                     if (!withdrawForm.amount || withdrawForm.amount <= 0) {
                       errors.amount = "Please enter a valid amount";
-                    } else if (withdrawForm.amount > walletData.withdrawableBalance) {
-                      errors.amount = `Maximum withdrawable amount is ${formatCurrency(walletData.withdrawableBalance, walletData.currency)}`;
+                    } else if (withdrawForm.amount > maxEarningsWithdrawAmount) {
+                      errors.amount = `Maximum earnings you can withdraw is ${formatCurrency(maxEarningsWithdrawAmount, walletData.currency)}`;
                     }
                     if (!withdrawForm.accountNumber) {
                       errors.accountNumber = "Account number is required";
@@ -670,10 +968,39 @@ const Wallet = () => {
                       errors.acceptTerms = "You must accept the terms";
                     }
 
-                    if (Object.keys(errors).length === 0) {
-                      // Handle withdrawal submission
-                      console.log("Withdrawal submitted:", withdrawForm);
-                      showToast("Withdrawal request submitted successfully! It will be processed within 2-3 business days.", "success");
+                    if (Object.keys(errors).length > 0) {
+                      setWithdrawErrors(errors);
+                      return;
+                    }
+
+                    // Build payload for withdrawal API
+                    const payload = {
+                      amount: withdrawForm.amount,
+                      // Current flow is for earnings withdrawals
+                      type: "earnings",
+                      bankDetails: {
+                        accountNumber: withdrawForm.accountNumber,
+                        ifscCode: withdrawForm.ifscCode,
+                        accountHolderName: withdrawForm.accountHolderName,
+                        bankName:
+                          withdrawForm.bankAccount === "saved"
+                            ? "Saved Bank Account"
+                            : "Custom Bank",
+                      },
+                    };
+
+                    try {
+                      const response = await withdrawalAPI.create(payload);
+
+                      if (response && response.success === false) {
+                        throw new Error(response.message || "Withdrawal request failed");
+                      }
+
+                      showToast(
+                        "Withdrawal request submitted successfully! It will be processed within 2-3 business days.",
+                        "success"
+                      );
+
                       setShowWithdrawModal(false);
                       setWithdrawForm({
                         amount: 0,
@@ -683,8 +1010,12 @@ const Wallet = () => {
                         accountHolderName: "",
                         acceptTerms: false,
                       });
-                    } else {
-                      setWithdrawErrors(errors);
+                    } catch (error) {
+                      console.error("Error submitting withdrawal:", error);
+                      showToast(
+                        error.message || "Failed to submit withdrawal request. Please try again.",
+                        "error"
+                      );
                     }
                   }}
                 >
@@ -697,7 +1028,7 @@ const Wallet = () => {
                       id="withdraw-amount"
                       type="number"
                       min="1"
-                      max={walletData.withdrawableBalance}
+                      max={maxEarningsWithdrawAmount}
                       step="100"
                       value={withdrawForm.amount}
                       onChange={(e) => {
@@ -712,7 +1043,7 @@ const Wallet = () => {
                     />
                     {withdrawErrors.amount && <span className="withdraw-modal__error">{withdrawErrors.amount}</span>}
                     <span className="withdraw-modal__hint">
-                      Maximum: {formatCurrency(walletData.withdrawableBalance, walletData.currency)}
+                      Maximum earnings withdrawable: {formatCurrency(maxEarningsWithdrawAmount, walletData.currency)}
                     </span>
                   </div>
 

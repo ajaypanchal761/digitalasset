@@ -54,7 +54,8 @@ export const AppStateProvider = ({ children }) => {
       fetchDataAbortController.current = new AbortController();
 
       // Always fetch properties (public) - but skip if on admin route
-      const propertiesRes = await propertyAPI.getAll().catch(err => {
+      // Filter to show only active properties to users
+      const propertiesRes = await propertyAPI.getAll({ status: 'active' }).catch(err => {
         if (err.name !== 'AbortError') {
           logger.error('Failed to fetch properties:', err);
         }

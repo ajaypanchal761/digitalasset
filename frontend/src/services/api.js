@@ -753,6 +753,13 @@ export const adminAPI = {
     return apiRequest(url);
   },
 
+  // Generate monthly payouts
+  generateMonthlyPayouts: async () => {
+    return apiRequest('/admin/payouts/generate', {
+      method: 'POST',
+    });
+  },
+
   // Get all investment requests
   getInvestmentRequests: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();

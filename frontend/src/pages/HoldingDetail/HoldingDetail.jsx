@@ -1,13 +1,11 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext.jsx";
-import { useMemo, useState } from "react";
-import CertificateViewer from "../../components/CertificateViewer.jsx";
+import { useMemo } from "react";
 
 const HoldingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { holdings, listings, loading, error } = useAppState();
-  const [isCertificateOpen, setIsCertificateOpen] = useState(false);
 
   const holding = holdings.find((h) => (h._id || h.id) === id);
   const property = holding ? listings.find((p) => {
@@ -117,22 +115,6 @@ const HoldingDetail = () => {
             Back
           </button>
           <div className="holding-detail__header-actions">
-            <button onClick={() => setIsCertificateOpen(true)} className="holding-detail__certificate-btn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M16 13H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M16 17H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M10 9H9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Certificate
-            </button>
             <span className={`holding-detail__status ${isMatured ? "holding-detail__status--matured" : "holding-detail__status--locked"}`}>
               {isMatured ? "Matured" : "Locked"}
             </span>
@@ -155,8 +137,8 @@ const HoldingDetail = () => {
             <div className="holding-detail__header-info">
               <h1 className="holding-detail__title">{holding.name}</h1>
               <p className="holding-detail__type">Your Investment</p>
-              {property && (
-                <button onClick={() => navigate(`/property/${property.id}`)} className="holding-detail__property-link">
+              {property && (property._id || property.id) && (
+                <button onClick={() => navigate(`/property/${property._id || property.id}`)} className="holding-detail__property-link">
                   View Property Details →
                 </button>
               )}
@@ -288,10 +270,21 @@ const HoldingDetail = () => {
               className={`holding-detail__withdrawal-btn ${canWithdrawEarnings ? "holding-detail__withdrawal-btn--active" : "holding-detail__withdrawal-btn--disabled"}`}
               disabled={!canWithdrawEarnings}
               onClick={() => {
-                if (canWithdrawEarnings) {
-                  // Handle earnings withdrawal
-                  console.log("Withdraw earnings:", holding);
-                }
+                if (!canWithdrawEarnings) return;
+
+                const holdingId = holding._id || holding.id;
+
+                // Navigate to Wallet and open the withdraw modal in earnings mode.
+                // This keeps styling in Wallet and reuses the existing modal.
+                navigate("/wallet", {
+                  state: {
+                    openWithdrawModal: true,
+                    source: "earnings",
+                    holdingId,
+                    // Suggest full earnings amount; user can edit in modal if needed.
+                    prefillAmount: holding.totalEarningsReceived || totalExpectedEarnings || 0,
+                  },
+                });
               }}
             >
               {canWithdrawEarnings ? "Withdraw Earnings" : "Not Available"}
@@ -309,16 +302,13 @@ const HoldingDetail = () => {
               <h3 className="holding-detail__property-title">{property.title}</h3>
               <p className="holding-detail__property-description">{property.description || "Premium digital property investment"}</p>
             </div>
-            <button onClick={() => navigate(`/property/${property.id}`)} className="holding-detail__btn holding-detail__btn--outline">
-              View Full Property Details
-            </button>
+            {(property._id || property.id) && (
+              <button onClick={() => navigate(`/property/${property._id || property.id}`)} className="holding-detail__btn holding-detail__btn--outline">
+                View Full Property Details
+              </button>
+            )}
           </div>
         </div>
-      )}
-
-      {/* Certificate Modal */}
-      {isCertificateOpen && (
-        <CertificateViewer holding={holding} user={user} onClose={() => setIsCertificateOpen(false)} />
       )}
     </div>
   );

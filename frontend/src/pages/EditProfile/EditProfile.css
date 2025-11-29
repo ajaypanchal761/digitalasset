@@ -4,6 +4,9 @@
   min-height: 100vh;
   background: #ffffff;
   padding-bottom: 6rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Header */
