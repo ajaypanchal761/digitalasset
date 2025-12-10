@@ -5,6 +5,7 @@ import { useToast } from '../../../context/ToastContext.jsx';
 import StatusBadge from '../../../components/Admin/common/StatusBadge';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
 import ConfirmDialog from '../../../components/Admin/common/ConfirmDialog';
+import Select from '../../../components/common/Select';
 
 const AdminPayouts = () => {
   const location = useLocation();
@@ -298,107 +299,151 @@ const AdminPayouts = () => {
       {/* Stats */}
       <div className="admin-payouts__stats">
         <div className="admin-payouts__stat">
-          <span className="admin-payouts__stat-label">Total Payouts</span>
-          <span className="admin-payouts__stat-value">{displayTotalPayouts}</span>
-        </div>
-        <div className="admin-payouts__stat admin-payouts__stat--pending">
-          <span className="admin-payouts__stat-label">Pending</span>
-          <span className="admin-payouts__stat-value">{pendingCount}</span>
-        </div>
-        <div className="admin-payouts__stat admin-payouts__stat--processed">
-          <span className="admin-payouts__stat-label">Processed</span>
-          <span className="admin-payouts__stat-value">{processedCount}</span>
-        </div>
-        <div className="admin-payouts__stat admin-payouts__stat--amount">
-          <span className="admin-payouts__stat-label">Pending Amount</span>
-          <span className="admin-payouts__stat-value">
-            {formatCurrency(totalPendingAmount)}
-          </span>
-        </div>
-        <div className="admin-payouts__stat admin-payouts__stat--amount">
-          <span className="admin-payouts__stat-label">Processed Amount</span>
-          <span className="admin-payouts__stat-value">
-            {formatCurrency(totalProcessedAmount)}
-          </span>
-        </div>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="admin-payouts__filters">
-        <div className="admin-payouts__search">
-          <input
-            type="text"
-            placeholder="Search by user name, email, property, or payout ID..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1); // Reset to first page on search
-            }}
-            onKeyDown={(e) => {
-              // Trigger search on Enter key
-              if (e.key === 'Enter') {
-                setCurrentPage(1);
-              }
-            }}
-            className="admin-payouts__search-input"
-          />
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="admin-payouts__search-icon">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="m21 21-4.35-4.35"/>
-          </svg>
-        </div>
-
-        <div className="admin-payouts__filter-group">
-          <label className="admin-payouts__filter-label">Status</label>
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="admin-payouts__filter-select"
-          >
-            <option value="all">All</option>
-            <option value="pending">Pending</option>
-            <option value="processed">Processed</option>
-            <option value="completed">Completed</option>
-            <option value="failed">Failed</option>
-          </select>
-        </div>
-
-        <button
-          onClick={handleClearFilters}
-          className="admin-payouts__clear-filters"
-        >
-          Clear Filters
-        </button>
-      </div>
-
-      {/* Bulk Actions */}
-      {selectedIds.length > 0 && (
-        <div className="admin-payouts__bulk-actions">
-          <span className="admin-payouts__bulk-info">
-            {selectedIds.length} payout{selectedIds.length > 1 ? 's' : ''} selected
-          </span>
-          <div className="admin-payouts__bulk-buttons">
-            <button
-              className="admin-payouts__bulk-btn admin-payouts__bulk-btn--process"
-              onClick={handleBulkProcess}
-            >
-              Process Selected
-            </button>
-            <button
-              className="admin-payouts__bulk-btn admin-payouts__bulk-btn--clear"
-              onClick={() => setSelectedIds([])}
-            >
-              Clear Selection
-            </button>
+          <div className="admin-payouts__stat-icon" style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <div className="admin-payouts__stat-content">
+            <span className="admin-payouts__stat-label">Total Payouts</span>
+            <span className="admin-payouts__stat-value">{displayTotalPayouts}</span>
           </div>
         </div>
-      )}
+        <div className="admin-payouts__stat admin-payouts__stat--pending">
+          <div className="admin-payouts__stat-icon" style={{ backgroundColor: '#fef3c7', color: '#d97706' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <div className="admin-payouts__stat-content">
+            <span className="admin-payouts__stat-label">Pending</span>
+            <span className="admin-payouts__stat-value">{pendingCount}</span>
+          </div>
+        </div>
+        <div className="admin-payouts__stat admin-payouts__stat--processed">
+          <div className="admin-payouts__stat-icon" style={{ backgroundColor: '#d1fae5', color: '#059669' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <div className="admin-payouts__stat-content">
+            <span className="admin-payouts__stat-label">Processed</span>
+            <span className="admin-payouts__stat-value">{processedCount}</span>
+          </div>
+        </div>
+        <div className="admin-payouts__stat admin-payouts__stat--amount">
+          <div className="admin-payouts__stat-icon" style={{ backgroundColor: '#fef2f2', color: '#dc2626' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
+          <div className="admin-payouts__stat-content">
+            <span className="admin-payouts__stat-label">Pending Amount</span>
+            <span className="admin-payouts__stat-value">
+              {formatCurrency(totalPendingAmount)}
+            </span>
+          </div>
+        </div>
+        <div className="admin-payouts__stat admin-payouts__stat--amount">
+          <div className="admin-payouts__stat-icon" style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <div className="admin-payouts__stat-content">
+            <span className="admin-payouts__stat-label">Processed Amount</span>
+            <span className="admin-payouts__stat-value">
+              {formatCurrency(totalProcessedAmount)}
+            </span>
+          </div>
+        </div>
+      </div>
 
-      {/* Payouts Table */}
-      <div className="admin-payouts__table-container">
+      {/* Search, Filters and Table Container */}
+      <div className="admin-payouts__data-container">
+        {/* Search and Filters */}
+        <div className="admin-payouts__filters">
+          <div className="admin-payouts__search">
+            <input
+              type="text"
+              placeholder="Search by user name, email, property, or payout ID..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1); // Reset to first page on search
+              }}
+              onKeyDown={(e) => {
+                // Trigger search on Enter key
+                if (e.key === 'Enter') {
+                  setCurrentPage(1);
+                }
+              }}
+              className="admin-payouts__search-input"
+            />
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="admin-payouts__search-icon">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+          </div>
+
+          <div className="admin-payouts__filter-group">
+            <label className="admin-payouts__filter-label">Status</label>
+            <Select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'pending', label: 'Pending' },
+                { value: 'processed', label: 'Processed' },
+                { value: 'completed', label: 'Completed' },
+                { value: 'failed', label: 'Failed' },
+              ]}
+              className="admin-payouts__filter-select"
+            />
+          </div>
+
+          <button
+            onClick={handleClearFilters}
+            className="admin-payouts__clear-filters"
+          >
+            Clear Filters
+          </button>
+        </div>
+
+        {/* Bulk Actions */}
+        {selectedIds.length > 0 && (
+          <div className="admin-payouts__bulk-actions">
+            <span className="admin-payouts__bulk-info">
+              {selectedIds.length} payout{selectedIds.length > 1 ? 's' : ''} selected
+            </span>
+            <div className="admin-payouts__bulk-buttons">
+              <button
+                className="admin-payouts__bulk-btn admin-payouts__bulk-btn--process"
+                onClick={handleBulkProcess}
+              >
+                Process Selected
+              </button>
+              <button
+                className="admin-payouts__bulk-btn admin-payouts__bulk-btn--clear"
+                onClick={() => setSelectedIds([])}
+              >
+                Clear Selection
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Payouts Table */}
+        <div className="admin-payouts__table-container">
         <table className="admin-payouts__table">
           <thead>
             <tr>
@@ -490,6 +535,7 @@ const AdminPayouts = () => {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Pagination */}
@@ -499,19 +545,20 @@ const AdminPayouts = () => {
             Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalPayouts)} of {totalPayouts} payouts
           </div>
           <div className="admin-payouts__pagination-controls">
-            <select
-              value={pageSize}
+            <Select
+              value={pageSize.toString()}
               onChange={(e) => {
                 setPageSize(Number(e.target.value));
                 setCurrentPage(1);
               }}
+              options={[
+                { value: '10', label: '10 per page' },
+                { value: '20', label: '20 per page' },
+                { value: '50', label: '50 per page' },
+                { value: '100', label: '100 per page' },
+              ]}
               className="admin-payouts__page-size"
-            >
-              <option value="10">10 per page</option>
-              <option value="20">20 per page</option>
-              <option value="50">50 per page</option>
-              <option value="100">100 per page</option>
-            </select>
+            />
             <button
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}

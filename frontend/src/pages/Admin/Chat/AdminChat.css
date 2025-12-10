@@ -105,7 +105,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   cursor: pointer;
   transition: background 0.2s;
   margin-bottom: 0.25rem;
@@ -153,7 +153,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   padding: 0.125rem 0.375rem;
-  border-radius: 0.75rem;
+  border-radius: 999px;
   min-width: 1.25rem;
   text-align: center;
   border: 2px solid #ffffff;
@@ -316,7 +316,7 @@
 
 .admin-chat__message-bubble {
   padding: 0.625rem 0.875rem;
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   position: relative;
   width: fit-content;
   max-width: 100%;
@@ -374,7 +374,7 @@
 .admin-chat__input {
   flex: 1;
   border: 1px solid #e5e7eb;
-  border-radius: 1.25rem;
+  border-radius: 0.5rem;
   padding: 0.625rem 1rem;
   font-size: 0.875rem;
   color: #111827;
@@ -397,9 +397,10 @@
   width: 40px;
   height: 40px;
   border: none;
-  background: #2563eb;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: #ffffff;
-  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+  border-radius: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -409,7 +410,9 @@
 }
 
 .admin-chat__send-btn:hover:not(:disabled) {
-  background: #1d4ed8;
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+  transform: scale(1.05);
 }
 
 .admin-chat__send-btn:disabled {
@@ -496,7 +499,8 @@
   }
 
   .admin-chat__header {
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 1rem;
+    min-height: auto;
   }
 
   .admin-chat__header-avatar {

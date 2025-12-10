@@ -1,11 +1,13 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext.jsx";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { certificateAPI } from "../../services/api.js";
 
 const HoldingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { holdings, listings, loading, error } = useAppState();
+  const [downloadingCertificate, setDownloadingCertificate] = useState(false);
 
   const holding = holdings.find((h) => (h._id || h.id) === id);
   const property = holding ? listings.find((p) => {
@@ -62,6 +64,27 @@ const HoldingDetail = () => {
     const monthsSincePurchase = calculateMonthsSincePurchase;
     return (holding.monthlyEarning || holding.amountInvested * 0.005) * monthsSincePurchase;
   }, [holding, calculateMonthsSincePurchase]);
+
+  // Handle certificate download
+  const handleDownloadCertificate = async () => {
+    if (!holding) return;
+    
+    const holdingId = holding._id || holding.id;
+    if (!holdingId) {
+      alert('Unable to download certificate: Holding ID not found');
+      return;
+    }
+
+    try {
+      setDownloadingCertificate(true);
+      await certificateAPI.downloadCertificate(holdingId);
+    } catch (error) {
+      console.error('Error downloading certificate:', error);
+      alert(error.message || 'Failed to download certificate. Please try again.');
+    } finally {
+      setDownloadingCertificate(false);
+    }
+  };
 
   // Show loading state
   if (loading) {
@@ -168,6 +191,48 @@ const HoldingDetail = () => {
         <div className="holding-detail__info-item">
           <span className="holding-detail__info-label">Days Remaining</span>
           <span className="holding-detail__info-value">{isMatured ? "0" : calculateDaysRemaining}</span>
+        </div>
+      </div>
+
+      {/* Download Certificate Button */}
+      <div className="holding-detail__section">
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+          <button
+            onClick={handleDownloadCertificate}
+            disabled={downloadingCertificate}
+            className="holding-detail__btn holding-detail__btn--primary"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.75rem 1.5rem',
+              fontSize: '1rem',
+              fontWeight: '600',
+              cursor: downloadingCertificate ? 'not-allowed' : 'pointer',
+              opacity: downloadingCertificate ? 0.7 : 1,
+            }}
+          >
+            {downloadingCertificate ? (
+              <>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ animation: 'spin 1s linear infinite' }}>
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeDasharray="32" strokeDashoffset="32">
+                    <animate attributeName="stroke-dasharray" dur="2s" values="0 32;16 16;0 32;0 32" repeatCount="indefinite" />
+                    <animate attributeName="stroke-dashoffset" dur="2s" values="0;-16;-32;-32" repeatCount="indefinite" />
+                  </circle>
+                </svg>
+                Generating...
+              </>
+            ) : (
+              <>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <polyline points="7 10 12 15 17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Download Certificate
+              </>
+            )}
+          </button>
         </div>
       </div>
 

@@ -13,6 +13,7 @@ import {
   getTransferRequests,
   approveTransferRequest,
   rejectTransferRequest,
+  getPropertyInvestors,
 } from '../controllers/admin.controller.js';
 import {
   getPayouts,
@@ -25,6 +26,13 @@ import {
   approveInvestmentRequest,
   rejectInvestmentRequest,
 } from '../controllers/investmentRequest.controller.js';
+import {
+  getAllContactMessages,
+  getAdminContactMessage,
+  respondToContactMessage,
+  updateMessageStatus,
+  markMessageAsRead,
+} from '../controllers/contactOwner.controller.js';
 import { admin } from '../middleware/admin.middleware.js';
 
 const router = express.Router();
@@ -59,6 +67,16 @@ router.post('/payouts/generate', generateMonthlyPayouts);
 router.get('/transfer-requests', getTransferRequests);
 router.put('/transfer-requests/:id/approve', approveTransferRequest);
 router.put('/transfer-requests/:id/reject', rejectTransferRequest);
+
+// Property investors route
+router.get('/properties/:id/investors', getPropertyInvestors);
+
+// Contact owner message routes
+router.get('/contact-owner', getAllContactMessages);
+router.get('/contact-owner/:id', getAdminContactMessage);
+router.put('/contact-owner/:id/respond', respondToContactMessage);
+router.put('/contact-owner/:id/status', updateMessageStatus);
+router.put('/contact-owner/:id/read', markMessageAsRead);
 
 export default router;
 

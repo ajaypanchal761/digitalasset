@@ -6,6 +6,7 @@ import StatusBadge from '../../../components/Admin/common/StatusBadge';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
 import WithdrawalDetail from '../../../components/Admin/WithdrawalDetail';
 import ConfirmDialog from '../../../components/Admin/common/ConfirmDialog';
+import Select from '../../../components/common/Select';
 
 const AdminWithdrawals = () => {
   const location = useLocation();
@@ -271,107 +272,144 @@ const AdminWithdrawals = () => {
       {/* Stats */}
       <div className="admin-withdrawals__stats">
         <div className="admin-withdrawals__stat">
-          <span className="admin-withdrawals__stat-label">Total Withdrawals</span>
-          <span className="admin-withdrawals__stat-value">{displayTotalWithdrawals}</span>
-        </div>
-        <div className="admin-withdrawals__stat admin-withdrawals__stat--pending">
-          <span className="admin-withdrawals__stat-label">Pending</span>
-          <span className="admin-withdrawals__stat-value">{pendingCount}</span>
-        </div>
-        <div className="admin-withdrawals__stat admin-withdrawals__stat--processing">
-          <span className="admin-withdrawals__stat-label">Processing</span>
-          <span className="admin-withdrawals__stat-value">{processingCount}</span>
-        </div>
-        <div className="admin-withdrawals__stat admin-withdrawals__stat--amount">
-          <span className="admin-withdrawals__stat-label">Pending Amount</span>
-          <span className="admin-withdrawals__stat-value">
-            {formatCurrency(totalPendingAmount)}
-          </span>
-        </div>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="admin-withdrawals__filters">
-        <div className="admin-withdrawals__search">
-          <input
-            type="text"
-            placeholder="Search by user name, email, or withdrawal ID..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1); // Reset to first page on search
-            }}
-            onKeyDown={(e) => {
-              // Trigger search on Enter key
-              if (e.key === 'Enter') {
-                setCurrentPage(1);
-              }
-            }}
-            className="admin-withdrawals__search-input"
-          />
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="admin-withdrawals__search-icon">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="m21 21-4.35-4.35"/>
-          </svg>
-        </div>
-
-        <div className="admin-withdrawals__filter-group">
-          <label className="admin-withdrawals__filter-label">Status</label>
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setCurrentPage(1); // Reset to first page on filter change
-            }}
-            className="admin-withdrawals__filter-select"
-          >
-            <option value="all">All</option>
-            <option value="pending">Pending</option>
-            <option value="processing">Processing</option>
-            <option value="completed">Completed</option>
-            <option value="rejected">Rejected</option>
-          </select>
-        </div>
-
-        <button
-          onClick={handleClearFilters}
-          className="admin-withdrawals__clear-filters"
-        >
-          Clear Filters
-        </button>
-      </div>
-
-      {/* Bulk Actions */}
-      {selectedIds.length > 0 && (
-        <div className="admin-withdrawals__bulk-actions">
-          <span className="admin-withdrawals__bulk-info">
-            {selectedIds.length} withdrawal{selectedIds.length > 1 ? 's' : ''} selected
-          </span>
-          <div className="admin-withdrawals__bulk-buttons">
-            <button
-              className="admin-withdrawals__bulk-btn admin-withdrawals__bulk-btn--approve"
-              onClick={handleBulkApprove}
-            >
-              Approve Selected
-            </button>
-            <button
-              className="admin-withdrawals__bulk-btn admin-withdrawals__bulk-btn--reject"
-              onClick={handleBulkReject}
-            >
-              Reject Selected
-            </button>
-            <button
-              className="admin-withdrawals__bulk-btn admin-withdrawals__bulk-btn--clear"
-              onClick={() => setSelectedIds([])}
-            >
-              Clear Selection
-            </button>
+          <div className="admin-withdrawals__stat-icon" style={{ backgroundColor: '#eff6ff', color: '#2563eb' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+              <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+            </svg>
+          </div>
+          <div className="admin-withdrawals__stat-content">
+            <span className="admin-withdrawals__stat-label">Total Withdrawals</span>
+            <span className="admin-withdrawals__stat-value">{displayTotalWithdrawals}</span>
           </div>
         </div>
-      )}
+        <div className="admin-withdrawals__stat admin-withdrawals__stat--pending">
+          <div className="admin-withdrawals__stat-icon" style={{ backgroundColor: '#fef3c7', color: '#d97706' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <div className="admin-withdrawals__stat-content">
+            <span className="admin-withdrawals__stat-label">Pending</span>
+            <span className="admin-withdrawals__stat-value">{pendingCount}</span>
+          </div>
+        </div>
+        <div className="admin-withdrawals__stat admin-withdrawals__stat--processing">
+          <div className="admin-withdrawals__stat-icon" style={{ backgroundColor: '#dbeafe', color: '#2563eb' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <polyline points="1 20 1 14 7 14"></polyline>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+          </div>
+          <div className="admin-withdrawals__stat-content">
+            <span className="admin-withdrawals__stat-label">Processing</span>
+            <span className="admin-withdrawals__stat-value">{processingCount}</span>
+          </div>
+        </div>
+        <div className="admin-withdrawals__stat admin-withdrawals__stat--amount">
+          <div className="admin-withdrawals__stat-icon" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
+          <div className="admin-withdrawals__stat-content">
+            <span className="admin-withdrawals__stat-label">Pending Amount</span>
+            <span className="admin-withdrawals__stat-value">
+              {formatCurrency(totalPendingAmount)}
+            </span>
+          </div>
+        </div>
+      </div>
 
-      {/* Withdrawals Table */}
-      <div className="admin-withdrawals__table-container">
+      {/* Search, Filters and Table Container */}
+      <div className="admin-withdrawals__data-container">
+        {/* Search and Filters */}
+        <div className="admin-withdrawals__filters">
+          <div className="admin-withdrawals__search">
+            <input
+              type="text"
+              placeholder="Search by user name, email, or withdrawal ID..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1); // Reset to first page on search
+              }}
+              onKeyDown={(e) => {
+                // Trigger search on Enter key
+                if (e.key === 'Enter') {
+                  setCurrentPage(1);
+                }
+              }}
+              className="admin-withdrawals__search-input"
+            />
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="admin-withdrawals__search-icon">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+          </div>
+
+          <div className="admin-withdrawals__filter-group">
+            <label className="admin-withdrawals__filter-label">Status</label>
+            <Select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1); // Reset to first page on filter change
+              }}
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'pending', label: 'Pending' },
+                { value: 'processing', label: 'Processing' },
+                { value: 'completed', label: 'Completed' },
+                { value: 'rejected', label: 'Rejected' },
+              ]}
+              className="admin-withdrawals__filter-select"
+            />
+          </div>
+
+          <button
+            onClick={handleClearFilters}
+            className="admin-withdrawals__clear-filters"
+          >
+            Clear Filters
+          </button>
+        </div>
+
+        {/* Bulk Actions */}
+        {selectedIds.length > 0 && (
+          <div className="admin-withdrawals__bulk-actions">
+            <span className="admin-withdrawals__bulk-info">
+              {selectedIds.length} withdrawal{selectedIds.length > 1 ? 's' : ''} selected
+            </span>
+            <div className="admin-withdrawals__bulk-buttons">
+              <button
+                className="admin-withdrawals__bulk-btn admin-withdrawals__bulk-btn--approve"
+                onClick={handleBulkApprove}
+              >
+                Approve Selected
+              </button>
+              <button
+                className="admin-withdrawals__bulk-btn admin-withdrawals__bulk-btn--reject"
+                onClick={handleBulkReject}
+              >
+                Reject Selected
+              </button>
+              <button
+                className="admin-withdrawals__bulk-btn admin-withdrawals__bulk-btn--clear"
+                onClick={() => setSelectedIds([])}
+              >
+                Clear Selection
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Withdrawals Table */}
+        <div className="admin-withdrawals__table-container">
         <table className="admin-withdrawals__table">
           <thead>
             <tr>
@@ -464,6 +502,7 @@ const AdminWithdrawals = () => {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Pagination */}
@@ -473,19 +512,20 @@ const AdminWithdrawals = () => {
             Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalWithdrawals)} of {totalWithdrawals} withdrawals
           </div>
           <div className="admin-withdrawals__pagination-controls">
-            <select
-              value={pageSize}
+            <Select
+              value={pageSize.toString()}
               onChange={(e) => {
                 setPageSize(Number(e.target.value));
                 setCurrentPage(1);
               }}
+              options={[
+                { value: '10', label: '10 per page' },
+                { value: '20', label: '20 per page' },
+                { value: '50', label: '50 per page' },
+                { value: '100', label: '100 per page' },
+              ]}
               className="admin-withdrawals__page-size"
-            >
-              <option value="10">10 per page</option>
-              <option value="20">20 per page</option>
-              <option value="50">50 per page</option>
-              <option value="100">100 per page</option>
-            </select>
+            />
             <button
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}

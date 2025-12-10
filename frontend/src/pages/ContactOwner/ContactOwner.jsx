@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
+import { contactOwnerAPI } from "../../services/api.js";
+import Select from "../../components/common/Select";
 
 const ContactOwner = () => {
   const navigate = useNavigate();
@@ -22,19 +24,51 @@ const ContactOwner = () => {
     acceptTerms: false,
   });
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [ownerContact, setOwnerContact] = useState({
+    name: "Property Owner",
+    email: "owner@digitalassets.com",
+    phone: "+91 98765 43210",
+  });
+  const [loadingOwner, setLoadingOwner] = useState(true);
 
   useEffect(() => {
     if (!holding) {
       navigate("/wallet");
+      return;
     }
+    
     // Pre-fill subject with property name
     if (holding && !formData.subject) {
       setFormData((prev) => ({
         ...prev,
-        subject: `Property Sale Inquiry - ${holding.name}`,
+        subject: `Property Sale Inquiry - ${holding.name || property?.title || "Property"}`,
       }));
     }
-  }, [holding, navigate]);
+
+    // Fetch owner contact info
+    const fetchOwnerInfo = async () => {
+      if (!property) return;
+      
+      try {
+        setLoadingOwner(true);
+        const propertyId = property._id || property.id;
+        const response = await contactOwnerAPI.getPropertyOwnerInfo(propertyId);
+        if (response.success && response.data) {
+          setOwnerContact(response.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch owner info:", error);
+        // Keep default values on error
+      } finally {
+        setLoadingOwner(false);
+      }
+    };
+
+    if (property) {
+      fetchOwnerInfo();
+    }
+  }, [holding, property, navigate]);
 
   const formatCurrency = (value, currency = "INR") =>
     new Intl.NumberFormat("en-IN", {
@@ -43,7 +77,7 @@ const ContactOwner = () => {
       maximumFractionDigits: 0,
     }).format(value);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
 
@@ -57,33 +91,40 @@ const ContactOwner = () => {
       newErrors.acceptTerms = "You must accept the terms";
     }
 
-    if (Object.keys(newErrors).length === 0) {
-      // Here you would typically send message to owner
-      console.log("Contact owner:", {
-        holdingId,
-        property: holding.name,
-        ...formData,
-      });
-      showToast(
-        `Your message has been sent to the property owner! They will contact you via ${formData.contactPreference === "email" ? "email" : "phone"} to discuss the sale options.`,
-        "success"
-      );
-      navigate("/wallet");
-    } else {
+    if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await contactOwnerAPI.create(
+        holdingId,
+        formData.subject.trim(),
+        formData.message.trim(),
+        formData.contactPreference
+      );
+
+      if (response.success) {
+        showToast(
+          `Your message has been sent to the property owner! They will contact you via ${formData.contactPreference === "email" ? "email" : "phone"} to discuss the sale options.`,
+          "success"
+        );
+        navigate("/wallet");
+      } else {
+        showToast(response.message || "Failed to send message", "error");
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      showToast(error.message || "Failed to send message. Please try again.", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
   if (!holding) {
     return null;
   }
-
-  // Mock owner contact info (in real app, this would come from backend)
-  const ownerContact = {
-    name: "Property Owner",
-    email: "owner@digitalassets.com",
-    phone: "+91 98765 43210",
-  };
 
   return (
     <div className="contact-owner-page">
@@ -110,6 +151,12 @@ const ContactOwner = () => {
           <p className="contact-owner-page__info-text">
             Reach out to the property owner to discuss sale options for your holding. The owner will get back to you with details on how to proceed with the sale.
           </p>
+          <button
+            className="contact-owner-page__view-messages-btn"
+            onClick={() => navigate("/contact-owner/messages")}
+          >
+            View My Messages
+          </button>
         </div>
 
         {/* Property Info */}
@@ -227,15 +274,18 @@ const ContactOwner = () => {
             <label htmlFor="contact-preference" className="contact-owner-page__label">
               Preferred Contact Method
             </label>
-            <select
+            <Select
               id="contact-preference"
+              name="contactPreference"
               value={formData.contactPreference}
               onChange={(e) => setFormData({ ...formData, contactPreference: e.target.value })}
-              className="contact-owner-page__input contact-owner-page__input--select"
-            >
-              <option value="email">Email</option>
-              <option value="phone">Phone</option>
-            </select>
+              options={[
+                { value: "email", label: "Email" },
+                { value: "phone", label: "Phone" }
+              ]}
+              placeholder="Select contact method"
+              className="contact-owner-page__input--select"
+            />
             <span className="contact-owner-page__hint">How would you like the owner to respond?</span>
           </div>
 
@@ -263,8 +313,12 @@ const ContactOwner = () => {
             <button type="button" className="contact-owner-page__btn contact-owner-page__btn--cancel" onClick={() => navigate(-1)}>
               Cancel
             </button>
-            <button type="submit" className="contact-owner-page__btn contact-owner-page__btn--submit">
-              Send Message
+            <button 
+              type="submit" 
+              className="contact-owner-page__btn contact-owner-page__btn--submit"
+              disabled={loading}
+            >
+              {loading ? "Sending..." : "Send Message"}
             </button>
           </div>
         </form>

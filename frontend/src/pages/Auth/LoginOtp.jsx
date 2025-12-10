@@ -223,8 +223,8 @@ const LoginOtp = () => {
         // Token is already set by loginWithOTP
         // Refresh user data in AuthContext
         await refreshUser();
-        // Navigate to dashboard
-        navigate("/dashboard", { replace: true });
+        // Navigate to home
+        navigate("/home", { replace: true });
       } else {
         setErrors(loginResponse.message || "Invalid OTP. Please try again.");
       }

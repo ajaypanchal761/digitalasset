@@ -33,7 +33,10 @@ export const createSocket = (token) => {
   });
 
   socket.on('connect_error', (error) => {
-    console.error('❌ Socket connection error:', error);
+    // Only log if it's not a connection refused error (server might not be running)
+    if (error.message && !error.message.includes('connection refused') && !error.message.includes('WebSocket is closed')) {
+      console.error('❌ Socket connection error:', error);
+    }
   });
 
   return socket;

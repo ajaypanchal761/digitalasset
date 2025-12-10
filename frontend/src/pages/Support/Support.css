@@ -35,7 +35,7 @@
   cursor: pointer;
   color: #0f172a;
   padding: 0;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   transition: background-color 0.2s ease;
 }
 
@@ -70,8 +70,8 @@
   text-align: center;
   margin-bottom: 2rem;
   padding: 2rem 1rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  border-radius: 16px;
+  background: linear-gradient(135deg, #0C8EF4 0%, #0a7dd8 100%);
+  border-radius: 0.75rem;
   color: #ffffff;
 }
 
@@ -121,7 +121,7 @@
 .support-form {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 16px;
+  border-radius: 0.75rem;
   padding: 1.5rem;
 }
 
@@ -155,7 +155,7 @@
   color: #0f172a;
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   font-family: inherit;
 }
@@ -223,7 +223,7 @@
   padding: 0.75rem 1rem;
   background: #f8fafc;
   border: 2px dashed #cbd5e1;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   cursor: pointer;
   transition: all 0.2s ease;
   color: #64748b;
@@ -261,7 +261,7 @@
   padding: 0.75rem;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 0.5rem;
 }
 
 .support-form__file-item svg {
@@ -289,7 +289,7 @@
   cursor: pointer;
   color: #64748b;
   padding: 0;
-  border-radius: 4px;
+  border-radius: 0.5rem;
   transition: all 0.2s ease;
   flex-shrink: 0;
 }
@@ -313,7 +313,7 @@
   padding: 0.875rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -339,14 +339,14 @@
 }
 
 .support-form__button--submit {
-  background: #3b82f6;
+  background: #005BB3;
   color: #ffffff;
 }
 
 .support-form__button--submit:hover:not(:disabled) {
-  background: #2563eb;
+  background: #004a94;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 91, 179, 0.3);
 }
 
 .support-form__spinner {
@@ -442,7 +442,7 @@
 
   .support-form {
     padding: 1.25rem 1rem;
-    border-radius: 12px;
+    border-radius: 0.5rem;
   }
 
   .support-form__field {
@@ -462,7 +462,7 @@
   .support-form__input {
     padding: 0.625rem 0.875rem;
     font-size: 0.9375rem;
-    border-radius: 6px;
+    border-radius: 0.5rem;
   }
 
   .support-form__textarea {

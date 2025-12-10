@@ -76,9 +76,11 @@ const removeAdminToken = () => {
 const apiRequest = async (url, options = {}) => {
   // Check if this is an admin route
   // Property routes need admin token when creating/updating/deleting
+  // Help articles routes should use admin token if available (for admin panel)
   const isAdminRoute = url.startsWith('/admin-auth') || 
                        url.startsWith('/admin') ||
-                       (url.startsWith('/properties') && (options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE' || options.method === 'PATCH'));
+                       (url.startsWith('/properties') && (options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE' || options.method === 'PATCH')) ||
+                       url.startsWith('/help-articles');
   
   // Get tokens once (cached, so multiple calls are efficient)
   const adminToken = getAdminToken();
@@ -89,7 +91,14 @@ const apiRequest = async (url, options = {}) => {
                             (options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE' || options.method === 'PATCH') &&
                             hasAdminToken;
   
-  const token = (isAdminRoute || isPropertyAdminOp) ? adminToken : userToken;
+  // For help-articles, prefer admin token if available (allows admins to see all articles)
+  // Otherwise use user token or no token for public access
+  let token;
+  if (url.startsWith('/help-articles')) {
+    token = adminToken || userToken;
+  } else {
+    token = (isAdminRoute || isPropertyAdminOp) ? adminToken : userToken;
+  }
   
   // Check if body is FormData - if so, don't set Content-Type (browser will set it with boundary)
   const isFormData = options.body instanceof FormData;
@@ -440,6 +449,56 @@ export const paymentAPI = {
   },
 };
 
+// ==================== CERTIFICATE API ====================
+
+export const certificateAPI = {
+  // Download investment certificate PDF
+  downloadCertificate: async (holdingId) => {
+    const token = getToken();
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    const response = await fetch(`${API_URL}/certificates/${holdingId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Failed to download certificate' }));
+      throw new Error(errorData.message || 'Failed to download certificate');
+    }
+
+    // Get the blob from response
+    const blob = await response.blob();
+    
+    // Create a download link
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // Get filename from Content-Disposition header or use default
+    const contentDisposition = response.headers.get('Content-Disposition');
+    let filename = 'Investment_Certificate.pdf';
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+      if (filenameMatch) {
+        filename = filenameMatch[1];
+      }
+    }
+    
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+
+    return { success: true, message: 'Certificate downloaded successfully' };
+  },
+};
+
 // ==================== WITHDRAWAL API ====================
 
 export const withdrawalAPI = {
@@ -633,6 +692,79 @@ export const transferRequestAPI = {
   },
 };
 
+// ==================== HELP ARTICLE API ====================
+
+export const helpArticleAPI = {
+  // Get all help articles
+  getAll: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const url = queryString ? `/help-articles?${queryString}` : '/help-articles';
+    return apiRequest(url);
+  },
+
+  // Get popular help articles
+  getPopular: async () => {
+    return apiRequest('/help-articles/popular');
+  },
+
+  // Get help article by ID
+  getById: async (id) => {
+    return apiRequest(`/help-articles/${id}`);
+  },
+
+  // Create help article (Admin only)
+  create: async (articleData) => {
+    return apiRequest('/help-articles', {
+      method: 'POST',
+      body: JSON.stringify(articleData),
+    });
+  },
+
+  // Update help article (Admin only)
+  update: async (id, articleData) => {
+    return apiRequest(`/help-articles/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(articleData),
+    });
+  },
+
+  // Delete help article (Admin only)
+  delete: async (id) => {
+    return apiRequest(`/help-articles/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+// ==================== CONTACT OWNER API ====================
+
+export const contactOwnerAPI = {
+  // Create contact owner message
+  create: async (holdingId, subject, message, contactPreference) => {
+    return apiRequest('/contact-owner', {
+      method: 'POST',
+      body: JSON.stringify({ holdingId, subject, message, contactPreference }),
+    });
+  },
+
+  // Get user's contact messages
+  getAll: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const url = queryString ? `/contact-owner?${queryString}` : '/contact-owner';
+    return apiRequest(url);
+  },
+
+  // Get single contact message
+  getById: async (id) => {
+    return apiRequest(`/contact-owner/${id}`);
+  },
+
+  // Get property owner contact info
+  getPropertyOwnerInfo: async (propertyId) => {
+    return apiRequest(`/contact-owner/property/${propertyId}/owner-info`);
+  },
+};
+
 // ==================== ADMIN API ====================
 
 export const adminAPI = {
@@ -803,6 +935,46 @@ export const adminAPI = {
     return apiRequest(`/admin/transfer-requests/${id}/reject`, {
       method: 'PUT',
       body: JSON.stringify({ adminNotes }),
+    });
+  },
+
+  // Get property investors
+  getPropertyInvestors: async (propertyId) => {
+    return apiRequest(`/admin/properties/${propertyId}/investors`);
+  },
+
+  // Get all contact owner messages
+  getContactOwnerMessages: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const url = queryString ? `/admin/contact-owner?${queryString}` : '/admin/contact-owner';
+    return apiRequest(url);
+  },
+
+  // Get single contact owner message
+  getContactOwnerMessage: async (id) => {
+    return apiRequest(`/admin/contact-owner/${id}`);
+  },
+
+  // Respond to contact message
+  respondToContactMessage: async (id, response, status, adminNotes) => {
+    return apiRequest(`/admin/contact-owner/${id}/respond`, {
+      method: 'PUT',
+      body: JSON.stringify({ response, status, adminNotes }),
+    });
+  },
+
+  // Update message status
+  updateContactMessageStatus: async (id, status, adminNotes) => {
+    return apiRequest(`/admin/contact-owner/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, adminNotes }),
+    });
+  },
+
+  // Mark message as read
+  markContactMessageAsRead: async (id) => {
+    return apiRequest(`/admin/contact-owner/${id}/read`, {
+      method: 'PUT',
     });
   },
 };
@@ -1034,4 +1206,6 @@ export default {
   transferRequest: transferRequestAPI,
   investmentRequest: investmentRequestAPI,
   chat: chatAPI,
+  certificate: certificateAPI,
+  contactOwner: contactOwnerAPI,
 };

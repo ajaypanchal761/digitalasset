@@ -247,7 +247,7 @@ const AdminDashboard = () => {
       {/* Metrics Cards Section */}
       <div className="admin-dashboard__metrics">
         <div className="admin-dashboard__metric-card">
-          <div className="admin-dashboard__metric-icon" style={{ backgroundColor: '#dbeafe', color: '#1e40af' }}>
+          <div className="admin-dashboard__metric-icon" style={{ backgroundColor: '#f0f9ff', color: '#0284c7' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
               <circle cx="9" cy="7" r="4"></circle>
@@ -262,11 +262,9 @@ const AdminDashboard = () => {
         </div>
 
         <div className="admin-dashboard__metric-card">
-          <div className="admin-dashboard__metric-icon" style={{ backgroundColor: '#d1fae5', color: '#065f46' }}>
+          <div className="admin-dashboard__metric-icon" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="20" x2="18" y2="10"></line>
-              <line x1="12" y1="20" x2="12" y2="4"></line>
-              <line x1="6" y1="20" x2="6" y2="14"></line>
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
             </svg>
           </div>
           <div className="admin-dashboard__metric-content">
@@ -276,7 +274,7 @@ const AdminDashboard = () => {
         </div>
 
         <div className="admin-dashboard__metric-card">
-          <div className="admin-dashboard__metric-icon" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>
+          <div className="admin-dashboard__metric-icon" style={{ backgroundColor: '#fef3c7', color: '#d97706' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
               <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -289,7 +287,7 @@ const AdminDashboard = () => {
         </div>
 
         <div className="admin-dashboard__metric-card">
-          <div className="admin-dashboard__metric-icon" style={{ backgroundColor: '#fed7aa', color: '#9a3412' }}>
+          <div className="admin-dashboard__metric-icon" style={{ backgroundColor: '#fef2f2', color: '#dc2626' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"></circle>
               <polyline points="12 6 12 12 16 14"></polyline>
@@ -302,9 +300,10 @@ const AdminDashboard = () => {
         </div>
 
         <div className="admin-dashboard__metric-card">
-          <div className="admin-dashboard__metric-icon" style={{ backgroundColor: '#d1fae5', color: '#065f46' }}>
+          <div className="admin-dashboard__metric-icon" style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12"></polyline>
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
             </svg>
           </div>
           <div className="admin-dashboard__metric-content">
@@ -314,7 +313,7 @@ const AdminDashboard = () => {
         </div>
 
         <div className="admin-dashboard__metric-card">
-          <div className="admin-dashboard__metric-icon" style={{ backgroundColor: '#e0e7ff', color: '#3730a3' }}>
+          <div className="admin-dashboard__metric-icon" style={{ backgroundColor: '#f3e8ff', color: '#9333ea' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="1" x2="12" y2="23"></line>
               <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>

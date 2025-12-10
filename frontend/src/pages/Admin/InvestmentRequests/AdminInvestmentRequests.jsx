@@ -4,6 +4,7 @@ import { useToast } from '../../../context/ToastContext.jsx';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
 import StatusBadge from '../../../components/Admin/common/StatusBadge';
 import ConfirmDialog from '../../../components/Admin/common/ConfirmDialog';
+import Select from '../../../components/common/Select';
 import './AdminInvestmentRequests.css';
 
 const AdminInvestmentRequests = () => {
@@ -160,26 +161,70 @@ const AdminInvestmentRequests = () => {
       {/* Stats */}
       <div className="admin-investment-requests__stats">
         <div className="admin-investment-requests__stat">
-          <span className="admin-investment-requests__stat-label">Total Requests</span>
-          <span className="admin-investment-requests__stat-value">{investmentRequests.length}</span>
+          <div className="admin-investment-requests__stat-icon" style={{ backgroundColor: '#eff6ff', color: '#2563eb' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </div>
+          <div className="admin-investment-requests__stat-content">
+            <span className="admin-investment-requests__stat-label">Total Requests</span>
+            <span className="admin-investment-requests__stat-value">{investmentRequests.length}</span>
+          </div>
         </div>
         <div className="admin-investment-requests__stat admin-investment-requests__stat--pending">
-          <span className="admin-investment-requests__stat-label">Pending</span>
-          <span className="admin-investment-requests__stat-value">{pendingCount}</span>
+          <div className="admin-investment-requests__stat-icon" style={{ backgroundColor: '#fef3c7', color: '#d97706' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <div className="admin-investment-requests__stat-content">
+            <span className="admin-investment-requests__stat-label">Pending</span>
+            <span className="admin-investment-requests__stat-value">{pendingCount}</span>
+          </div>
         </div>
         <div className="admin-investment-requests__stat admin-investment-requests__stat--approved">
-          <span className="admin-investment-requests__stat-label">Approved</span>
-          <span className="admin-investment-requests__stat-value">{approvedCount}</span>
+          <div className="admin-investment-requests__stat-icon" style={{ backgroundColor: '#d1fae5', color: '#059669' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <div className="admin-investment-requests__stat-content">
+            <span className="admin-investment-requests__stat-label">Approved</span>
+            <span className="admin-investment-requests__stat-value">{approvedCount}</span>
+          </div>
         </div>
         <div className="admin-investment-requests__stat admin-investment-requests__stat--rejected">
-          <span className="admin-investment-requests__stat-label">Rejected</span>
-          <span className="admin-investment-requests__stat-value">{rejectedCount}</span>
+          <div className="admin-investment-requests__stat-icon" style={{ backgroundColor: '#fee2e2', color: '#dc2626' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+          </div>
+          <div className="admin-investment-requests__stat-content">
+            <span className="admin-investment-requests__stat-label">Rejected</span>
+            <span className="admin-investment-requests__stat-value">{rejectedCount}</span>
+          </div>
         </div>
         <div className="admin-investment-requests__stat admin-investment-requests__stat--amount">
-          <span className="admin-investment-requests__stat-label">Pending Amount</span>
-          <span className="admin-investment-requests__stat-value">
-            {formatCurrency(totalPendingAmount)}
-          </span>
+          <div className="admin-investment-requests__stat-icon" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
+          <div className="admin-investment-requests__stat-content">
+            <span className="admin-investment-requests__stat-label">Pending Amount</span>
+            <span className="admin-investment-requests__stat-value">
+              {formatCurrency(totalPendingAmount)}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -201,16 +246,17 @@ const AdminInvestmentRequests = () => {
 
         <div className="admin-investment-requests__filter-group">
           <label className="admin-investment-requests__filter-label">Status</label>
-          <select
+          <Select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
+            options={[
+              { value: 'all', label: 'All' },
+              { value: 'pending', label: 'Pending' },
+              { value: 'approved', label: 'Approved' },
+              { value: 'rejected', label: 'Rejected' },
+            ]}
             className="admin-investment-requests__filter-select"
-          >
-            <option value="all">All</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
+          />
         </div>
 
         <button

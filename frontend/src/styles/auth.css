@@ -1,4 +1,4 @@
-﻿.auth-layout {
+.auth-layout {
   min-height: 100vh;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -17,7 +17,7 @@
 .auth-visual::after {
   content: "";
   position: absolute;
-  border-radius: 999px;
+  border-radius: 0.75rem;
   opacity: 0.9;
 }
 
@@ -84,7 +84,7 @@
 .auth-card {
   width: min(420px, 100%);
   background: linear-gradient(200deg, #38bdf8 0%, #0ea5e9 50%, #2563eb 100%);
-  border-radius: 2rem;
+  border-radius: 0.75rem;
   padding: clamp(1.75rem, 4vw, 2.75rem);
   color: #f8fafc;
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.4);
@@ -133,7 +133,7 @@
   background: rgba(15, 23, 42, 0.18);
   border: 1px solid rgba(248, 250, 252, 0.25);
   padding: 0.75rem 1rem;
-  border-radius: 999px;
+  border-radius: 0.75rem;
   gap: 0.75rem;
   color: #f8fafc;
 }
@@ -198,7 +198,7 @@
 
 .auth-primary-btn {
   border: none;
-  border-radius: 999px;
+  border-radius: 0.75rem;
   padding: 0.85rem 1rem;
   background: linear-gradient(135deg, rgba(248, 250, 252, 0.95), #f0f9ff);
   color: #0f172a;
@@ -224,7 +224,7 @@
   border: 1px solid rgba(248, 113, 113, 0.4);
   color: #fee2e2;
   padding: 0.75rem 1rem;
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   font-size: 0.9rem;
 }
 
@@ -233,7 +233,7 @@
   border: 1px solid rgba(52, 211, 153, 0.35);
   color: #ecfdf5;
   padding: 0.75rem 1rem;
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   font-size: 0.9rem;
 }
 
@@ -252,7 +252,7 @@
   color: rgba(248, 250, 252, 0.9);
   padding: 0.6rem 0.75rem;
   background: rgba(15, 23, 42, 0.18);
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   border: 1px solid rgba(248, 250, 252, 0.2);
 }
 
@@ -268,7 +268,7 @@
 
 .auth-verification-banner {
   margin-bottom: 1.5rem;
-  border-radius: 1.25rem;
+  border-radius: 0.75rem;
   padding: 1.5rem;
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(59, 130, 246, 0.12));
   border: 2px solid rgba(99, 102, 241, 0.3);
@@ -297,7 +297,7 @@
 .verification-icon {
   width: 3rem;
   height: 3rem;
-  border-radius: 50%;
+  border-radius: 0.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -366,7 +366,7 @@
   }
 
   .auth-card {
-    border-radius: 1.5rem;
+    border-radius: 0.75rem;
     box-shadow: 0 20px 40px rgba(15, 23, 42, 0.35);
     padding: 1.25rem 1rem;
     width: 100%;
@@ -492,7 +492,7 @@
   gap: 1rem;
   background: linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(56, 189, 248, 0.05));
   padding: 2rem;
-  border-radius: 1.25rem;
+  border-radius: 0.75rem;
   border: 1px solid rgba(14, 165, 233, 0.15);
 }
 

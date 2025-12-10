@@ -74,7 +74,7 @@
 }
 
 .edit-profile__avatar-fallback {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #0C8EF4 0%, #0a7dd8 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -91,7 +91,7 @@
   height: 32px;
   background: #0f172a;
   border: 3px solid #ffffff;
-  border-radius: 50%;
+  border-radius: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -172,21 +172,11 @@
 
 .edit-profile__country-code {
   flex-shrink: 0;
-  padding: 0.85rem 2rem 0.85rem 0.75rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: #0f172a;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.65rem center;
-  background-size: 10px;
   min-width: 80px;
+}
+
+.edit-profile__country-code .modern-select__trigger {
+  padding: 0.85rem 2rem 0.85rem 0.75rem;
 }
 
 .edit-profile__country-code:focus {

@@ -5,6 +5,7 @@ import StatusBadge from '../../../components/Admin/common/StatusBadge';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
 import AddPropertyForm from '../../../components/Admin/AddPropertyForm';
 import PropertyDetail from '../../../components/Admin/PropertyDetail';
+import Select from '../../../components/common/Select';
 
 const AdminProperties = () => {
   const location = useLocation();
@@ -178,75 +179,112 @@ const AdminProperties = () => {
       {/* Stats */}
       <div className="admin-properties__stats">
         <div className="admin-properties__stat">
-          <span className="admin-properties__stat-label">Total Properties</span>
-          <span className="admin-properties__stat-value">{properties.length}</span>
+          <div className="admin-properties__stat-icon" style={{ backgroundColor: '#eff6ff', color: '#2563eb' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+          </div>
+          <div className="admin-properties__stat-content">
+            <span className="admin-properties__stat-label">Total Properties</span>
+            <span className="admin-properties__stat-value">{properties.length}</span>
+          </div>
         </div>
         <div className="admin-properties__stat">
-          <span className="admin-properties__stat-label">Active</span>
-          <span className="admin-properties__stat-value">
-            {properties.filter(p => p.status === 'active').length}
-          </span>
+          <div className="admin-properties__stat-icon" style={{ backgroundColor: '#d1fae5', color: '#059669' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <div className="admin-properties__stat-content">
+            <span className="admin-properties__stat-label">Active</span>
+            <span className="admin-properties__stat-value">
+              {properties.filter(p => p.status === 'active').length}
+            </span>
+          </div>
         </div>
         <div className="admin-properties__stat">
-          <span className="admin-properties__stat-label">Total Invested</span>
-          <span className="admin-properties__stat-value">
-            {formatCurrency(properties.reduce((sum, p) => sum + p.totalInvested, 0))}
-          </span>
+          <div className="admin-properties__stat-icon" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
+          <div className="admin-properties__stat-content">
+            <span className="admin-properties__stat-label">Total Invested</span>
+            <span className="admin-properties__stat-value">
+              {formatCurrency(properties.reduce((sum, p) => sum + p.totalInvested, 0))}
+            </span>
+          </div>
         </div>
         <div className="admin-properties__stat">
-          <span className="admin-properties__stat-label">Total Investors</span>
-          <span className="admin-properties__stat-value">
-            {properties.reduce((sum, p) => sum + p.investorCount, 0)}
-          </span>
+          <div className="admin-properties__stat-icon" style={{ backgroundColor: '#f0f9ff', color: '#0284c7' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </div>
+          <div className="admin-properties__stat-content">
+            <span className="admin-properties__stat-label">Total Investors</span>
+            <span className="admin-properties__stat-value">
+              {properties.reduce((sum, p) => sum + p.investorCount, 0)}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="admin-properties__filters">
-        <div className="admin-properties__search">
-          <input
-            type="text"
-            placeholder="Search by property name or description..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="admin-properties__search-input"
-          />
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="admin-properties__search-icon">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="m21 21-4.35-4.35"/>
-          </svg>
-        </div>
+      {/* Search, Filters and Table Container */}
+      <div className="admin-properties__data-container">
+        {/* Search and Filters */}
+        <div className="admin-properties__filters">
+          <div className="admin-properties__search">
+            <input
+              type="text"
+              placeholder="Search by property name or description..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="admin-properties__search-input"
+            />
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="admin-properties__search-icon">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+          </div>
 
-        <div className="admin-properties__filter-group">
-          <label className="admin-properties__filter-label">Status</label>
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="admin-properties__filter-select"
+          <div className="admin-properties__filter-group">
+            <label className="admin-properties__filter-label">Status</label>
+            <Select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'active', label: 'Active' },
+                { value: 'inactive', label: 'Inactive' },
+                { value: 'closed', label: 'Closed' },
+              ]}
+              className="admin-properties__filter-select"
+            />
+          </div>
+
+          <button
+            onClick={handleClearFilters}
+            className="admin-properties__clear-filters"
           >
-            <option value="all">All</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="closed">Closed</option>
-          </select>
+            Clear Filters
+          </button>
         </div>
 
-        <button
-          onClick={handleClearFilters}
-          className="admin-properties__clear-filters"
-        >
-          Clear Filters
-        </button>
-      </div>
-
-      {/* Properties Table */}
-      <div className="admin-properties__table-container">
+        {/* Properties Table */}
+        <div className="admin-properties__table-container">
         <table className="admin-properties__table">
           <thead>
             <tr>
@@ -329,6 +367,7 @@ const AdminProperties = () => {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Pagination */}

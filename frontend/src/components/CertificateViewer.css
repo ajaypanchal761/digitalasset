@@ -31,7 +31,7 @@
   width: 100%;
   max-width: 900px;
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 0.5rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   margin: 2rem auto;
   z-index: 1;
@@ -52,7 +52,7 @@
   justify-content: center;
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid #e2e8f0;
-  border-radius: 50%;
+  border-radius: 0.5rem;
   cursor: pointer;
   z-index: 10;
   transition: all 0.2s ease;
@@ -183,7 +183,7 @@
 .certificate__details {
   background: #ffffff;
   border: 2px solid #e0e7ff;
-  border-radius: 12px;
+  border-radius: 0.5rem;
   padding: 2rem;
   margin-bottom: 2rem;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.08);
@@ -297,7 +297,7 @@
   background: #6366f1;
   color: #ffffff;
   border: none;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -329,7 +329,7 @@
   .certificate-modal__content {
     max-width: 100%;
     box-shadow: none;
-    border-radius: 0;
+    border-radius: 0.5rem;
   }
 
   .certificate {
@@ -348,7 +348,7 @@
   .certificate-modal__content {
     max-width: 100%;
     margin: 0;
-    border-radius: 0;
+    border-radius: 0.5rem;
     max-height: 100vh;
     min-height: 100vh;
   }

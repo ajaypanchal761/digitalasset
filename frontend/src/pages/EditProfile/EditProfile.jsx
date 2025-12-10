@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
 import { profileAPI, uploadAPI } from "../../services/api.js";
+import Select from "../../components/common/Select";
 import "./EditProfile.css";
 
 const EditProfile = () => {
@@ -334,20 +335,21 @@ const EditProfile = () => {
             Phone number
           </label>
           <div className="edit-profile__phone-wrapper">
-            <select
+            <Select
               name="countryCode"
               value={formData.countryCode}
               onChange={handleInputChange}
+              options={[
+                { value: '+91', label: '+91' },
+                { value: '+1', label: '+1' },
+                { value: '+44', label: '+44' },
+                { value: '+86', label: '+86' },
+                { value: '+971', label: '+971' },
+                { value: '+65', label: '+65' },
+                { value: '+60', label: '+60' },
+              ]}
               className="edit-profile__country-code"
-            >
-              <option value="+91">+91</option>
-              <option value="+1">+1</option>
-              <option value="+44">+44</option>
-              <option value="+86">+86</option>
-              <option value="+971">+971</option>
-              <option value="+65">+65</option>
-              <option value="+60">+60</option>
-            </select>
+            />
             <input
               type="tel"
               id="phone"

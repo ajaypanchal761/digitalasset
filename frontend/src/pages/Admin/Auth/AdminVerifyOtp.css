@@ -16,14 +16,14 @@
   width: 100%;
   max-width: 480px;
   background: #ffffff;
-  border-radius: 1.5rem;
-  padding: 2rem 1.5rem;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  border-radius: 0.75rem;
+  padding: 1.5rem 1.25rem;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15);
   display: flex;
   flex-direction: column;
   align-items: center;
   box-sizing: border-box;
-  overflow-y: auto;
+  overflow-y: hidden;
   overflow-x: hidden;
   max-height: 100vh;
   max-height: 100dvh;
@@ -31,8 +31,8 @@
 
 .admin-verify-otp-illustration {
   width: 100%;
-  max-width: 200px;
-  margin-bottom: 2rem;
+  max-width: 140px;
+  margin-bottom: 1rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -52,17 +52,17 @@
 }
 
 .admin-verify-otp-title {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #111827;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.25rem 0;
 }
 
 .admin-verify-otp-subtitle {
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   color: #6b7280;
-  margin: 0 0 2rem 0;
-  line-height: 1.5;
+  margin: 0 0 1.25rem 0;
+  line-height: 1.4;
 }
 
 .admin-phone-number {
@@ -74,7 +74,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .admin-verify-otp-error {
@@ -89,22 +89,22 @@
 .admin-otp-inputs {
   display: flex;
   justify-content: center;
-  gap: 0.75rem;
-  margin: 0.5rem 0;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
   flex-wrap: nowrap;
   width: 100%;
-  overflow-x: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   padding: 0.25rem 0;
 }
 
 .admin-otp-input {
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
   border: 1.5px solid #e5e7eb;
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   text-align: center;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: #111827;
   background: #ffffff;
@@ -153,16 +153,17 @@
 
 .admin-verify-otp-btn {
   width: 100%;
-  padding: 1rem;
+  padding: 0.875rem;
   border: none;
-  border-radius: 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: #ffffff;
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  margin-top: 0.5rem;
+  margin-top: 0.25rem;
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
 }
 
 .admin-verify-otp-btn:hover:not(:disabled) {
@@ -180,8 +181,8 @@
 }
 
 .admin-verify-otp-footer {
-  margin-top: 1.5rem;
-  font-size: 0.9rem;
+  margin-top: 1rem;
+  font-size: 0.875rem;
   color: #6b7280;
   display: flex;
   flex-direction: column;
@@ -230,29 +231,30 @@
     min-height: 100dvh;
     max-height: 100vh;
     max-height: 100dvh;
-    border-radius: 0;
-    padding: 1.5rem 1.25rem;
+    border-radius: 0.75rem;
+    padding: 1rem 0.75rem;
     justify-content: center;
-    overflow-y: auto;
+    overflow-y: hidden;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
   }
 
   .admin-verify-otp-illustration {
-    max-width: 160px;
-    margin-bottom: 1.25rem;
+    max-width: 120px;
+    margin-bottom: 0.75rem;
     flex-shrink: 0;
   }
 
   .admin-verify-otp-title {
-    font-size: 1.5rem;
-    margin-bottom: 0.4rem;
+    font-size: 1.25rem;
+    margin-bottom: 0.25rem;
   }
 
   .admin-verify-otp-subtitle {
-    font-size: 0.875rem;
-    margin-bottom: 1.5rem;
+    font-size: 0.8125rem;
+    margin-bottom: 1rem;
     padding: 0 0.5rem;
+    line-height: 1.3;
   }
 
   .admin-verify-otp-content {
@@ -261,28 +263,30 @@
   }
 
   .admin-verify-otp-form {
-    gap: 1.25rem;
+    gap: 0.875rem;
   }
 
   .admin-otp-input {
-    width: 44px;
-    height: 56px;
-    font-size: 1.25rem;
+    width: 40px;
+    height: 48px;
+    font-size: 1.125rem;
     flex-shrink: 0;
-    min-width: 44px;
+    min-width: 40px;
   }
 
   .admin-otp-inputs {
-    gap: 0.35rem;
+    gap: 0.4rem;
     flex-wrap: nowrap;
     justify-content: center;
     padding: 0.25rem 0;
     max-width: 100%;
+    margin: 0.25rem 0;
   }
 
   .admin-verify-otp-btn {
-    padding: 0.875rem;
-    font-size: 0.95rem;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
   }
 }
 
@@ -298,7 +302,7 @@
   }
 
   .admin-verify-otp-container {
-    padding: 2.5rem 2rem;
+    padding: 1.5rem 1.25rem;
     max-height: calc(100vh - 2rem);
     overflow: hidden;
     display: flex;
@@ -306,21 +310,21 @@
   }
 
   .admin-verify-otp-illustration {
-    max-width: 180px;
-    margin-bottom: 1.5rem;
+    max-width: 140px;
+    margin-bottom: 1rem;
   }
 
   .admin-verify-otp-title {
-    font-size: 1.75rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
   }
 
   .admin-verify-otp-subtitle {
-    font-size: 0.95rem;
-    margin-bottom: 1.75rem;
+    font-size: 0.875rem;
+    margin-bottom: 1.25rem;
   }
 
   .admin-verify-otp-form {
-    gap: 1.25rem;
+    gap: 1rem;
   }
 }

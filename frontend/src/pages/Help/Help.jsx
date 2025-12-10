@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   KYCIcon,
@@ -11,6 +11,7 @@ import {
   HelpIcon,
   SupportIcon,
 } from "../../components/HelpIcons.jsx";
+import { helpArticleAPI } from "../../services/api";
 import "./Help.css";
 
 // Icon mapping for articles
@@ -33,52 +34,6 @@ const getArticleIcon = (category) => {
       return <HelpIcon {...iconProps} />;
   }
 };
-
-// Mock help articles data
-const helpArticles = [
-  {
-    id: 1,
-    title: "How to Complete KYC Verification",
-    category: "KYC",
-    description: "Step-by-step guide to complete your KYC verification process",
-    iconComponent: "KYC",
-  },
-  {
-    id: 2,
-    title: "Understanding Investment Process",
-    category: "Investment",
-    description: "Learn how to invest in digital properties on our platform",
-    iconComponent: "Investment",
-  },
-  {
-    id: 3,
-    title: "Wallet Management Guide",
-    category: "Wallet",
-    description: "Everything you need to know about managing your wallet",
-    iconComponent: "Wallet",
-  },
-  {
-    id: 4,
-    title: "How to Withdraw Funds",
-    category: "Withdrawal",
-    description: "Complete guide to withdrawing your earnings",
-    iconComponent: "Withdrawal",
-  },
-  {
-    id: 5,
-    title: "Account Settings & Profile",
-    category: "Account",
-    description: "Manage your account settings and profile information",
-    iconComponent: "Account",
-  },
-  {
-    id: 6,
-    title: "Troubleshooting Common Issues",
-    category: "Technical",
-    description: "Solutions to common problems you might encounter",
-    iconComponent: "Technical",
-  },
-];
 
 // Icon mapping for categories
 const getCategoryIcon = (id) => {
@@ -114,6 +69,30 @@ const Help = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [helpArticles, setHelpArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch articles from API
+  useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        setLoading(true);
+        const response = await helpArticleAPI.getAll();
+        if (response.success) {
+          setHelpArticles(response.data || []);
+        } else {
+          throw new Error(response.message || 'Failed to fetch articles');
+        }
+      } catch (err) {
+        console.error('Error fetching help articles:', err);
+        setError(err.message || 'Failed to load articles');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchArticles();
+  }, []);
 
   const filteredArticles = helpArticles.filter((article) => {
     const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -122,7 +101,7 @@ const Help = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const popularArticles = helpArticles.slice(0, 4);
+  const popularArticles = helpArticles.filter(article => article.isPopular).slice(0, 4);
 
   const handleCategoryClick = (categoryId) => {
     const category = categories.find(cat => cat.id === categoryId);
@@ -135,6 +114,56 @@ const Help = () => {
   const handleArticleClick = (articleId) => {
     navigate(`/help/${articleId}`);
   };
+
+  if (loading) {
+    return (
+      <div className="help-page">
+        <header className="help-header">
+          <button
+            type="button"
+            className="help-header__back"
+            onClick={() => navigate("/profile")}
+            aria-label="Go back"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M12 19L5 12L12 5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <h1 className="help-header__title">Help Center</h1>
+          <div className="help-header__spacer"></div>
+        </header>
+        <div className="help-content" style={{ padding: '2rem', textAlign: 'center' }}>
+          <p>Loading articles...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && helpArticles.length === 0) {
+    return (
+      <div className="help-page">
+        <header className="help-header">
+          <button
+            type="button"
+            className="help-header__back"
+            onClick={() => navigate("/profile")}
+            aria-label="Go back"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M12 19L5 12L12 5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <h1 className="help-header__title">Help Center</h1>
+          <div className="help-header__spacer"></div>
+        </header>
+        <div className="help-content" style={{ padding: '2rem', textAlign: 'center' }}>
+          <p style={{ color: '#dc2626' }}>Error: {error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="help-page">
@@ -156,43 +185,6 @@ const Help = () => {
       </header>
 
       <div className="help-content">
-        {/* Search Bar */}
-        <div className="help-search">
-          <div className="help-search__wrapper">
-            <svg
-              className="help-search__icon"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.35-4.35" />
-            </svg>
-            <input
-              type="text"
-              className="help-search__input"
-              placeholder="Search for help..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                className="help-search__clear"
-                onClick={() => setSearchQuery("")}
-                aria-label="Clear search"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
-            )}
-          </div>
-        </div>
-
         {/* Quick Actions */}
         <div className="help-quick-actions">
           <button
@@ -246,7 +238,7 @@ const Help = () => {
                   key={article.id}
                   type="button"
                   className="help-article-card"
-                  onClick={() => handleArticleClick(article.id)}
+                  onClick={() => handleArticleClick(article._id || article.id)}
                 >
                   <div className="help-article-card__icon">{getArticleIcon(article.iconComponent)}</div>
                   <div className="help-article-card__content">
@@ -297,7 +289,7 @@ const Help = () => {
                     key={article.id}
                     type="button"
                     className="help-article-card"
-                    onClick={() => handleArticleClick(article.id)}
+                    onClick={() => handleArticleClick(article._id || article.id)}
                   >
                     <div className="help-article-card__icon">{getArticleIcon(article.iconComponent)}</div>
                     <div className="help-article-card__content">

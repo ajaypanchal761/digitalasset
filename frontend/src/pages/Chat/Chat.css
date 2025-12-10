@@ -14,15 +14,17 @@
   left: 0;
 }
 
-/* Desktop: Full width chat page, center content inside */
+/* Desktop: Full width chat page, account for navbar */
 @media (min-width: 769px) {
   .chat-page {
     position: relative;
-    width: 100%;
-    max-width: 100%;
+    width: 100% !important;
+    max-width: 100% !important;
     margin: 0;
-    height: 100vh;
+    height: calc(100vh - 76px) !important; /* Account for fixed main header */
+    max-height: calc(100vh - 76px) !important;
     background: #ffffff;
+    padding-top: 0;
   }
 }
 
@@ -46,12 +48,14 @@
 
 @media (min-width: 769px) {
   .chat-header {
-    position: relative;
-    max-width: 900px;
-    margin: 0 auto;
-    left: auto;
-    right: auto;
-    top: 0;
+    position: fixed;
+    top: 76px; /* Position just below the main header (60px logo + 16px padding) */
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 999; /* Below main header (1000) but above content */
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
   }
 }
 
@@ -65,7 +69,7 @@
   background: transparent;
   color: #0f172a;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   transition: background-color 0.2s ease;
   flex-shrink: 0;
   padding: 0;
@@ -156,10 +160,13 @@
 
 @media (min-width: 769px) {
   .chat-messages {
-    max-width: 900px;
-    margin-left: auto;
-    margin-right: auto;
+    max-width: 100% !important; /* Full width */
+    width: 100% !important;
+    margin-left: 0;
+    margin-right: 0;
     padding: 1.5rem 1.5rem;
+    padding-top: calc(76px + 68px + 1.5rem); /* Main header (76px) + Chat header (~68px) + spacing */
+    margin-top: 0;
   }
 }
 
@@ -203,7 +210,7 @@
 
 .chat-message__bubble {
   padding: 0.625rem 0.875rem;
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   word-wrap: break-word;
   position: relative;
   width: fit-content;
@@ -212,9 +219,10 @@
 }
 
 .chat-message__bubble--user {
-  background: #2563eb !important; /* Blue for sent messages (right side) */
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important; /* Blue gradient for sent messages (right side) */
   color: #ffffff !important;
   border-bottom-right-radius: 0.25rem;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2);
 }
 
 .chat-message__bubble--admin {
@@ -265,8 +273,9 @@
 @media (min-width: 769px) {
   .chat-input-section {
     position: relative;
-    max-width: 900px;
-    margin: 0 auto;
+    max-width: 100% !important; /* Full width */
+    width: 100% !important;
+    margin: 0;
     left: auto;
     right: auto;
     bottom: 0;
@@ -292,7 +301,7 @@
   background: transparent;
   color: #6b7280;
   cursor: pointer;
-  border-radius: 50%;
+  border-radius: 0.5rem;
   transition: background 0.2s ease, color 0.2s ease;
   flex-shrink: 0;
   padding: 0;
@@ -316,23 +325,25 @@
   min-width: 40px;
   min-height: 40px;
   border: none;
-  background: #2563eb;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: #ffffff;
   cursor: pointer;
-  border-radius: 50%;
-  transition: background 0.2s ease, transform 0.1s ease;
+  border-radius: 0.5rem;
+  transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
   flex-shrink: 0;
   padding: 0;
   margin: 0;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
 }
 
 .chat-input__send-btn:hover:not(:disabled) {
-  background: #1d4ed8;
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
   transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
 }
 
 .chat-input__send-btn:active:not(:disabled) {
-  background: #1e40af;
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
   transform: scale(0.95);
 }
 
@@ -363,7 +374,7 @@
 .chat-input {
   flex: 1;
   border: 1px solid #e5e7eb;
-  border-radius: 1.25rem;
+  border-radius: 0.5rem;
   padding: 0.625rem 1rem;
   font-size: 0.875rem;
   color: #111827;
@@ -392,7 +403,7 @@
 
 .chat-messages::-webkit-scrollbar-thumb {
   background: #d1d5db;
-  border-radius: 2px;
+  border-radius: 999px;
 }
 
 .chat-messages::-webkit-scrollbar-thumb:hover {

@@ -1,0 +1,961 @@
+/* ============================================
+   ADMIN DASHBOARD ENHANCEMENTS
+   Premium CSS Enhancements for All Admin Pages
+   ============================================ */
+
+/* ============================================
+   GLOBAL ENHANCEMENTS
+   ============================================ */
+
+/* Smooth fade-in animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Enhanced scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #0C8EF4 #f1f5f9;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #0C8EF4;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #0A68B4;
+}
+
+/* ============================================
+   TYPOGRAPHY ENHANCEMENTS
+   ============================================ */
+
+/* Page Titles */
+.admin-properties__title,
+.admin-users__title,
+.admin-withdrawals__title,
+.admin-payouts__title,
+.admin-investment-requests__title,
+.admin-help-articles__title,
+.admin-dashboard__title {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+/* Subtitles */
+.admin-properties__subtitle,
+.admin-users__subtitle,
+.admin-withdrawals__subtitle,
+.admin-payouts__subtitle,
+.admin-investment-requests__subtitle,
+.admin-help-articles__subtitle {
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+}
+
+/* Table Headers */
+.admin-properties__table th,
+.admin-users__table th,
+.admin-withdrawals__table th,
+.admin-payouts__table th,
+.admin-investment-requests__table th,
+.admin-help-articles__table th,
+.admin-table__th {
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  font-size: 0.8125rem;
+}
+
+/* Table Cells */
+.admin-properties__table td,
+.admin-users__table td,
+.admin-withdrawals__table td,
+.admin-payouts__table td,
+.admin-investment-requests__table td,
+.admin-help-articles__table td,
+.admin-table__td {
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+}
+
+/* ============================================
+   STATS CARDS ENHANCEMENTS
+   ============================================ */
+
+.admin-properties__stat,
+.admin-users__stat,
+.admin-withdrawals__stat,
+.admin-payouts__stat,
+.admin-investment-requests__stat,
+.admin-help-articles__stat,
+.admin-dashboard__metric-card {
+  border-radius: 10px !important;
+  box-shadow: 0 2px 8px rgba(12, 142, 244, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  animation: fadeInScale 0.4s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-properties__stat::before,
+.admin-users__stat::before,
+.admin-withdrawals__stat::before,
+.admin-payouts__stat::before,
+.admin-investment-requests__stat::before,
+.admin-help-articles__stat::before,
+.admin-dashboard__metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.3);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.admin-properties__stat:hover,
+.admin-users__stat:hover,
+.admin-withdrawals__stat:hover,
+.admin-payouts__stat:hover,
+.admin-investment-requests__stat:hover,
+.admin-help-articles__stat:hover,
+.admin-dashboard__metric-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 8px 24px rgba(12, 142, 244, 0.18), 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.admin-properties__stat:hover::before,
+.admin-users__stat:hover::before,
+.admin-withdrawals__stat:hover::before,
+.admin-payouts__stat:hover::before,
+.admin-investment-requests__stat:hover::before,
+.admin-help-articles__stat:hover::before,
+.admin-dashboard__metric-card:hover::before {
+  opacity: 1;
+}
+
+.admin-properties__stat-label,
+.admin-users__stat-label,
+.admin-withdrawals__stat-label,
+.admin-payouts__stat-label,
+.admin-investment-requests__stat-label,
+.admin-help-articles__stat-label,
+.admin-dashboard__metric-label {
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.8125rem;
+  color: #1e293b !important;
+}
+
+.admin-properties__stat-value,
+.admin-users__stat-value,
+.admin-withdrawals__stat-value,
+.admin-payouts__stat-value,
+.admin-investment-requests__stat-value,
+.admin-help-articles__stat-value,
+.admin-dashboard__metric-value {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+/* ============================================
+   DATA CONTAINERS & CARDS
+   ============================================ */
+
+.admin-properties__data-container,
+.admin-users__data-container,
+.admin-withdrawals__data-container,
+.admin-payouts__data-container,
+.admin-help-articles__data-container,
+.admin-investment-requests__table-container {
+  border-radius: 10px !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04) !important;
+  transition: box-shadow 0.3s ease !important;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.admin-properties__data-container:hover,
+.admin-users__data-container:hover,
+.admin-withdrawals__data-container:hover,
+.admin-payouts__data-container:hover,
+.admin-help-articles__data-container:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* ============================================
+   SEARCH & FILTER ENHANCEMENTS
+   ============================================ */
+
+.admin-properties__filters,
+.admin-users__filters,
+.admin-withdrawals__filters,
+.admin-payouts__filters,
+.admin-help-articles__filters,
+.admin-investment-requests__filters {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.admin-properties__search-input,
+.admin-users__search-input,
+.admin-withdrawals__search-input,
+.admin-payouts__search-input,
+.admin-help-articles__search-input,
+.admin-investment-requests__search-input {
+  border-radius: 8px !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.admin-properties__search-input:focus,
+.admin-users__search-input:focus,
+.admin-withdrawals__search-input:focus,
+.admin-payouts__search-input:focus,
+.admin-help-articles__search-input:focus,
+.admin-investment-requests__search-input:focus {
+  box-shadow: 0 0 0 4px rgba(12, 142, 244, 0.1), 0 2px 8px rgba(12, 142, 244, 0.15) !important;
+  transform: translateY(-1px);
+}
+
+.admin-properties__filter-select,
+.admin-users__filter-select,
+.admin-withdrawals__filter-select,
+.admin-payouts__filter-select,
+.admin-help-articles__filter-select,
+.admin-investment-requests__filter-select {
+  border-radius: 8px !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.admin-properties__filter-select:focus,
+.admin-users__filter-select:focus,
+.admin-withdrawals__filter-select:focus,
+.admin-payouts__filter-select:focus,
+.admin-help-articles__filter-select:focus,
+.admin-investment-requests__filter-select:focus {
+  box-shadow: 0 0 0 4px rgba(12, 142, 244, 0.1), 0 2px 8px rgba(12, 142, 244, 0.15) !important;
+  transform: translateY(-1px);
+}
+
+.admin-properties__clear-filters,
+.admin-users__clear-filters,
+.admin-withdrawals__clear-filters,
+.admin-payouts__clear-filters,
+.admin-help-articles__clear-filters,
+.admin-investment-requests__clear-filters {
+  border-radius: 8px !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.admin-properties__clear-filters:hover,
+.admin-users__clear-filters:hover,
+.admin-withdrawals__clear-filters:hover,
+.admin-payouts__clear-filters:hover,
+.admin-help-articles__clear-filters:hover,
+.admin-investment-requests__clear-filters:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ============================================
+   TABLE ENHANCEMENTS
+   ============================================ */
+
+.admin-properties__table-container,
+.admin-users__table-container,
+.admin-withdrawals__table-container,
+.admin-payouts__table-container,
+.admin-help-articles__table-container,
+.admin-investment-requests__table-container {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.admin-properties__table,
+.admin-users__table,
+.admin-withdrawals__table,
+.admin-payouts__table,
+.admin-help-articles__table,
+.admin-investment-requests__table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.admin-properties__table thead,
+.admin-users__table thead,
+.admin-withdrawals__table thead,
+.admin-payouts__table thead,
+.admin-help-articles__table thead,
+.admin-investment-requests__table thead {
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+}
+
+.admin-properties__table tbody tr,
+.admin-users__table tbody tr,
+.admin-withdrawals__table tbody tr,
+.admin-payouts__table tbody tr,
+.admin-help-articles__table tbody tr,
+.admin-investment-requests__table tbody tr {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border-bottom: 1px solid #E2E8F0;
+  animation: fadeIn 0.3s ease-out;
+  animation-fill-mode: both;
+}
+
+.admin-properties__table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+.admin-properties__table tbody tr:nth-child(2) { animation-delay: 0.1s; }
+.admin-properties__table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+.admin-properties__table tbody tr:nth-child(4) { animation-delay: 0.2s; }
+.admin-properties__table tbody tr:nth-child(5) { animation-delay: 0.25s; }
+
+.admin-users__table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+.admin-users__table tbody tr:nth-child(2) { animation-delay: 0.1s; }
+.admin-users__table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+.admin-users__table tbody tr:nth-child(4) { animation-delay: 0.2s; }
+.admin-users__table tbody tr:nth-child(5) { animation-delay: 0.25s; }
+
+.admin-properties__table tbody tr:hover,
+.admin-users__table tbody tr:hover,
+.admin-withdrawals__table tbody tr:hover,
+.admin-payouts__table tbody tr:hover,
+.admin-help-articles__table tbody tr:hover,
+.admin-investment-requests__table tbody tr:hover {
+  background: #F5FAFF !important;
+  transform: scale(1.001);
+  box-shadow: 0 2px 8px rgba(12, 142, 244, 0.08);
+}
+
+.admin-properties__table tbody tr--selected,
+.admin-users__table tbody tr--selected,
+.admin-withdrawals__table tbody tr--selected,
+.admin-payouts__table tbody tr--selected {
+  background: #E8F3FF !important;
+  box-shadow: inset 3px 0 0 #0C8EF4;
+}
+
+.admin-properties__table td,
+.admin-users__table td,
+.admin-withdrawals__table td,
+.admin-payouts__table td,
+.admin-help-articles__table td,
+.admin-investment-requests__table td {
+  padding: 1.125rem 1rem !important;
+  vertical-align: middle;
+}
+
+/* ============================================
+   BUTTON ENHANCEMENTS
+   ============================================ */
+
+.admin-properties__action-btn,
+.admin-users__action-btn,
+.admin-withdrawals__action-btn,
+.admin-payouts__action-btn,
+.admin-help-articles__action-btn,
+.admin-investment-requests__action-btn,
+.admin-properties__add-btn,
+.admin-help-articles__add-btn,
+.admin-button {
+  border-radius: 8px !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.admin-properties__action-btn:hover,
+.admin-users__action-btn:hover,
+.admin-withdrawals__action-btn:hover,
+.admin-payouts__action-btn:hover,
+.admin-help-articles__action-btn:hover,
+.admin-investment-requests__action-btn:hover,
+.admin-properties__add-btn:hover,
+.admin-help-articles__add-btn:hover,
+.admin-button:hover {
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+.admin-properties__action-btn:active,
+.admin-users__action-btn:active,
+.admin-withdrawals__action-btn:active,
+.admin-payouts__action-btn:active,
+.admin-help-articles__action-btn:active,
+.admin-investment-requests__action-btn:active,
+.admin-properties__add-btn:active,
+.admin-help-articles__add-btn:active,
+.admin-button:active {
+  transform: translateY(0) scale(0.98) !important;
+}
+
+/* View Button Specific */
+.admin-properties__action-btn--view,
+.admin-users__action-btn--view,
+.admin-withdrawals__action-btn--view,
+.admin-payouts__action-btn--view {
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.25) !important;
+}
+
+.admin-properties__action-btn--view:hover,
+.admin-users__action-btn--view:hover,
+.admin-withdrawals__action-btn--view:hover,
+.admin-payouts__action-btn--view:hover {
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.35) !important;
+}
+
+/* Edit Button Specific */
+.admin-properties__action-btn--edit,
+.admin-users__action-btn--edit {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08) !important;
+}
+
+.admin-properties__action-btn--edit:hover,
+.admin-users__action-btn--edit:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* ============================================
+   STATUS BADGE ENHANCEMENTS
+   ============================================ */
+
+.status-badge {
+  border-radius: 20px !important;
+  padding: 0.375rem 0.875rem !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.2s ease !important;
+  line-height: 1.2 !important;
+}
+
+.status-badge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+}
+
+.status-badge--active,
+.status-badge--approved,
+.status-badge--completed {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25) !important;
+}
+
+.status-badge--pending,
+.status-badge--processing {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.25) !important;
+}
+
+.status-badge--rejected,
+.status-badge--failed {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.25) !important;
+}
+
+.status-badge--inactive,
+.status-badge--locked {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(100, 116, 139, 0.25) !important;
+}
+
+/* ============================================
+   PROPERTY IMAGE ENHANCEMENTS
+   ============================================ */
+
+.admin-properties__property-image {
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease !important;
+}
+
+.admin-properties__property-image:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* ============================================
+   PAGINATION ENHANCEMENTS
+   ============================================ */
+
+.admin-properties__pagination,
+.admin-users__pagination,
+.admin-withdrawals__pagination,
+.admin-payouts__pagination,
+.admin-help-articles__pagination,
+.admin-investment-requests__pagination {
+  border-radius: 10px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.admin-properties__pagination-btn,
+.admin-users__pagination-btn,
+.admin-withdrawals__pagination-btn,
+.admin-payouts__pagination-btn,
+.admin-help-articles__pagination-btn,
+.admin-investment-requests__pagination-btn {
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+  font-weight: 500;
+}
+
+.admin-properties__pagination-btn:hover:not(:disabled),
+.admin-users__pagination-btn:hover:not(:disabled),
+.admin-withdrawals__pagination-btn:hover:not(:disabled),
+.admin-payouts__pagination-btn:hover:not(:disabled),
+.admin-help-articles__pagination-btn:hover:not(:disabled),
+.admin-investment-requests__pagination-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.admin-properties__page-size,
+.admin-users__page-size,
+.admin-withdrawals__page-size,
+.admin-payouts__page-size,
+.admin-help-articles__page-size,
+.admin-investment-requests__page-size {
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+}
+
+.admin-properties__page-size:focus,
+.admin-users__page-size:focus,
+.admin-withdrawals__page-size:focus,
+.admin-payouts__page-size:focus,
+.admin-help-articles__page-size:focus,
+.admin-investment-requests__page-size:focus {
+  box-shadow: 0 0 0 3px rgba(12, 142, 244, 0.1) !important;
+}
+
+/* ============================================
+   DASHBOARD METRIC CARDS
+   ============================================ */
+
+.admin-dashboard__metric-icon,
+.admin-properties__stat-icon,
+.admin-help-articles__stat-icon,
+.admin-withdrawals__stat-icon,
+.admin-payouts__stat-icon,
+.admin-investment-requests__stat-icon {
+  border-radius: 0.75rem !important;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2) !important;
+  transition: all 0.3s ease !important;
+}
+
+.admin-dashboard__metric-card:hover .admin-dashboard__metric-icon,
+.admin-properties__stat:hover .admin-properties__stat-icon,
+.admin-help-articles__stat:hover .admin-help-articles__stat-icon,
+.admin-withdrawals__stat:hover .admin-withdrawals__stat-icon,
+.admin-payouts__stat:hover .admin-payouts__stat-icon,
+.admin-investment-requests__stat:hover .admin-investment-requests__stat-icon {
+  transform: scale(1.1) rotate(2deg);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* ============================================
+   SPACING ENHANCEMENTS
+   ============================================ */
+
+.admin-properties,
+.admin-users,
+.admin-withdrawals,
+.admin-payouts,
+.admin-help-articles,
+.admin-investment-requests,
+.admin-dashboard {
+  gap: 1.75rem !important;
+}
+
+.admin-properties__stats,
+.admin-users__stats,
+.admin-withdrawals__stats,
+.admin-payouts__stats,
+.admin-help-articles__stats,
+.admin-investment-requests__stats {
+  gap: 1.25rem !important;
+  margin-bottom: 2rem !important;
+}
+
+.admin-properties__filters,
+.admin-users__filters,
+.admin-withdrawals__filters,
+.admin-payouts__filters,
+.admin-help-articles__filters,
+.admin-investment-requests__filters {
+  gap: 1.25rem !important;
+}
+
+.admin-properties__actions,
+.admin-users__actions,
+.admin-withdrawals__actions,
+.admin-payouts__actions {
+  gap: 0.75rem !important;
+}
+
+/* ============================================
+   RESPONSIVE ENHANCEMENTS
+   ============================================ */
+
+@media (max-width: 768px) {
+  /* Eliminate excessive horizontal white space on mobile - maximize table width */
+  .admin-properties__data-container,
+  .admin-users__data-container,
+  .admin-withdrawals__data-container,
+  .admin-payouts__data-container,
+  .admin-investment-requests__data-container,
+  .admin-help-articles__data-container,
+  .admin-transfer-requests__data-container {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .admin-properties__filters,
+  .admin-users__filters,
+  .admin-withdrawals__filters,
+  .admin-payouts__filters,
+  .admin-help-articles__filters,
+  .admin-investment-requests__filters,
+  .admin-transfer-requests__filters {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .admin-properties__table-container,
+  .admin-users__table-container,
+  .admin-withdrawals__table-container,
+  .admin-payouts__table-container,
+  .admin-investment-requests__table-container,
+  .admin-help-articles__table-container,
+  .admin-transfer-requests__table-container,
+  .ownership-dealing__table-container {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Ensure tables use maximum available width */
+  .admin-properties__table,
+  .admin-users__table,
+  .admin-withdrawals__table,
+  .admin-payouts__table,
+  .admin-investment-requests__table,
+  .admin-help-articles__table,
+  .admin-transfer-requests__table,
+  .ownership-dealing__table,
+  .admin-table__table {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .admin-properties__stat,
+  .admin-users__stat,
+  .admin-withdrawals__stat,
+  .admin-payouts__stat,
+  .admin-investment-requests__stat,
+  .admin-help-articles__stat,
+  .admin-dashboard__metric-card {
+    border-radius: 8px !important;
+    padding: 0.875rem !important;
+    gap: 0.5rem !important;
+  }
+
+  /* Reduce metric card sizes for mobile */
+  .admin-properties__stat-label,
+  .admin-users__stat-label,
+  .admin-withdrawals__stat-label,
+  .admin-payouts__stat-label,
+  .admin-investment-requests__stat-label,
+  .admin-help-articles__stat-label,
+  .admin-dashboard__metric-label {
+    font-size: 0.7rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  .admin-properties__stat-value,
+  .admin-users__stat-value,
+  .admin-withdrawals__stat-value,
+  .admin-payouts__stat-value,
+  .admin-investment-requests__stat-value,
+  .admin-help-articles__stat-value,
+  .admin-dashboard__metric-value {
+    font-size: 1.125rem !important;
+  }
+
+  .admin-dashboard__metric-icon,
+  .admin-properties__stat-icon,
+  .admin-help-articles__stat-icon,
+  .admin-withdrawals__stat-icon,
+  .admin-payouts__stat-icon,
+  .admin-investment-requests__stat-icon {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 1.125rem !important;
+  }
+
+  .admin-properties__data-container,
+  .admin-users__data-container,
+  .admin-withdrawals__data-container,
+  .admin-payouts__data-container,
+  .admin-help-articles__data-container {
+    border-radius: 8px !important;
+  }
+
+  .admin-properties__search-input,
+  .admin-users__search-input,
+  .admin-withdrawals__search-input,
+  .admin-payouts__search-input,
+  .admin-help-articles__search-input,
+  .admin-investment-requests__search-input {
+    border-radius: 6px !important;
+  }
+
+  /* Fix dropdown/select overflow on mobile */
+  .admin-properties__filter-select,
+  .admin-users__filter-select,
+  .admin-withdrawals__filter-select,
+  .admin-payouts__filter-select,
+  .admin-help-articles__filter-select,
+  .admin-investment-requests__filter-select {
+    border-radius: 6px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Ensure filter groups don't overflow */
+  .admin-properties__filter-group,
+  .admin-users__filter-group,
+  .admin-withdrawals__filter-group,
+  .admin-payouts__filter-group,
+  .admin-help-articles__filter-group,
+  .admin-investment-requests__filter-group {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Fix filters container */
+  .admin-properties__filters,
+  .admin-users__filters,
+  .admin-withdrawals__filters,
+  .admin-payouts__filters,
+  .admin-help-articles__filters,
+  .admin-investment-requests__filters {
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .admin-properties__action-btn,
+  .admin-users__action-btn,
+  .admin-withdrawals__action-btn,
+  .admin-payouts__action-btn {
+    border-radius: 6px !important;
+    font-size: 0.8125rem !important;
+    padding: 0.4375rem 0.875rem !important;
+  }
+
+  /* Reduce stats grid gap and adjust columns */
+  .admin-properties__stats,
+  .admin-users__stats,
+  .admin-withdrawals__stats,
+  .admin-payouts__stats,
+  .admin-help-articles__stats,
+  .admin-investment-requests__stats {
+    gap: 0.75rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Further reduce metric card sizes for small mobile */
+  .admin-properties__stat,
+  .admin-users__stat,
+  .admin-withdrawals__stat,
+  .admin-payouts__stat,
+  .admin-investment-requests__stat,
+  .admin-help-articles__stat,
+  .admin-dashboard__metric-card {
+    padding: 0.75rem !important;
+    gap: 0.375rem !important;
+  }
+
+  .admin-properties__stat-label,
+  .admin-users__stat-label,
+  .admin-withdrawals__stat-label,
+  .admin-payouts__stat-label,
+  .admin-investment-requests__stat-label,
+  .admin-help-articles__stat-label,
+  .admin-dashboard__metric-label {
+    font-size: 0.65rem !important;
+    margin-bottom: 0.2rem !important;
+  }
+
+  .admin-properties__stat-value,
+  .admin-users__stat-value,
+  .admin-withdrawals__stat-value,
+  .admin-payouts__stat-value,
+  .admin-investment-requests__stat-value,
+  .admin-help-articles__stat-value,
+  .admin-dashboard__metric-value {
+    font-size: 1rem !important;
+  }
+
+  .admin-dashboard__metric-icon,
+  .admin-properties__stat-icon,
+  .admin-help-articles__stat-icon,
+  .admin-withdrawals__stat-icon,
+  .admin-payouts__stat-icon,
+  .admin-investment-requests__stat-icon {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 1rem !important;
+  }
+
+  .admin-properties__table td,
+  .admin-users__table td,
+  .admin-withdrawals__table td,
+  .admin-payouts__table td {
+    padding: 0.875rem 0.75rem !important;
+  }
+
+  /* Further reduce stats grid gap */
+  .admin-properties__stats,
+  .admin-users__stats,
+  .admin-withdrawals__stats,
+  .admin-payouts__stats,
+  .admin-help-articles__stats,
+  .admin-investment-requests__stats {
+    gap: 0.5rem !important;
+    margin-bottom: 1.25rem !important;
+  }
+}
+
+/* ============================================
+   LOADING STATES
+   ============================================ */
+
+.admin-properties__loading,
+.admin-users__loading,
+.admin-withdrawals__loading,
+.admin-payouts__loading,
+.admin-help-articles__loading,
+.admin-investment-requests__loading {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* ============================================
+   EMPTY STATES
+   ============================================ */
+
+.admin-properties__empty,
+.admin-users__empty,
+.admin-withdrawals__empty,
+.admin-payouts__empty,
+.admin-help-articles__empty,
+.admin-investment-requests__empty {
+  animation: fadeIn 0.4s ease-out;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* ============================================
+   FOCUS STATES (Accessibility)
+   ============================================ */
+
+.admin-properties__action-btn:focus-visible,
+.admin-users__action-btn:focus-visible,
+.admin-withdrawals__action-btn:focus-visible,
+.admin-payouts__action-btn:focus-visible,
+.admin-properties__add-btn:focus-visible,
+.admin-help-articles__add-btn:focus-visible {
+  outline: 2px solid #0C8EF4;
+  outline-offset: 2px;
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+  .admin-properties__stat,
+  .admin-users__stat,
+  .admin-withdrawals__stat,
+  .admin-payouts__stat,
+  .admin-investment-requests__stat,
+  .admin-help-articles__stat {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  .admin-properties__data-container,
+  .admin-users__data-container,
+  .admin-withdrawals__data-container,
+  .admin-payouts__data-container,
+  .admin-help-articles__data-container {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+}
+

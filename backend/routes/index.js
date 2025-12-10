@@ -25,6 +25,9 @@ import uploadRoutes from './upload.routes.js';
 import chatRoutes from './chat.routes.js';
 import investmentRequestRoutes from './investmentRequest.routes.js';
 import transferRequestRoutes from './transferRequest.routes.js';
+import certificateRoutes from './certificate.routes.js';
+import helpArticleRoutes from './helpArticle.routes.js';
+import contactOwnerRoutes from './contactOwner.routes.js';
 
 router.use('/auth', authRoutes);
 router.use('/properties', propertyRoutes);
@@ -38,6 +41,9 @@ router.use('/admin-auth', adminAuthRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/investment-requests', investmentRequestRoutes);
 router.use('/transfer-requests', transferRequestRoutes);
+router.use('/certificates', certificateRoutes);
+router.use('/help-articles', helpArticleRoutes);
+router.use('/contact-owner', contactOwnerRoutes);
 router.use('/', chatRoutes);
 
 export default router;

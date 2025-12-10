@@ -261,17 +261,33 @@ const AdminHeader = ({ userName = 'Admin User', userAvatar = null, userEmail = n
     });
 
     socket.on('connect_error', (error) => {
-      console.error('❌ AdminHeader - Socket connection error:', error);
+      // Only log if it's not a connection refused error (server might not be running)
+      if (error.message && !error.message.includes('connection refused') && !error.message.includes('WebSocket is closed')) {
+        console.error('❌ AdminHeader - Socket connection error:', error);
+      }
     });
 
     // Cleanup on unmount
     return () => {
       if (socketRef.current) {
-        socketRef.current.off('new-user-registered');
-        socketRef.current.off('new-withdrawal-request');
-        socketRef.current.off('new-chat-message');
-        socketRef.current.disconnect();
-        socketRef.current = null;
+        try {
+          socketRef.current.off('new-user-registered');
+          socketRef.current.off('new-withdrawal-request');
+          socketRef.current.off('new-chat-message');
+          socketRef.current.off('new-investment-request');
+          socketRef.current.off('connect');
+          socketRef.current.off('disconnect');
+          socketRef.current.off('connect_error');
+          
+          // Only disconnect if socket is connected
+          if (socketRef.current.connected) {
+            socketRef.current.disconnect();
+          }
+        } catch (error) {
+          // Silently handle cleanup errors
+        } finally {
+          socketRef.current = null;
+        }
       }
     };
   }, []);
@@ -423,21 +439,6 @@ const AdminHeader = ({ userName = 'Admin User', userAvatar = null, userEmail = n
   return (
     <header className="admin-header">
       <div className="admin-header__left">
-        <form onSubmit={handleSearch} className="admin-header__search">
-          <input
-            type="text"
-            placeholder="Search users, properties, transactions..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="admin-header__search-input"
-          />
-          <button type="submit" className="admin-header__search-button" aria-label="Search">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"/>
-              <path d="m21 21-4.35-4.35"/>
-            </svg>
-          </button>
-        </form>
       </div>
 
       <div className="admin-header__right">
@@ -561,9 +562,6 @@ const AdminHeader = ({ userName = 'Admin User', userAvatar = null, userEmail = n
                 <span className="admin-header__user-email-inline">{userEmail}</span>
               )}
             </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M6 9l6 6 6-6"/>
-            </svg>
           </button>
 
           {showUserMenu && (

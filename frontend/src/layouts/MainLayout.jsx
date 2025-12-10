@@ -1,103 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAppState } from "../context/AppStateContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import logoImage from "../assets/logo.png";
 
-const desktopNavLinks = [
-  { to: "/dashboard", label: "Dashboard" },
-  { to: "/explore", label: "Explore" },
-  { to: "/chat", label: "Chat" },
-  { to: "/wallet", label: "Wallet" },
-  { to: "/profile", label: "Profile" },
-];
-
-const bottomNavLinks = [
-  { to: "/dashboard", label: "Home", icon: HomeIcon },
-  { to: "/chat", label: "Chat", icon: ChatIcon },
-  { to: "/wallet", label: "Wallet", icon: WalletIcon },
-  { to: "/profile", label: "Profile", icon: UserIcon },
-];
-
-const formatCurrency = (value, currency = "INR") =>
-  new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(value);
-
-const MetricItem = ({ label, value }) => (
-  <div className="wallet-summary-card__metric">
-    <span className="wallet-summary-card__metric-label">{label}</span>
-    <span className="wallet-summary-card__metric-value">{value}</span>
-  </div>
-);
-
-const WalletSummaryCard = ({ wallet }) => {
-  // Handle wallet being null or undefined
-  if (!wallet) {
-    return (
-      <div className="wallet-summary-card">
-        <div className="wallet-summary-card__header">
-          <span className="wallet-summary-card__label">Wallet Balance</span>
-          <span className="wallet-summary-card__value">{formatCurrency(0, "INR")}</span>
-        </div>
-      </div>
-    );
-  }
-
-  const metrics = useMemo(
-    () => [
-      { label: "Total Investments", value: formatCurrency(wallet.totalInvestments || 0, wallet.currency || "INR") },
-      { label: "Earnings Received", value: formatCurrency(wallet.earningsReceived || 0, wallet.currency || "INR") },
-      { label: "Withdrawable Balance", value: formatCurrency(wallet.withdrawableBalance || 0, wallet.currency || "INR") },
-    ],
-    [wallet.currency, wallet.earningsReceived, wallet.totalInvestments, wallet.withdrawableBalance],
-  );
-
-  return (
-    <div className="wallet-summary-card">
-      <div className="wallet-summary-card__header">
-        <span className="wallet-summary-card__label">Wallet Balance</span>
-        <span className="wallet-summary-card__value">{formatCurrency(wallet.balance || 0, wallet.currency || "INR")}</span>
-      </div>
-      <div className="wallet-summary-card__metrics">
-        {metrics.map((metric) => (
-          <MetricItem key={metric.label} {...metric} />
-        ))}
-      </div>
-    </div>
-  );
-};
-
-function NotificationIcon({ active }) {
-  return (
-    <svg
-      className="icon"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M12 3C8.68629 3 6 5.68629 6 9V11.5866C6 12.168 5.78084 12.7267 5.38268 13.1479L4.2764 14.3175C3.41947 15.2205 4.05947 16.75 5.3236 16.75H18.6764C19.9405 16.75 20.5805 15.2205 19.7236 14.3175L18.6173 13.1479C18.2192 12.7267 18 12.168 18 11.5866V9C18 5.68629 15.3137 3 12 3Z"
-        stroke={active ? "#2563eb" : "#1f2937"}
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M9.5 17.5C10.1472 18.6569 11.4713 19.25 12.7954 18.9386C13.627 18.7423 14.3387 18.1667 14.7 17.5"
-        stroke={active ? "#2563eb" : "#1f2937"}
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
+// Icon components must be defined before they're used in arrays
 function HomeIcon({ active }) {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -196,6 +103,100 @@ function UserIcon({ active }) {
   );
 }
 
+const desktopNavLinks = [
+  { to: "/home", label: "Home" },
+  { to: "/dashboard", label: "Dashboard" },
+  { to: "/explore", label: "Explore" },
+  { to: "/chat", label: "Chat" },
+  { to: "/wallet", label: "Wallet" },
+];
+
+const bottomNavLinks = [
+  { to: "/home", label: "Home", icon: HomeIcon },
+  { to: "/chat", label: "Chat", icon: ChatIcon },
+  { to: "/wallet", label: "Wallet", icon: WalletIcon },
+  { to: "/profile", label: "Profile", icon: UserIcon },
+];
+
+const formatCurrency = (value, currency = "INR") =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(value);
+
+const MetricItem = ({ label, value }) => (
+  <div className="wallet-summary-card__metric">
+    <span className="wallet-summary-card__metric-label">{label}</span>
+    <span className="wallet-summary-card__metric-value">{value}</span>
+  </div>
+);
+
+const WalletSummaryCard = ({ wallet }) => {
+  // Handle wallet being null or undefined
+  if (!wallet) {
+    return (
+      <div className="wallet-summary-card">
+        <div className="wallet-summary-card__header">
+          <span className="wallet-summary-card__label">Wallet Balance</span>
+          <span className="wallet-summary-card__value">{formatCurrency(0, "INR")}</span>
+        </div>
+      </div>
+    );
+  }
+
+  const metrics = useMemo(
+    () => [
+      { label: "Total Investments", value: formatCurrency(wallet.totalInvestments || 0, wallet.currency || "INR") },
+      { label: "Earnings Received", value: formatCurrency(wallet.earningsReceived || 0, wallet.currency || "INR") },
+      { label: "Withdrawable Balance", value: formatCurrency(wallet.withdrawableBalance || 0, wallet.currency || "INR") },
+    ],
+    [wallet.currency, wallet.earningsReceived, wallet.totalInvestments, wallet.withdrawableBalance],
+  );
+
+  return (
+    <div className="wallet-summary-card">
+      <div className="wallet-summary-card__header">
+        <span className="wallet-summary-card__label">Wallet Balance</span>
+        <span className="wallet-summary-card__value">{formatCurrency(wallet.balance || 0, wallet.currency || "INR")}</span>
+      </div>
+      <div className="wallet-summary-card__metrics">
+        {metrics.map((metric) => (
+          <MetricItem key={metric.label} {...metric} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+function NotificationIcon({ active }) {
+  return (
+    <svg
+      className="icon"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M12 3C8.68629 3 6 5.68629 6 9V11.5866C6 12.168 5.78084 12.7267 5.38268 13.1479L4.2764 14.3175C3.41947 15.2205 4.05947 16.75 5.3236 16.75H18.6764C19.9405 16.75 20.5805 15.2205 19.7236 14.3175L18.6173 13.1479C18.2192 12.7267 18 12.168 18 11.5866V9C18 5.68629 15.3137 3 12 3Z"
+        stroke={active ? "#2563eb" : "#1f2937"}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9.5 17.5C10.1472 18.6569 11.4713 19.25 12.7954 18.9386C13.627 18.7423 14.3387 18.1667 14.7 17.5"
+        stroke={active ? "#2563eb" : "#1f2937"}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 const Avatar = ({ name, avatarUrl, initials }) => {
   if (avatarUrl) {
     // Optimize Cloudinary URL for avatar (small size)
@@ -256,6 +257,10 @@ const MainLayout = () => {
   const isHoldingDetailPage = location.pathname.startsWith("/holding/");
   const isEditProfilePage = location.pathname === "/profile/edit";
   const isProfilePage = location.pathname === "/profile";
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const profileDropdownRef = useRef(null);
+  const [showMobileProfileDropdown, setShowMobileProfileDropdown] = useState(false);
+  const mobileProfileDropdownRef = useRef(null);
 
   // List of public routes that don't require authentication
   const publicRoutes = ["/explore", "/property/"];
@@ -319,13 +324,82 @@ const MainLayout = () => {
     navigate("/auth/login");
   };
 
+  const handleLogout = () => {
+    setShowProfileDropdown(false);
+    signOut();
+    localStorage.clear();
+    navigate("/auth/login", { replace: true });
+  };
+
+  const handleProfileClick = () => {
+    setShowProfileDropdown(false);
+    navigate("/profile");
+  };
+
+  const handleMobileProfileClick = () => {
+    setShowMobileProfileDropdown(false);
+    navigate("/profile");
+  };
+
+  const handleMobileLogout = () => {
+    setShowMobileProfileDropdown(false);
+    signOut();
+    localStorage.clear();
+    navigate("/auth/login", { replace: true });
+  };
+
+  // Close dropdown when clicking outside (desktop)
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
+        setShowProfileDropdown(false);
+      }
+    };
+
+    if (showProfileDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showProfileDropdown]);
+
+  // Close mobile dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (mobileProfileDropdownRef.current && !mobileProfileDropdownRef.current.contains(event.target)) {
+        setShowMobileProfileDropdown(false);
+      }
+    };
+
+    if (showMobileProfileDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showMobileProfileDropdown]);
+
   const authButtonLabel = isAuthenticated ? "Logout" : "Login";
 
   const isExplorePage = location.pathname === "/explore";
+  const isHomePage = location.pathname === "/home";
   const isChatPage = location.pathname === "/chat";
   const isHoldingsPage = location.pathname === "/holdings";
   const isDashboardPage = location.pathname === "/dashboard";
   const isWalletPage = location.pathname === "/wallet";
+  const isWithdrawInfoPage = location.pathname === "/withdraw-info";
+  const isContactOwnerPage = location.pathname === "/contact-owner";
+  const isContactOwnerMessagesPage = location.pathname === "/contact-owner/messages";
+  const isPropertySaleOfflinePage = location.pathname === "/property-sale/offline";
+  const isTransferOwnershipPage = location.pathname === "/transfer-ownership";
+  const isFindBuyerPage = location.pathname === "/find-buyer";
+  const isBuyerRequestsPage = location.pathname === "/buyer-requests";
+  const isHelpPage = location.pathname === "/help" || location.pathname.startsWith("/help/");
+  const isFAQPage = location.pathname === "/faq";
+  const isSupportPage = location.pathname === "/support";
   
   // Show wallet balance box only on Dashboard and Wallet pages
   const shouldShowWalletBalance = isDashboardPage || isWalletPage;
@@ -353,7 +427,7 @@ const MainLayout = () => {
     return null; // Will redirect in useEffect
   }
 
-  if (isMobile && (isPropertyDetailPage || isHoldingDetailPage || isProfilePage || isEditProfilePage || isExplorePage || isChatPage || isHoldingsPage)) {
+  if (isMobile && (isHomePage || isPropertyDetailPage || isHoldingDetailPage || isProfilePage || isEditProfilePage || isExplorePage || isChatPage || isHoldingsPage || isWithdrawInfoPage || isContactOwnerPage || isContactOwnerMessagesPage || isPropertySaleOfflinePage || isTransferOwnershipPage || isFindBuyerPage || isBuyerRequestsPage || isHelpPage || isFAQPage || isSupportPage)) {
     return (
       <div className="mobile-shell mobile-shell--plain">
         <main className="mobile-content mobile-content--plain">
@@ -382,30 +456,82 @@ const MainLayout = () => {
 
     return (
       <div className="mobile-shell">
-        {!isPropertyDetailPage && !isHoldingDetailPage && !isEditProfilePage && !isExplorePage && !isChatPage && !isHoldingsPage && (
+        {!isHomePage && !isPropertyDetailPage && !isHoldingDetailPage && !isEditProfilePage && !isExplorePage && !isChatPage && !isHoldingsPage && (
           <header className="mobile-header">
             <div className="mobile-header__row">
-              <NavLink to="/dashboard" className="mobile-header__logo">
+              <NavLink to="/home" className="mobile-header__logo">
                 <img src={logoImage} alt="DigitalAssets" className="mobile-header__logo-img" />
               </NavLink>
-              <div className="mobile-header__welcome">
-                <span className="mobile-header__welcome-label">Welcome</span>
-                <span className="mobile-header__welcome-name">
-                  {isAuthenticated && authUser ? authUser.name.split(" ")[0] : "Guest"}
-                </span>
+              <div className="mobile-header__user-section">
+                {isAuthenticated && authUser ? (
+                  <>
+                    <div className="mobile-header__welcome">
+                      <span className="mobile-header__welcome-name">
+                        {authUser.name}
+                      </span>
+                    </div>
+                    <div className="mobile-header__avatar-wrapper" ref={mobileProfileDropdownRef}>
+                      <button
+                        type="button"
+                        className="avatar-button"
+                        aria-label="User menu"
+                        onClick={() => setShowMobileProfileDropdown(!showMobileProfileDropdown)}
+                      >
+                        <Avatar 
+                          name={authUser?.name || "Guest"} 
+                          avatarUrl={authUser?.avatarUrl} 
+                          initials={authUser?.avatarInitials || "G"} 
+                        />
+                      </button>
+                      {showMobileProfileDropdown && (
+                        <div className="mobile-header__dropdown">
+                          <button
+                            type="button"
+                            className="mobile-header__dropdown-item"
+                            onClick={handleMobileProfileClick}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                              <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                            Profile
+                          </button>
+                          <button
+                            type="button"
+                            className="mobile-header__dropdown-item mobile-header__dropdown-item--danger"
+                            onClick={handleMobileLogout}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                              <polyline points="16 17 21 12 16 7"/>
+                              <line x1="21" y1="12" x2="9" y2="12"/>
+                            </svg>
+                            Logout
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="mobile-header__welcome">
+                      <span className="mobile-header__welcome-name">Guest</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="avatar-button"
+                      aria-label="User profile"
+                      onClick={() => navigate("/auth/login")}
+                    >
+                      <Avatar 
+                        name="Guest" 
+                        avatarUrl={null} 
+                        initials="G" 
+                      />
+                    </button>
+                  </>
+                )}
               </div>
-              <button
-                type="button"
-                className="avatar-button"
-                aria-label="User profile"
-                onClick={() => navigate("/profile")}
-              >
-                <Avatar 
-                  name={authUser?.name || "Guest"} 
-                  avatarUrl={authUser?.avatarUrl} 
-                  initials={authUser?.avatarInitials || "G"} 
-                />
-              </button>
             </div>
             {shouldShowWalletBalance && <WalletSummaryCard wallet={wallet} />}
           </header>
@@ -435,7 +561,7 @@ const MainLayout = () => {
     <div className="app-shell">
       <header className="app-header">
         <div className="brand">
-          <NavLink to="/dashboard" className="brand__link">
+          <NavLink to="/home" className="brand__link">
             <img src={logoImage} alt="DigitalAssets" className="brand__logo" />
           </NavLink>
         </div>
@@ -450,16 +576,54 @@ const MainLayout = () => {
           {isAuthenticated && authUser ? (
             <>
               <span className="app-header__welcome">Welcome back, {authUser.name}</span>
-              <div className="app-header__avatar">
-                <Avatar name={authUser.name} avatarUrl={authUser.avatarUrl} initials={authUser.avatarInitials} />
+              <div className="app-header__avatar-wrapper" ref={profileDropdownRef}>
+                <button
+                  type="button"
+                  className="app-header__avatar-button"
+                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                  aria-label="User menu"
+                >
+                  <div className="app-header__avatar">
+                    <Avatar name={authUser.name} avatarUrl={authUser.avatarUrl} initials={authUser.avatarInitials} />
+                  </div>
+                </button>
+                {showProfileDropdown && (
+                  <div className="app-header__dropdown">
+                    <button
+                      type="button"
+                      className="app-header__dropdown-item"
+                      onClick={handleProfileClick}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                      </svg>
+                      Profile
+                    </button>
+                    <button
+                      type="button"
+                      className="app-header__dropdown-item app-header__dropdown-item--danger"
+                      onClick={handleLogout}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                      </svg>
+                      Logout
+                    </button>
+                  </div>
+                )}
               </div>
             </>
           ) : (
-            <span className="app-header__welcome">Welcome</span>
+            <>
+              <span className="app-header__welcome">Welcome</span>
+              <button type="button" className="app-header__auth-btn" onClick={handleAuthAction}>
+                {authButtonLabel}
+              </button>
+            </>
           )}
-          <button type="button" className="app-header__auth-btn" onClick={handleAuthAction}>
-            {authButtonLabel}
-          </button>
         </div>
       </header>
       <main className="app-content">

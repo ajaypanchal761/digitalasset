@@ -32,7 +32,7 @@
   cursor: pointer;
   color: #0f172a;
   padding: 0;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   transition: background-color 0.2s ease;
 }
 
@@ -95,7 +95,7 @@
 .article-detail-article {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 16px;
+  border-radius: 0.5rem;
   padding: 2rem;
   margin-bottom: 2rem;
 }
@@ -126,7 +126,7 @@
   padding: 0.25rem 0.75rem;
   background: #f1f5f9;
   color: #64748b;
-  border-radius: 6px;
+  border-radius: 0.5rem;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -210,7 +210,7 @@
   padding: 1rem;
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 0.5rem;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
@@ -277,7 +277,7 @@
   text-align: center;
   padding: 2rem 1.5rem;
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  border-radius: 16px;
+  border-radius: 0.5rem;
   color: #ffffff;
 }
 
@@ -306,7 +306,7 @@
   background: #ffffff;
   color: #3b82f6;
   border: none;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -329,7 +329,7 @@
   color: #64748b;
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 0.5rem;
 }
 
 .article-detail-empty p {
@@ -342,7 +342,7 @@
   background: #3b82f6;
   color: #ffffff;
   border: none;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;

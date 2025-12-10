@@ -1,12 +1,14 @@
 ﻿import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import "./App.css";
+import "./styles/admin-enhancements.css";
 import { ToastContainer } from "./components/Toast.jsx";
 import MainLayout from "./layouts/MainLayout.jsx";
 import AdminLayout from "./layouts/AdminLayout.jsx";
 import AuthLayout from "./layouts/AuthLayout.jsx";
 
 // Lazy load components for code splitting
+const Home = lazy(() => import("./pages/Home/Home.jsx"));
 const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard.jsx"));
 const Explore = lazy(() => import("./pages/Explore/Explore.jsx"));
 const Invest = lazy(() => import("./pages/Invest/Invest.jsx"));
@@ -24,6 +26,7 @@ const PropertyDetail = lazy(() => import("./pages/PropertyDetail/PropertyDetail.
 const HoldingDetail = lazy(() => import("./pages/HoldingDetail/HoldingDetail.jsx"));
 const WithdrawInfo = lazy(() => import("./pages/WithdrawInfo/WithdrawInfo.jsx"));
 const ContactOwner = lazy(() => import("./pages/ContactOwner/ContactOwner.jsx"));
+const ContactOwnerMessages = lazy(() => import("./pages/ContactOwner/ContactOwnerMessages.jsx"));
 const PropertySaleOffline = lazy(() => import("./pages/PropertySaleOffline/PropertySaleOffline.jsx"));
 const TransferOwnership = lazy(() => import("./pages/TransferOwnership/TransferOwnership.jsx"));
 const FindBuyer = lazy(() => import("./pages/FindBuyer/FindBuyer.jsx"));
@@ -49,6 +52,8 @@ const AdminChat = lazy(() => import("./pages/Admin/Chat/AdminChat.jsx"));
 const AdminProfileSettings = lazy(() => import("./pages/Admin/Profile/AdminProfileSettings.jsx"));
 const AdminTransferRequests = lazy(() => import("./pages/Admin/TransferRequests/AdminTransferRequests.jsx"));
 const OwnershipDealing = lazy(() => import("./pages/Admin/OwnershipDealing/OwnershipDealing.jsx"));
+const AdminHelpArticles = lazy(() => import("./pages/Admin/HelpArticles/AdminHelpArticles.jsx"));
+const AdminContactOwner = lazy(() => import("./pages/Admin/ContactOwner/AdminContactOwner.jsx"));
 const AdminLogin = lazy(() => import("./pages/Admin/Auth/AdminLogin.jsx"));
 const AdminRegister = lazy(() => import("./pages/Admin/Auth/AdminRegister.jsx"));
 const AdminVerifyOtp = lazy(() => import("./pages/Admin/Auth/AdminVerifyOtp.jsx"));
@@ -77,7 +82,8 @@ function App() {
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
           <Route path="/" element={<MainLayout />}>
-            <Route index element={<Navigate to="/auth/login" replace />} />
+            <Route index element={<Navigate to="/home" replace />} />
+            <Route path="home" element={<Home />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="explore" element={<Explore />} />
             <Route path="property/:id" element={<PropertyDetail />} />
@@ -92,6 +98,7 @@ function App() {
             <Route path="wallet/earnings" element={<Earnings />} />
             <Route path="withdraw-info" element={<WithdrawInfo />} />
             <Route path="contact-owner" element={<ContactOwner />} />
+            <Route path="contact-owner/messages" element={<ContactOwnerMessages />} />
             <Route path="property-sale/offline" element={<PropertySaleOffline />} />
             <Route path="find-buyer" element={<FindBuyer />} />
             <Route path="buyer-requests" element={<BuyerRequests />} />
@@ -137,6 +144,8 @@ function App() {
             <Route path="ownership-dealing" element={<OwnershipDealing />} />
             <Route path="payouts" element={<AdminPayouts />} />
             <Route path="chat" element={<AdminChat />} />
+            <Route path="help-articles" element={<AdminHelpArticles />} />
+            <Route path="contact-owner" element={<AdminContactOwner />} />
             <Route path="profile" element={<AdminProfileSettings />} />
           </Route>
 

@@ -27,8 +27,8 @@ const Login = () => {
     
     if (!loading && isAuthenticated && userToken) {
       // Only redirect if user is actually authenticated with user token
-      console.log('✅ Login - User already authenticated, redirecting to dashboard');
-      navigate("/dashboard", { replace: true });
+      console.log('✅ Login - User already authenticated, redirecting to home');
+      navigate("/home", { replace: true });
     }
   }, [isAuthenticated, loading, navigate]);
 

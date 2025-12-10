@@ -4,6 +4,7 @@ import { useAdmin } from '../../../context/AdminContext';
 import StatusBadge from '../../../components/Admin/common/StatusBadge';
 import UserDetail from '../../../components/Admin/UserDetail';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
+import Select from '../../../components/common/Select';
 
 const AdminUsers = () => {
   const location = useLocation();
@@ -213,59 +214,62 @@ const AdminUsers = () => {
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="admin-users__filters">
-        <div className="admin-users__search">
-          <input
-            type="text"
-            placeholder="Search by name, email, or phone..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value); // Only update input, don't trigger search
-            }}
-            onKeyDown={handleSearchKeyDown}
-            className="admin-users__search-input"
-          />
+      {/* Search, Filters and Table Container */}
+      <div className="admin-users__data-container">
+        {/* Search and Filters */}
+        <div className="admin-users__filters">
+          <div className="admin-users__search">
+            <input
+              type="text"
+              placeholder="Search by name, email, or phone..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value); // Only update input, don't trigger search
+              }}
+              onKeyDown={handleSearchKeyDown}
+              className="admin-users__search-input"
+            />
+            <button
+              type="button"
+              onClick={handleSearch}
+              className="admin-users__search-btn"
+              aria-label="Search"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="admin-users__search-icon">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+              </svg>
+            </button>
+          </div>
+
+          <div className="admin-users__filter-group">
+            <label className="admin-users__filter-label">Account Status</label>
+            <Select
+              value={accountFilter}
+              onChange={(e) => {
+                setAccountFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'active', label: 'Active' },
+                { value: 'locked', label: 'Locked' },
+                { value: 'suspended', label: 'Suspended' },
+              ]}
+              className="admin-users__filter-select"
+            />
+          </div>
+
           <button
-            type="button"
-            onClick={handleSearch}
-            className="admin-users__search-btn"
-            aria-label="Search"
+            onClick={handleClearFilters}
+            className="admin-users__clear-filters"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="admin-users__search-icon">
-              <circle cx="11" cy="11" r="8"/>
-              <path d="m21 21-4.35-4.35"/>
-            </svg>
+            Clear Filters
           </button>
         </div>
 
-        <div className="admin-users__filter-group">
-          <label className="admin-users__filter-label">Account Status</label>
-          <select
-            value={accountFilter}
-            onChange={(e) => {
-              setAccountFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="admin-users__filter-select"
-          >
-            <option value="all">All</option>
-            <option value="active">Active</option>
-            <option value="locked">Locked</option>
-            <option value="suspended">Suspended</option>
-          </select>
-        </div>
-
-        <button
-          onClick={handleClearFilters}
-          className="admin-users__clear-filters"
-        >
-          Clear Filters
-        </button>
-      </div>
-
-      {/* Users Table */}
-      <div className="admin-users__table-container">
+        {/* Users Table */}
+        <div className="admin-users__table-container">
         <table className="admin-users__table">
           <thead>
             <tr>
@@ -322,6 +326,7 @@ const AdminUsers = () => {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Pagination */}

@@ -163,8 +163,8 @@ const VerifyOtp = () => {
         if (registerResponse.success && registerResponse.token) {
           // Auto-login user after successful registration
           localStorage.setItem('token', registerResponse.token);
-          // Navigate to dashboard
-          navigate("/dashboard", { 
+          // Navigate to home
+          navigate("/home", { 
             replace: true,
           });
         } else {
@@ -179,8 +179,8 @@ const VerifyOtp = () => {
 
         if (loginResponse.success && loginResponse.token) {
           // Token is already set by loginWithOTP
-          // Navigate to dashboard
-          navigate("/dashboard", { 
+          // Navigate to home
+          navigate("/home", { 
             replace: true,
           });
         } else {

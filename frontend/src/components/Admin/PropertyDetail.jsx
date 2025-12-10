@@ -1,7 +1,39 @@
+import { useState, useEffect } from 'react';
 import StatusBadge from './common/StatusBadge';
 import { formatCurrency, formatDate } from '../../utils/formatters';
+import { adminAPI } from '../../services/api';
 
 const PropertyDetail = ({ property, onClose }) => {
+  const [investors, setInvestors] = useState([]);
+  const [investorsLoading, setInvestorsLoading] = useState(false);
+  const [investorsError, setInvestorsError] = useState(null);
+
+  useEffect(() => {
+    const fetchInvestors = async () => {
+      if (!property?._id && !property?.id) return;
+
+      setInvestorsLoading(true);
+      setInvestorsError(null);
+      try {
+        const propertyId = property._id || property.id;
+        const response = await adminAPI.getPropertyInvestors(propertyId);
+        
+        if (response.success && response.data) {
+          setInvestors(response.data || []);
+        } else {
+          setInvestorsError(response.message || 'Failed to fetch investors');
+        }
+      } catch (error) {
+        console.error('Error fetching investors:', error);
+        setInvestorsError(error.message || 'Failed to fetch investors');
+      } finally {
+        setInvestorsLoading(false);
+      }
+    };
+
+    fetchInvestors();
+  }, [property]);
+
   if (!property) return null;
 
   const stats = [
@@ -66,6 +98,74 @@ const PropertyDetail = ({ property, onClose }) => {
                 <p className="property-detail__detail-value">{formatDate(property.createdAt)}</p>
               </div>
             </div>
+          </section>
+
+          <section className="property-detail__section">
+            <h3>Investors</h3>
+            {investorsLoading ? (
+              <p className="property-detail__empty">Loading investors...</p>
+            ) : investorsError ? (
+              <p className="property-detail__empty" style={{ color: '#ef4444' }}>{investorsError}</p>
+            ) : investors.length > 0 ? (
+              <div className="property-detail__investors-list">
+                {investors.map((investor) => (
+                  <div key={investor.id} className="property-detail__investor-card">
+                    <div className="property-detail__investor-header">
+                      <div className="property-detail__investor-info">
+                        <p className="property-detail__investor-name">{investor.userName}</p>
+                        <p className="property-detail__investor-email">{investor.userEmail}</p>
+                        {investor.userPhone && (
+                          <p className="property-detail__investor-phone">{investor.userPhone}</p>
+                        )}
+                      </div>
+                      <div className="property-detail__investor-status">
+                        <StatusBadge status={investor.status} />
+                      </div>
+                    </div>
+                    <div className="property-detail__investor-details">
+                      <div className="property-detail__investor-detail-item">
+                        <span className="property-detail__investor-detail-label">Amount Invested</span>
+                        <span className="property-detail__investor-detail-value">
+                          {formatCurrency(investor.amountInvested)}
+                        </span>
+                      </div>
+                      <div className="property-detail__investor-detail-item">
+                        <span className="property-detail__investor-detail-label">Purchase Date</span>
+                        <span className="property-detail__investor-detail-value">
+                          {formatDate(investor.purchaseDate)}
+                        </span>
+                      </div>
+                      <div className="property-detail__investor-detail-item">
+                        <span className="property-detail__investor-detail-label">Maturity Date</span>
+                        <span className="property-detail__investor-detail-value">
+                          {formatDate(investor.maturityDate)}
+                        </span>
+                      </div>
+                      <div className="property-detail__investor-detail-item">
+                        <span className="property-detail__investor-detail-label">Monthly Earning</span>
+                        <span className="property-detail__investor-detail-value">
+                          {formatCurrency(investor.monthlyEarning)}
+                        </span>
+                      </div>
+                      <div className="property-detail__investor-detail-item">
+                        <span className="property-detail__investor-detail-label">Total Earnings Received</span>
+                        <span className="property-detail__investor-detail-value">
+                          {formatCurrency(investor.totalEarningsReceived || 0)}
+                        </span>
+                      </div>
+                      <div className="property-detail__investor-detail-item">
+                        <span className="property-detail__investor-detail-label">Payouts</span>
+                        <span className="property-detail__investor-detail-value">
+                          {investor.payoutCount || 0}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="property-detail__empty">No investors yet.</p>
+            )}
           </section>
 
           <section className="property-detail__section">

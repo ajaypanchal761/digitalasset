@@ -1,0 +1,443 @@
+.admin-contact-owner {
+  padding: 2rem;
+  background: #f5f7fa;
+  min-height: 100vh;
+}
+
+.admin-contact-owner__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  background: white;
+  padding: 1.5rem 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.admin-contact-owner__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
+}
+
+.admin-contact-owner__subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.admin-contact-owner__filters {
+  display: flex;
+  gap: 1rem;
+}
+
+.admin-contact-owner__filter-select {
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  background: white;
+  cursor: pointer;
+}
+
+.admin-contact-owner__table-container {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+}
+
+.admin-contact-owner__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-contact-owner__table thead {
+  background: #f8fafc;
+}
+
+.admin-contact-owner__table th {
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.admin-contact-owner__table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.875rem;
+  color: #1e293b;
+}
+
+.admin-contact-owner__table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.admin-contact-owner__user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-contact-owner__user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.admin-contact-owner__user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.admin-contact-owner__user-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 1rem;
+  border-radius: 50%;
+}
+
+.admin-contact-owner__user-name {
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.admin-contact-owner__user-email {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.admin-contact-owner__subject {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-contact-owner__preference {
+  font-size: 0.875rem;
+}
+
+.admin-contact-owner__badge {
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-block;
+}
+
+.admin-contact-owner__badge--pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.admin-contact-owner__badge--read {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.admin-contact-owner__badge--replied {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.admin-contact-owner__badge--resolved {
+  background: #c7d2fe;
+  color: #3730a3;
+}
+
+.admin-contact-owner__badge--closed {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.admin-contact-owner__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.admin-contact-owner__btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-contact-owner__btn--view {
+  background: #0C8EF4;
+  color: #ffffff;
+  border-radius: 0.5rem;
+}
+
+.admin-contact-owner__btn--view:hover {
+  background: #0a7dd8;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(12, 142, 244, 0.3), 0 2px 4px -1px rgba(12, 142, 244, 0.2);
+}
+
+.admin-contact-owner__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Modal Styles */
+.admin-contact-owner__modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+}
+
+.admin-contact-owner__modal {
+  background: white;
+  border-radius: 0.75rem;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.admin-contact-owner__modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.admin-contact-owner__modal-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.admin-contact-owner__modal-close {
+  background: transparent;
+  border: none;
+  font-size: 2rem;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.admin-contact-owner__modal-close:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.admin-contact-owner__modal-content {
+  padding: 2rem;
+}
+
+.admin-contact-owner__detail-section {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.admin-contact-owner__detail-section:last-of-type {
+  border-bottom: none;
+}
+
+.admin-contact-owner__detail-section h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 1rem 0;
+}
+
+.admin-contact-owner__detail-section p {
+  margin: 0.5rem 0;
+  color: #475569;
+  font-size: 0.875rem;
+}
+
+.admin-contact-owner__detail-section strong {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.admin-contact-owner__message-content,
+.admin-contact-owner__response-content {
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin: 0.5rem 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  line-height: 1.6;
+  color: #1e293b;
+}
+
+.admin-contact-owner__label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 1rem 0 0.5rem 0;
+}
+
+.admin-contact-owner__response-input,
+.admin-contact-owner__notes-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.admin-contact-owner__response-input:focus,
+.admin-contact-owner__notes-input:focus {
+  outline: none;
+  border-color: #0C8EF4;
+  box-shadow: 0 0 0 3px rgba(12, 142, 244, 0.1);
+}
+
+.admin-contact-owner__status-select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  background: white;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.admin-contact-owner__status-select:focus {
+  outline: none;
+  border-color: #0C8EF4;
+  box-shadow: 0 0 0 3px rgba(12, 142, 244, 0.1);
+}
+
+.admin-contact-owner__modal-actions {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid #e2e8f0;
+  justify-content: flex-end;
+}
+
+.admin-contact-owner__modal-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-contact-owner__modal-btn--cancel {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.admin-contact-owner__modal-btn--cancel:hover {
+  background: #e2e8f0;
+}
+
+.admin-contact-owner__modal-btn--respond {
+  background: #0C8EF4;
+  color: #ffffff;
+}
+
+.admin-contact-owner__modal-btn--respond:hover {
+  background: #0a7dd8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(12, 142, 244, 0.3), 0 2px 4px -1px rgba(12, 142, 244, 0.2);
+}
+
+.admin-contact-owner__modal-btn--update {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.admin-contact-owner__modal-btn--update:hover {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3), 0 2px 4px -1px rgba(16, 185, 129, 0.2);
+}
+
+.admin-contact-owner__modal-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 768px) {
+  .admin-contact-owner {
+    padding: 1rem;
+  }
+
+  .admin-contact-owner__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .admin-contact-owner__table-container {
+    overflow-x: auto;
+  }
+
+  .admin-contact-owner__modal {
+    max-width: 100%;
+    margin: 1rem;
+  }
+
+  .admin-contact-owner__modal-content {
+    padding: 1.5rem;
+  }
+
+  .admin-contact-owner__modal-actions {
+    flex-direction: column;
+  }
+
+  .admin-contact-owner__modal-btn {
+    width: 100%;
+  }
+}
+

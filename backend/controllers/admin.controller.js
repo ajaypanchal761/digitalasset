@@ -922,3 +922,56 @@ export const rejectTransferRequest = async (req, res) => {
   }
 };
 
+// @desc    Get property investors (holdings for a property)
+// @route   GET /api/admin/properties/:id/investors
+// @access  Private/Admin
+export const getPropertyInvestors = async (req, res) => {
+  try {
+    const propertyId = req.params.id;
+
+    // Verify property exists
+    const property = await Property.findById(propertyId);
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found',
+      });
+    }
+
+    // Get all holdings for this property with user details
+    const holdings = await Holding.find({ propertyId })
+      .populate('userId', 'name email phone')
+      .sort({ purchaseDate: -1 });
+
+    // Format the response
+    const investors = holdings.map(holding => ({
+      id: holding._id,
+      userId: holding.userId._id,
+      userName: holding.userId.name,
+      userEmail: holding.userId.email,
+      userPhone: holding.userId.phone,
+      amountInvested: holding.amountInvested,
+      purchaseDate: holding.purchaseDate,
+      maturityDate: holding.maturityDate,
+      status: holding.status,
+      monthlyEarning: holding.monthlyEarning,
+      totalEarningsReceived: holding.totalEarningsReceived || 0,
+      lockInMonths: holding.lockInMonths,
+      payoutCount: holding.payoutCount || 0,
+      lastPayoutDate: holding.lastPayoutDate,
+      nextPayoutDate: holding.nextPayoutDate,
+    }));
+
+    res.json({
+      success: true,
+      count: investors.length,
+      data: investors,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to fetch property investors',
+    });
+  }
+};
+
