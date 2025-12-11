@@ -225,62 +225,71 @@ const Profile = () => {
         <div className="profile-header__spacer"></div>
       </header>
 
-      {/* Profile Information */}
-      <div className="profile-info">
-        <div className="profile-picture-wrapper">
-          {user.avatarUrl ? (
-            <img 
-              src={user.avatarUrl} 
-              alt={user.name} 
-              className="profile-picture"
-              loading="lazy"
-              decoding="async"
-            />
-          ) : (
-            <div className="profile-picture-fallback">
-              {user.avatarInitials || user.name.slice(0, 2).toUpperCase()}
-            </div>
-          )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleAvatarChange}
-            style={{ display: 'none' }}
-            disabled={uploading}
-          />
-          <button
-            type="button"
-            className="profile-picture__camera"
-            aria-label="Change profile picture"
-            onClick={handleAvatarClick}
-            disabled={uploading}
-            title={uploading ? "Uploading..." : "Change profile picture"}
-          >
-            {uploading ? (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="spinning">
-                <circle cx="12" cy="12" r="10" strokeLinecap="round" strokeDasharray="31.416" strokeDashoffset="31.416">
-                  <animate attributeName="stroke-dasharray" dur="2s" values="0 31.416;15.708 15.708;0 31.416;0 31.416" repeatCount="indefinite" />
-                  <animate attributeName="stroke-dashoffset" dur="2s" values="0;-15.708;-31.416;-31.416" repeatCount="indefinite" />
-                </circle>
-              </svg>
+      {/* Profile Information Card */}
+      <div className="profile-info-card">
+        <div className="profile-info">
+          <div className="profile-picture-wrapper">
+            {user.avatarUrl ? (
+              <img 
+                src={user.avatarUrl} 
+                alt={user.name} 
+                className="profile-picture"
+                loading="lazy"
+                decoding="async"
+              />
             ) : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 4H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z" strokeLinecap="round" strokeLinejoin="round" />
-                <circle cx="12" cy="13" r="4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <div className="profile-picture-fallback">
+                {user.avatarInitials || user.name.slice(0, 2).toUpperCase()}
+              </div>
             )}
-          </button>
-        </div>
-        <div className="profile-details">
-          <div className="profile-details__row">
-            <div className="profile-details__name-section">
-              <h2 className="profile-name">{user.name}</h2>
-              <p className="profile-username">{username}</p>
-            </div>
-            <button type="button" className="profile-edit-btn" onClick={() => navigate("/profile/edit")}>
-              Edit Profile
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarChange}
+              style={{ display: 'none' }}
+              disabled={uploading}
+            />
+            <button
+              type="button"
+              className="profile-picture__camera"
+              aria-label="Change profile picture"
+              onClick={handleAvatarClick}
+              disabled={uploading}
+              title={uploading ? "Uploading..." : "Change profile picture"}
+            >
+              {uploading ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="spinning">
+                  <circle cx="12" cy="12" r="10" strokeLinecap="round" strokeDasharray="31.416" strokeDashoffset="31.416">
+                    <animate attributeName="stroke-dasharray" dur="2s" values="0 31.416;15.708 15.708;0 31.416;0 31.416" repeatCount="indefinite" />
+                    <animate attributeName="stroke-dashoffset" dur="2s" values="0;-15.708;-31.416;-31.416" repeatCount="indefinite" />
+                  </circle>
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 4H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="12" cy="13" r="4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
             </button>
+          </div>
+          <div className="profile-details">
+            <div className="profile-details__row">
+              <div className="profile-details__name-section">
+                <h2 className="profile-name">{user.name}</h2>
+                <p className="profile-username">{username}</p>
+                {user.email && (
+                  <p className="profile-email">{user.email}</p>
+                )}
+              </div>
+              <button type="button" className="profile-edit-btn" onClick={() => navigate("/profile/edit")}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Edit Profile
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -294,7 +303,9 @@ const Profile = () => {
             className={`profile-menu__item ${item.isDestructive ? "profile-menu__item--destructive" : ""}`}
             onClick={item.onClick}
           >
-            <span className="profile-menu__icon">{item.icon}</span>
+            <span className="profile-menu__icon-wrapper">
+              <span className="profile-menu__icon">{item.icon}</span>
+            </span>
             <span className="profile-menu__label">{item.label}</span>
             {item.badge && (
               <span className={`profile-menu__badge profile-menu__badge--${user?.kycStatus || 'pending'}`}>

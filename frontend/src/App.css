@@ -20,6 +20,9 @@
   width: 100%;
   z-index: 999;
   border-radius: 0;
+  height: 76px;
+  max-height: 76px;
+  overflow: visible;
 }
 
 /* Responsive App Header */
@@ -31,7 +34,7 @@
   }
 
   .brand__logo {
-    height: 65px;
+    height: 70px;
   }
 
   .nav-links {
@@ -66,11 +69,18 @@
     width: 14px;
     height: 14px;
   }
+
+  /* Tablet - maintain card size, show 2 per row */
+  .wallet-page__payout-cards {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
 }
 
 @media (max-width: 768px) {
   .app-header {
-    display: none; /* Hidden on mobile - using mobile-header instead */
+    display: none;
+    /* Hidden on mobile - using mobile-header instead */
   }
 }
 
@@ -78,6 +88,11 @@
   font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: 0.03em;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  align-self: center;
 }
 
 .brand__link {
@@ -90,9 +105,10 @@
 }
 
 .brand__logo {
-  height: 60px;
+  height: 70px;
   width: auto;
   object-fit: contain;
+  display: block;
 }
 
 .brand__text {
@@ -103,8 +119,11 @@
 
 .nav-links {
   display: flex;
+  align-items: center;
   gap: 1.5rem;
   justify-content: flex-start;
+  height: 100%;
+  align-self: center;
 }
 
 .nav-link {
@@ -113,6 +132,10 @@
   padding: 0.45rem 0.85rem;
   border-radius: 0.625rem;
   transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  line-height: 1.5;
+  height: fit-content;
 }
 
 .nav-link:hover,
@@ -126,6 +149,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  align-self: center;
 }
 
 .app-header__auth-btn {
@@ -271,7 +295,8 @@
   max-width: 100%;
   margin: 0;
   padding: 0;
-  padding-top: 76px; /* Start just below header (60px logo + 16px padding) */
+  padding-top: 76px;
+  /* Start just below header (60px logo + 16px padding) */
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -283,7 +308,8 @@
 @media (max-width: 1024px) and (min-width: 769px) {
   .app-content {
     padding: 0;
-    padding-top: 76px; /* Start just below header */
+    padding-top: 76px;
+    /* Start just below header */
     min-height: calc(100vh - 76px);
     height: calc(100vh - 76px);
   }
@@ -300,7 +326,8 @@
 
 @media (max-width: 768px) {
   .app-content {
-    display: none; /* Hidden on mobile - using mobile-content instead */
+    display: none;
+    /* Hidden on mobile - using mobile-content instead */
   }
 }
 
@@ -318,7 +345,7 @@
 }
 
 /* Remove padding and styling when chat page is inside */
-.app-content__page > .chat-page {
+.app-content__page>.chat-page {
   padding: 0 !important;
   border-radius: 0;
   box-shadow: none !important;
@@ -330,13 +357,15 @@
 
 /* Full-width for all pages on desktop/webview only (except chat page) */
 @media (min-width: 769px) {
+
   /* Make app-content full-width for all pages except chat */
   .app-content:not(:has(.chat-page)) {
     width: 100%;
     max-width: 100%;
     padding-left: 0;
     padding-right: 0;
-    padding-top: 76px; /* Start just below header */
+    padding-top: 76px;
+    /* Start just below header */
     min-height: calc(100vh - 76px);
     height: calc(100vh - 76px);
   }
@@ -352,7 +381,7 @@
     min-height: calc(100vh - 76px);
     height: calc(100vh - 76px);
   }
-  
+
   /* Ensure chat page container is full width */
   .app-content__page:has(.chat-page) {
     padding: 0 !important;
@@ -362,14 +391,15 @@
     width: 100% !important;
     max-width: 100% !important;
   }
-  
+
   /* Ensure app-content is full width when chat is present */
   .app-content:has(.chat-page) {
     width: 100% !important;
     max-width: 100% !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
-    padding-top: 76px !important; /* Push content below navbar */
+    padding-top: 76px !important;
+    /* Push content below navbar */
     margin-top: 0 !important;
   }
 
@@ -381,49 +411,69 @@
   /* Wallet summary card margin for pages that show it */
   .app-content:not(:has(.chat-page)) .wallet-summary-card {
     margin: 0 2.5rem;
-    margin-top: 0;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
   }
 
   /* Homepage - Wallet Card Height Adjustment (Dashboard only) */
   .app-content:has(.dashboard) .wallet-summary-card {
-    padding: 1.5rem 2rem;
-    gap: 1rem;
+    padding: 1.75rem 2.25rem;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    margin-left: 4rem;
+    margin-right: 4rem;
+    width: calc(100% - 8rem);
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(12, 142, 244, 0.2);
   }
 
   .app-content:has(.dashboard) .wallet-summary-card__header {
-    gap: 0.5rem;
+    gap: 0.75rem;
+  }
+
+  .app-content:has(.dashboard) .wallet-summary-card__label {
+    font-size: 0.75rem;
+    opacity: 0.9;
+    letter-spacing: 0.1em;
   }
 
   .app-content:has(.dashboard) .wallet-summary-card__value {
-    font-size: 1.875rem;
+    font-size: 2rem;
     line-height: 1.1;
+    letter-spacing: -0.01em;
   }
 
   .app-content:has(.dashboard) .wallet-summary-card__metrics {
-    gap: 1rem;
-    margin-top: 0.25rem;
+    gap: 1.25rem;
+    margin-top: 0.5rem;
   }
 
   .app-content:has(.dashboard) .wallet-summary-card__metric {
-    padding: 0.875rem 1rem;
-    min-height: 50px;
-    gap: 0.35rem;
+    padding: 1rem 1.25rem;
+    min-height: 55px;
+    gap: 0.4rem;
+    border-radius: 0.625rem;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(12px);
   }
 
   .app-content:has(.dashboard) .wallet-summary-card__metric-label {
-    font-size: 0.7rem;
+    font-size: 0.725rem;
+    opacity: 0.9;
   }
 
   .app-content:has(.dashboard) .wallet-summary-card__metric-value {
-    font-size: 0.9375rem;
+    font-size: 1rem;
+    font-weight: 700;
   }
 
   /* Dashboard specific styles - full width with padding */
-  .app-content__page:not(:has(.chat-page)) > .dashboard {
+  .app-content__page:not(:has(.chat-page))>.dashboard {
     width: 100%;
     max-width: 100%;
-    padding-left: 2.5rem;
-    padding-right: 2.5rem;
+    padding-left: 4rem;
+    padding-right: 4rem;
   }
 
   .dashboard {
@@ -435,13 +485,13 @@
   }
 
   /* All other page content should have padding */
-  .app-content__page:not(:has(.chat-page)) > *:not(.dashboard):not(.home-page) {
+  .app-content__page:not(:has(.chat-page))>*:not(.dashboard):not(.home-page):not(.wallet-page) {
     padding-left: 2.5rem;
     padding-right: 2.5rem;
   }
 
   /* Home page - full width, no side padding */
-  .app-content__page:not(:has(.chat-page)) > .home-page {
+  .app-content__page:not(:has(.chat-page))>.home-page {
     width: 100%;
     max-width: 100%;
     padding-left: 0;
@@ -453,8 +503,11 @@
   .app-content:has(.wallet-page) .wallet-summary-card {
     padding: 1.5rem 2rem;
     gap: 1rem;
-    margin: 0 2.5rem;
-    margin-top: 0;
+    margin: 0 auto;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+    max-width: 1200px;
+    width: calc(100% - 2rem);
   }
 
   .app-content:has(.wallet-page) .wallet-summary-card__header {
@@ -489,7 +542,7 @@
   .wallet-page__balance-card {
     padding: 1.5rem 2rem;
     gap: 1rem;
-    margin: 0 2.5rem;
+    margin: 0;
     margin-top: 0;
   }
 
@@ -527,6 +580,7 @@
     width: 100%;
     max-width: 100%;
     margin: 0;
+    margin-bottom: 1.5rem;
     padding: 0;
   }
 
@@ -534,8 +588,8 @@
   .dashboard .explore-properties-section__header {
     padding-left: 0;
     padding-right: 0;
-    margin-bottom: 2.5rem;
-    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    margin-top: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -578,7 +632,7 @@
   /* Homepage - Assets Section Cards Grid Layout */
   .dashboard .assets-section__cards {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
     width: 100%;
     padding: 0;
@@ -625,10 +679,41 @@
     width: 100%;
     max-width: 100%;
   }
+
+  /* Mobile - maintain card size, show 1 per row */
+  .wallet-page__payout-cards {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .wallet-page__payout-card {
+    padding: 1rem;
+  }
+
+  .wallet-page__payout-property {
+    font-size: 1rem;
+  }
+
+  .wallet-page__payout-badge {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.7rem;
+  }
+
+  .wallet-page__payout-label {
+    font-size: 0.8125rem;
+  }
+
+  .wallet-page__payout-value {
+    font-size: 0.875rem;
+  }
+
+  .wallet-page__payout-value--green {
+    font-size: 0.9375rem;
+  }
 }
 
 /* Make chat page full-screen and prevent outer scrolling */
-.app-content__page > .chat-page {
+.app-content__page>.chat-page {
   position: relative;
   width: 100% !important;
   max-width: 100% !important;
@@ -637,14 +722,15 @@
   margin: 0 !important;
   padding: 0 !important;
   border-radius: 0;
-  z-index: 1; /* Lower than navbar z-index: 1000 */
+  z-index: 1;
+  /* Lower than navbar z-index: 1000 */
   background: #ffffff !important;
   overflow: hidden;
 }
 
 /* For screens >= 769px, account for navbar */
 @media (min-width: 769px) {
-  .app-content__page > .chat-page {
+  .app-content__page>.chat-page {
     height: calc(100vh - 76px) !important;
   }
 }
@@ -668,13 +754,15 @@
 
 /* For screens >= 769px, account for navbar and push content down */
 @media (min-width: 769px) {
+
   .app-content:has(.chat-page),
   .app-content__page:has(.chat-page) {
     height: calc(100vh - 76px) !important;
   }
 
   .app-content:has(.chat-page) {
-    padding-top: 76px !important; /* Push content below navbar */
+    padding-top: 76px !important;
+    /* Push content below navbar */
     margin-top: 0 !important;
   }
 
@@ -693,6 +781,8 @@
   flex-direction: column;
   gap: 0.75rem;
   box-shadow: 0 4px 12px rgba(12, 142, 244, 0.15);
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .wallet-summary-card__header {
@@ -757,7 +847,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .assets-section__title {
@@ -799,8 +889,10 @@
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; /* Firefox - hide scrollbar */
-  -ms-overflow-style: none; /* IE and Edge - hide scrollbar */
+  scrollbar-width: none;
+  /* Firefox - hide scrollbar */
+  -ms-overflow-style: none;
+  /* IE and Edge - hide scrollbar */
   box-sizing: border-box;
   padding: 0;
   position: relative;
@@ -820,8 +912,10 @@
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; /* Firefox - hide scrollbar */
-  -ms-overflow-style: none; /* IE and Edge - hide scrollbar */
+  scrollbar-width: none;
+  /* Firefox - hide scrollbar */
+  -ms-overflow-style: none;
+  /* IE and Edge - hide scrollbar */
   scroll-behavior: smooth;
 }
 
@@ -886,8 +980,10 @@
 
 .asset-card__body {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  flex-direction: row;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: flex-start;
 }
 
 .asset-card__amount-section,
@@ -896,6 +992,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .asset-card__amount-label,
@@ -908,7 +1006,7 @@
 }
 
 .asset-card__amount {
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: #0f172a;
   line-height: 1.2;
@@ -1007,6 +1105,7 @@
   width: 100%;
   margin-top: 0.5rem;
   padding: 0;
+  padding-top: 0.5rem;
 }
 
 .explore-properties-section__header {
@@ -1015,7 +1114,7 @@
   justify-content: space-between;
   padding: 0 0.75rem;
   margin-bottom: 2.5rem;
-  margin-top: 1.5rem;
+  margin-top: 0;
 }
 
 .explore-properties-section__title {
@@ -1023,6 +1122,8 @@
   font-weight: 600;
   color: #0f172a;
   margin: 0;
+  margin-top: 0;
+  padding: 0 0.75rem;
 }
 
 .explore-properties-section__view-all-btn {
@@ -1053,7 +1154,8 @@
 
 .explore-properties-section__container {
   width: 100%;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
+  padding: 0 0.75rem;
 }
 
 .explore-properties-section__cards {
@@ -1075,13 +1177,37 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  min-height: 100px;
 }
 
 .property-card__content {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.property-card__row {
+  display: flex;
+  width: 100%;
+}
+
+.property-card__row--first {
   align-items: center;
   gap: 0.75rem;
+}
+
+.property-card__row--second,
+.property-card__row--third {
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.property-card__row--fourth {
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: 0.25rem;
 }
 
 .property-card:hover {
@@ -1149,17 +1275,20 @@
 .property-card__price-section,
 .property-card__return-section {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.2rem;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  flex: 1;
 }
 
 .property-card__price-label,
 .property-card__return-label {
-  font-size: 0.7rem;
+  font-size: 0.875rem;
   color: #0f172a;
   line-height: 1.2;
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
 }
 
@@ -1169,6 +1298,7 @@
   color: #0f172a;
   line-height: 1.2;
   white-space: nowrap;
+  margin-left: auto;
 }
 
 .property-card__return {
@@ -1177,6 +1307,7 @@
   gap: 0.25rem;
   font-size: 0.85rem;
   font-weight: 600;
+  margin-left: auto;
 }
 
 .property-card__return--profit {
@@ -1201,19 +1332,17 @@
 }
 
 .property-card__invest-btn {
-  padding: 0.4rem 0.75rem;
+  padding: 0.5rem 1rem;
   background: #005BB3;
   color: #ffffff;
   border: none;
   border-radius: 0.5rem;
-  font-size: 0.7rem;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
-  width: auto;
-  align-self: flex-start;
-  margin-top: 0.15rem;
+  width: 100%;
   box-shadow: 0 1px 3px rgba(0, 91, 179, 0.2);
 }
 
@@ -1416,12 +1545,14 @@
   font-size: 0.95rem;
   font-weight: 600;
   color: #0f172a;
-  min-width: 0; /* Allow text to shrink */
+  min-width: 0;
+  /* Allow text to shrink */
   overflow: hidden;
 }
 
 .mobile-header__welcome-label {
-  display: none; /* Hide welcome label */
+  display: none;
+  /* Hide welcome label */
 }
 
 .mobile-header__welcome-name {
@@ -1437,7 +1568,7 @@
 .mobile-content {
   flex: 1;
   padding: 1.5rem 1rem 5.5rem;
-  padding-top: calc(1.5rem + 240px);
+  padding-top: 3rem;
   display: flex;
   overflow-x: hidden;
   width: 100%;
@@ -1445,6 +1576,26 @@
   margin: 0;
   box-sizing: border-box;
   overflow-y: auto;
+}
+
+/* Increase padding when wallet card is present in mobile header */
+.mobile-header:has(.wallet-summary-card)~.mobile-content {
+  padding-top: calc(1.5rem + 300px);
+}
+
+/* Adjust padding for smaller screens where wallet card is smaller */
+@media (max-width: 640px) {
+  .mobile-header:has(.wallet-summary-card)~.mobile-content {
+    padding-top: calc(1.5rem + 270px);
+  }
+}
+
+/* Ensure dashboard content is not hidden behind wallet card */
+.mobile-content .mobile-scroll-area .dashboard {
+  position: relative;
+  z-index: 1;
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .mobile-content--plain {
@@ -1485,6 +1636,7 @@
 
 /* Mobile view: Remove CSS dependencies so all pages start from top */
 @media (max-width: 768px) {
+
   /* Ensure all mobile containers use full width */
   .mobile-shell,
   .mobile-shell--plain,
@@ -1505,59 +1657,63 @@
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
-  
+
   /* Reset inner content container */
   .mobile-content--plain {
     padding-top: 0 !important;
     margin-top: 0 !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
-    overflow-y: auto !important; /* Allow scrolling */
+    overflow-y: auto !important;
+    /* Allow scrolling */
     overflow-x: hidden !important;
   }
 
   /* Ensure mobile header uses proper padding */
   .mobile-header {
-    padding-left: 1rem !important; /* 16px */
-    padding-right: 1rem !important; /* 16px */
+    padding-left: 1rem !important;
+    /* 16px */
+    padding-right: 1rem !important;
+    /* 16px */
   }
-  
+
   /* Remove top padding/margin from ALL direct child pages/components */
   /* This ensures pages start from top regardless of their own CSS */
-  .mobile-content--plain > * {
+  .mobile-content--plain>* {
     padding-top: 0 !important;
     margin-top: 0 !important;
   }
-  
+
   /* Specific page overrides to ensure they start from top */
-  .mobile-content--plain > .holding-detail,
-  .mobile-content--plain > .property-detail,
-  .mobile-content--plain > .wallet-page,
-  .mobile-content--plain > .holdings-page,
-  .mobile-content--plain > .profile-page,
-  .mobile-content--plain > .edit-profile,
-  .mobile-content--plain > .chat-page,
-  .mobile-content--plain > .withdraw-info-page,
-  .mobile-content--plain > .contact-owner-page,
-  .mobile-content--plain > .property-sale-offline-page,
-  .mobile-content--plain > .transfer-ownership-page,
-  .mobile-content--plain > .find-buyer-page,
-  .mobile-content--plain > .buyer-requests-page,
-  .mobile-content--plain > .help-page,
-  .mobile-content--plain > .faq-page,
-  .mobile-content--plain > .support-page,
-  .mobile-content--plain > .home-page,
-  .mobile-content--plain > .kyc-page {
+  .mobile-content--plain>.holding-detail,
+  .mobile-content--plain>.property-detail,
+  .mobile-content--plain>.wallet-page,
+  .mobile-content--plain>.holdings-page,
+  .mobile-content--plain>.profile-page,
+  .mobile-content--plain>.edit-profile,
+  .mobile-content--plain>.chat-page,
+  .mobile-content--plain>.withdraw-info-page,
+  .mobile-content--plain>.contact-owner-page,
+  .mobile-content--plain>.property-sale-offline-page,
+  .mobile-content--plain>.transfer-ownership-page,
+  .mobile-content--plain>.find-buyer-page,
+  .mobile-content--plain>.buyer-requests-page,
+  .mobile-content--plain>.help-page,
+  .mobile-content--plain>.faq-page,
+  .mobile-content--plain>.support-page,
+  .mobile-content--plain>.home-page,
+  .mobile-content--plain>.kyc-page {
     padding-top: 0 !important;
     margin-top: 0 !important;
-    overflow-y: visible !important; /* Allow content to extend */
+    overflow-y: visible !important;
+    /* Allow content to extend */
     overflow-x: hidden !important;
     height: auto !important;
     min-height: auto !important;
     max-height: none !important;
   }
-  
-  
+
+
   /* Ensure page containers inside also start from top */
   .mobile-content--plain .holding-detail__container,
   .mobile-content--plain .property-detail__container,
@@ -1575,20 +1731,21 @@
   .mobile-content--plain .transfer-ownership-page__container,
   .mobile-content--plain .find-buyer-page__container,
   .mobile-content--plain .contact-owner-messages__container {
-    padding-top: 64px !important; /* Exact match to fixed header height: 40px (back button) + 12px (top padding) + 12px (bottom padding) = 64px */
+    padding-top: 64px !important;
+    /* Exact match to fixed header height: 40px (back button) + 12px (top padding) + 12px (bottom padding) = 64px */
     margin-top: 0 !important;
   }
 
   /* KYC page - separate class for fixed header */
   .mobile-content--plain .kyc-content {
-    padding-top: 64px !important; /* Exact match to fixed header height: 40px (back button) + 12px (top padding) + 12px (bottom padding) = 64px */
+    padding-top: calc(3rem) !important;
     margin-top: 0 !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
     max-width: 100% !important;
     width: 100% !important;
   }
-  
+
   /* Fixed headers for withdrawal pages and find-buyer-page - already handled in responsive section */
   /* Other headers - ensure proper spacing (don't get hidden) */
   .mobile-content--plain .holding-detail__header,
@@ -1621,6 +1778,26 @@
   max-width: 100%;
   overflow-x: hidden;
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+}
+
+/* Reduce gap for dashboard on mobile to decrease space above Current Holdings */
+@media (max-width: 768px) {
+  .mobile-scroll-area .dashboard {
+    gap: 0.75rem;
+  }
+
+  /* Remove gap above kyc-page to reduce top margin */
+  .mobile-scroll-area>.kyc-page {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  /* Remove gap from mobile-scroll-area for kyc-page */
+  .mobile-scroll-area:has(> .kyc-page) {
+    gap: 0 !important;
+  }
 }
 
 .mobile-bottom-nav {
@@ -2044,9 +2221,12 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.6;
   }
@@ -2356,6 +2536,7 @@
   from {
     transform: translateX(100%);
   }
+
   to {
     transform: translateX(0);
   }
@@ -2909,6 +3090,7 @@
     opacity: 0;
     transform: translateY(-10px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -7760,6 +7942,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -8052,6 +8235,7 @@
     grid-template-columns: 1fr;
   }
 }
+
 /* Responsive Properties Page */
 @media (max-width: 1024px) {
   .admin-properties__table {
@@ -8202,7 +8386,7 @@
   .admin-shell {
     grid-template-columns: 260px 1fr;
   }
-  
+
   .admin-content {
     padding: 2rem 1.5rem;
   }
@@ -8384,7 +8568,8 @@ section p {
 
   .app-content {
     padding: 0;
-    padding-top: 76px; /* Start just below header */
+    padding-top: 76px;
+    /* Start just below header */
     min-height: calc(100vh - 76px);
     height: calc(100vh - 76px);
   }
@@ -8418,12 +8603,15 @@ section p {
 /* Assets Section Responsive */
 @media (max-width: 768px) {
   .assets-section {
-    margin-top: 0.5rem;
+    margin-top: 0;
   }
 
   .assets-section__header {
     padding: 0 0.75rem;
     margin-bottom: 0.75rem;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 
   .assets-section__title {
@@ -8431,6 +8619,9 @@ section p {
     margin-bottom: 0;
     padding: 0;
     font-weight: 600;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 
   .assets-section__view-all-btn {
@@ -8442,49 +8633,29 @@ section p {
     margin: 0;
     padding: 0;
     width: 100%;
-    max-width: 100vw;
+    max-width: 100%;
     box-sizing: border-box;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Firefox - hide scrollbar */
-    -ms-overflow-style: none; /* IE and Edge - hide scrollbar */
-    mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent);
-    -webkit-mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent);
-  }
-
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  .assets-section__container::-webkit-scrollbar {
-    display: none;
+    overflow-x: visible;
+    mask-image: none;
+    -webkit-mask-image: none;
   }
 
   .assets-section__cards {
-    gap: 0.65rem;
-    display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    width: max-content;
-    padding: 0.75rem 0.75rem 0.75rem;
-    min-width: 0;
-    scrollbar-width: none; /* Firefox - hide scrollbar */
-    -ms-overflow-style: none; /* IE and Edge - hide scrollbar */
-    scroll-behavior: smooth;
-  }
-
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  .assets-section__cards::-webkit-scrollbar {
-    display: none;
+    gap: 1rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+    padding: 0;
+    overflow-x: visible;
   }
 
   .asset-card {
-    min-width: calc(50vw - 1.65rem);
-    max-width: calc(50vw - 1.65rem);
-    flex: 0 0 calc(50vw - 1.65rem);
-    padding: 0.75rem;
-    gap: 0.5rem;
-    border-radius: 0;
-    scroll-snap-align: start;
+    min-width: auto;
+    max-width: 100%;
+    width: 100%;
+    padding: 1rem;
+    gap: 0.75rem;
+    border-radius: 0.75rem;
     box-sizing: border-box;
   }
 
@@ -8498,22 +8669,37 @@ section p {
     padding: 0.15rem 0.3rem;
   }
 
+  .asset-card__body {
+    flex-direction: row;
+    gap: 0.75rem;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+  }
+
+  .asset-card__amount-section,
+  .asset-card__earning-section,
+  .asset-card__days-section {
+    flex: 1;
+    min-width: 0;
+    gap: 0.2rem;
+  }
+
   .asset-card__amount-label,
   .asset-card__earning-label,
   .asset-card__days-label {
-    font-size: 0.6rem;
+    font-size: 0.65rem;
   }
 
   .asset-card__amount {
-    font-size: 0.9rem;
+    font-size: 0.875rem;
   }
 
   .asset-card__earning {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
   }
 
   .asset-card__days {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
   }
 
   .asset-card__footer {
@@ -8535,6 +8721,53 @@ section p {
   .asset-card__btn--withdraw {
     padding: 0.3rem 0.35rem;
     font-size: 0.6rem;
+  }
+
+  /* Dashboard mobile responsive */
+  .app-content__page:not(:has(.chat-page))>.dashboard {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .app-content:has(.dashboard) .wallet-summary-card {
+    margin-left: 1rem;
+    margin-right: 1rem;
+    width: calc(100% - 2rem);
+    padding: 1.25rem 1.5rem;
+  }
+
+  .dashboard .assets-section__header,
+  .dashboard .explore-properties-section__header {
+    margin-top: 0.25rem;
+    margin-bottom: 1rem;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .dashboard .assets-section__title,
+  .dashboard .explore-properties-section__title {
+    font-size: 1.25rem;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.2 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .dashboard .assets-section__cards {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .dashboard .explore-properties-section__cards {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 }
 
@@ -8563,8 +8796,8 @@ section p {
 
   .assets-section__cards {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
     padding-bottom: 0;
     width: 100%;
   }
@@ -8573,63 +8806,120 @@ section p {
     min-width: auto;
     max-width: none;
     width: 100%;
-    padding: 1.5rem;
+    padding: 1.75rem;
     border: 1px solid #e2e8f0;
+    border-radius: 1rem;
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
   }
 
   .asset-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.15);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
     border-color: #cbd5e1;
   }
 
   .asset-card__name {
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 700;
+    color: #0f172a;
+    line-height: 1.4;
+  }
+
+  .asset-card__status {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
+    border-radius: 0.5rem;
+  }
+
+  .asset-card__body {
+    flex-direction: row;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .asset-card__amount-section,
+  .asset-card__earning-section,
+  .asset-card__days-section {
+    gap: 0.35rem;
   }
 
   .asset-card__amount-label,
   .asset-card__earning-label,
   .asset-card__days-label {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: 500;
+    letter-spacing: 0.01em;
   }
 
   .asset-card__amount {
-    font-size: 1.5rem;
+    font-size: 1.125rem;
     font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+    margin-top: 0.25rem;
   }
 
   .asset-card__earning {
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 600;
+    color: #10b981;
+    margin-top: 0.25rem;
   }
 
   .asset-card__days {
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 600;
+    color: #6366f1;
+    margin-top: 0.25rem;
   }
 
   .asset-card__footer {
     gap: 0.75rem;
-    margin-top: 1rem;
+    margin-top: 1.25rem;
   }
 
   .asset-card__btn {
-    padding: 0.625rem 1rem;
+    padding: 0.75rem 1.25rem;
     font-size: 0.875rem;
     font-weight: 600;
-    border-radius: 0;
+    border-radius: 0.625rem;
+    transition: all 0.2s ease;
   }
 
   .asset-card__btn--view {
-    padding: 0.625rem 1rem;
+    padding: 0.75rem 1.25rem;
     font-size: 0.875rem;
+    box-shadow: 0 2px 4px rgba(12, 142, 244, 0.2);
+  }
+
+  .asset-card__btn--view:hover {
+    box-shadow: 0 4px 8px rgba(12, 142, 244, 0.3);
+    transform: translateY(-1px);
   }
 
   .asset-card__btn--withdraw {
-    padding: 0.625rem 1rem;
+    padding: 0.75rem 1.25rem;
     font-size: 0.875rem;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+  }
+
+  .asset-card__btn--withdraw:hover:not(:disabled) {
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+    transform: translateY(-1px);
+  }
+}
+
+@media (max-width: 1024px) and (min-width: 769px) {
+
+  /* Tablet - maintain card size, show 2 per row */
+  .wallet-page__payout-cards {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
   }
 }
 
@@ -8649,6 +8939,51 @@ section p {
     grid-template-columns: repeat(3, 1fr);
     align-items: stretch;
     gap: 0.45rem;
+  }
+
+  /* Small Mobile - maintain card size, show 1 per row */
+  .wallet-page__payout-cards {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.875rem;
+  }
+
+  .wallet-page__payout-card {
+    padding: 0.875rem;
+    border-radius: 0.625rem;
+  }
+
+  .wallet-page__payout-card-header {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .wallet-page__payout-property {
+    font-size: 0.9375rem;
+  }
+
+  .wallet-page__payout-badge {
+    padding: 0.3rem 0.65rem;
+    font-size: 0.6875rem;
+  }
+
+  .wallet-page__payout-details {
+    gap: 0.625rem;
+  }
+
+  .wallet-page__payout-detail-item {
+    padding: 0.375rem 0;
+  }
+
+  .wallet-page__payout-label {
+    font-size: 0.75rem;
+  }
+
+  .wallet-page__payout-value {
+    font-size: 0.8125rem;
+  }
+
+  .wallet-page__payout-value--green {
+    font-size: 0.875rem;
   }
 
 
@@ -8686,17 +9021,23 @@ section p {
 /* Explore Properties Section Responsive */
 @media (max-width: 768px) {
   .explore-properties-section {
-    margin-top: 0.25rem;
+    margin-top: 0;
+    padding-top: 0.5rem;
   }
 
   .explore-properties-section__header {
     padding: 0 0.75rem;
     margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .explore-properties-section__title {
     font-size: 1rem;
     margin: 0;
+    padding: 0;
+    line-height: 1.2;
   }
 
   .explore-properties-section__view-all-btn {
@@ -8710,6 +9051,7 @@ section p {
     max-width: 100vw;
     box-sizing: border-box;
     overflow-x: hidden;
+    margin-top: 1rem;
   }
 
   .explore-properties-section__cards {
@@ -8720,9 +9062,9 @@ section p {
   }
 
   .property-card {
-    padding: 0.55rem 0.75rem;
-    gap: 0.45rem;
-    border-radius: 0;
+    padding: 0.75rem;
+    gap: 0.65rem;
+    border-radius: 0.625rem;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
@@ -8730,8 +9072,17 @@ section p {
     min-height: auto;
   }
 
-  .property-card__left {
-    gap: 0.6rem;
+  .property-card__content {
+    gap: 0.65rem;
+  }
+
+  .property-card__row--first {
+    gap: 0.65rem;
+  }
+
+  .property-card__row--second,
+  .property-card__row--third {
+    gap: 0.75rem;
   }
 
   .property-card__icon {
@@ -8745,54 +9096,38 @@ section p {
     height: 36px;
   }
 
-  .property-card__info {
-    flex: 1;
-    min-width: 0;
-    gap: 0.1rem;
-  }
-
   .property-card__name {
-    font-size: 0.85rem;
+    font-size: 0.875rem;
     line-height: 1.3;
     word-wrap: break-word;
     overflow-wrap: break-word;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .property-card__type {
-    font-size: 0.7rem;
-    line-height: 1.2;
-  }
-
-  .property-card__right {
-    gap: 0.4rem;
+    font-weight: 600;
   }
 
   .property-card__price-section,
   .property-card__return-section {
-    gap: 0.15rem;
+    gap: 0.35rem;
   }
 
   .property-card__price-label,
   .property-card__return-label {
-    font-size: 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 500;
   }
 
   .property-card__price {
     font-size: 0.95rem;
+    font-weight: 700;
   }
 
   .property-card__return {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     gap: 0.2rem;
   }
 
   .property-card__return-value {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
   }
 
   .property-card__arrow {
@@ -8801,10 +9136,9 @@ section p {
   }
 
   .property-card__invest-btn {
-    padding: 0.35rem 0.65rem;
-    font-size: 0.65rem;
-    margin-top: 0.25rem;
-    align-self: flex-start;
+    padding: 0.5rem 0.875rem;
+    font-size: 0.8rem;
+    width: 100%;
   }
 }
 
@@ -8813,6 +9147,7 @@ section p {
     width: 100%;
     margin-top: 0;
     padding: 0;
+    padding-top: 2rem;
   }
 
   .explore-properties-section__header {
@@ -8824,6 +9159,8 @@ section p {
     font-size: 1.5rem;
     font-weight: 700;
     margin: 0;
+    margin-top: 1.5rem;
+    padding: 0 0.75rem;
   }
 
   .explore-properties-section__view-all-btn {
@@ -8833,6 +9170,8 @@ section p {
 
   .explore-properties-section__container {
     width: 100%;
+    margin-top: 1.5rem;
+    padding: 0 0.75rem;
   }
 
   .explore-properties-section__cards {
@@ -8844,10 +9183,11 @@ section p {
 
   .property-card {
     padding: 1.5rem;
-    gap: 1.25rem;
+    gap: 1rem;
     width: 100%;
     max-width: 100%;
     border: 1px solid #e2e8f0;
+    min-height: auto;
   }
 
   .property-card:hover {
@@ -8856,8 +9196,17 @@ section p {
     border-color: #cbd5e1;
   }
 
-  .property-card__left {
+  .property-card__content {
     gap: 1rem;
+  }
+
+  .property-card__row--first {
+    gap: 1rem;
+  }
+
+  .property-card__row--second,
+  .property-card__row--third {
+    gap: 1.5rem;
   }
 
   .property-card__icon {
@@ -8870,31 +9219,20 @@ section p {
     height: 48px;
   }
 
-  .property-card__info {
-    gap: 0.35rem;
-  }
-
   .property-card__name {
     font-size: 1.125rem;
     font-weight: 700;
   }
 
-  .property-card__type {
-    font-size: 0.8125rem;
-  }
-
-  .property-card__right {
-    gap: 0.75rem;
-  }
-
   .property-card__price-section,
   .property-card__return-section {
-    gap: 0.35rem;
+    gap: 0.5rem;
   }
 
   .property-card__price-label,
   .property-card__return-label {
-    font-size: 0.8125rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
   }
 
   .property-card__price {
@@ -8919,22 +9257,23 @@ section p {
 
   .property-card__invest-btn {
     padding: 0.625rem 1.25rem;
-    font-size: 0.875rem;
-    margin-top: 0.5rem;
-    align-self: flex-start;
+    font-size: 0.9375rem;
+    width: 100%;
   }
 }
 
 /* Tablet View for Mobile Components */
 @media (max-width: 1024px) and (min-width: 769px) {
   .mobile-shell {
-    display: none; /* Hide mobile shell on tablet - use desktop layout */
+    display: none;
+    /* Hide mobile shell on tablet - use desktop layout */
   }
 }
 
 @media (max-width: 480px) {
   .mobile-header {
-    padding: 0 0.75rem 0.5rem; /* 12px left/right */
+    padding: 0 0.75rem 0.5rem;
+    /* 12px left/right */
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     width: 100% !important;
@@ -9601,7 +9940,7 @@ section p {
   height: 20px;
 }
 
-.property-detail__document-item > div {
+.property-detail__document-item>div {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -11618,7 +11957,7 @@ section p {
   max-width: 100%;
   height: 100%;
   min-height: 100vh;
-  padding: 1rem;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -11634,9 +11973,11 @@ section p {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0 1rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  box-sizing: border-box;
 }
 
 .wallet-page__header {
@@ -11644,6 +11985,7 @@ section p {
   flex-direction: column;
   gap: 0.5rem;
   position: relative;
+  margin-top: -0.5rem;
 }
 
 .wallet-page__back-btn {
@@ -11669,7 +12011,7 @@ section p {
   color: #0f172a;
 }
 
-.wallet-page__header > div {
+.wallet-page__header>div {
   padding-left: 3rem;
 }
 
@@ -11921,9 +12263,12 @@ section p {
 }
 
 @keyframes shimmer {
-  0%, 100% {
+
+  0%,
+  100% {
     background-position: 0% 0%;
   }
+
   50% {
     background-position: 100% 0%;
   }
@@ -12026,41 +12371,73 @@ section p {
 
 .wallet-page__action-btn {
   flex: 1;
-  padding: 0.875rem 1.5rem;
-  border-radius: 0.5rem;
-  font-size: 0.9375rem;
+  padding: 1rem 1.75rem;
+  border-radius: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.625rem;
+  position: relative;
+  overflow: hidden;
+  min-height: 48px;
+}
+
+.wallet-page__action-btn svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
 }
 
 .wallet-page__action-btn--primary {
-  background: #005BB3;
+  background: linear-gradient(135deg, #005BB3 0%, #004a94 100%);
   color: #ffffff;
-  box-shadow: 0 4px 6px -1px rgba(0, 91, 179, 0.3), 0 2px 4px -1px rgba(0, 91, 179, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 91, 179, 0.25), 0 2px 4px rgba(0, 91, 179, 0.15);
 }
 
 .wallet-page__action-btn--primary:hover {
-  background: #004a94;
+  background: linear-gradient(135deg, #004a94 0%, #003d7a 100%);
   transform: translateY(-2px);
-  box-shadow: 0 6px 8px -1px rgba(0, 91, 179, 0.35), 0 4px 6px -1px rgba(0, 91, 179, 0.25);
+  box-shadow: 0 8px 16px rgba(0, 91, 179, 0.3), 0 4px 8px rgba(0, 91, 179, 0.2);
+}
+
+.wallet-page__action-btn--primary:hover svg {
+  transform: scale(1.1);
+}
+
+.wallet-page__action-btn--primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 91, 179, 0.2);
 }
 
 .wallet-page__action-btn--outline {
   background: #ffffff;
-  color: #2563eb;
-  border: 2px solid #2563eb;
+  color: #005BB3;
+  border: 2px solid #005BB3;
+  box-shadow: 0 2px 4px rgba(0, 91, 179, 0.1);
 }
 
 .wallet-page__action-btn--outline:hover {
-  background: #f0f4ff;
-  color: #1d4ed8;
-  border-color: #1d4ed8;
+  background: #f0f7ff;
+  color: #004a94;
+  border-color: #004a94;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 91, 179, 0.15), 0 2px 4px rgba(0, 91, 179, 0.1);
+}
+
+.wallet-page__action-btn--outline:hover svg {
+  transform: scale(1.1);
+}
+
+.wallet-page__action-btn--outline:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(0, 91, 179, 0.1);
+  background: #e6f2ff;
 }
 
 .wallet-page__table-container {
@@ -12272,77 +12649,80 @@ section p {
 }
 
 .wallet-page__payout-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
 }
 
 .wallet-page__payout-card {
   background: #ffffff;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1), 0 1px 2px rgba(15, 23, 42, 0.06);
   border: 1px solid #e2e8f0;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .wallet-page__payout-card:hover {
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15), 0 4px 10px rgba(15, 23, 42, 0.1);
   border-color: #cbd5e1;
-  transform: translateY(-2px);
+  transform: translateY(-4px);
 }
 
 .wallet-page__payout-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
   border-bottom: 1px solid #e2e8f0;
 }
 
 .wallet-page__payout-property {
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-size: 1.0625rem;
+  font-weight: 700;
   color: #0f172a;
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .wallet-page__payout-badge {
-  padding: 0.375rem 0.75rem;
+  padding: 0.4rem 0.875rem;
   border-radius: 0.5rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   background: #e0e7ff;
   color: #3730a3;
-  border: 1px solid #6366f1;
+  border: none;
 }
 
 .wallet-page__payout-badge--due {
   background: #fee2e2;
   color: #dc2626;
-  border: 1px solid #ef4444;
-  border-radius: 0.5rem;
+  border: none;
 }
 
 .wallet-page__payout-details {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
 .wallet-page__payout-detail-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 0.5rem 0;
 }
 
 .wallet-page__payout-label {
-  font-size: 0.8125rem;
-  color: #0f172a;
-  font-weight: 600;
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
 }
 
 .wallet-page__payout-value {
@@ -12354,6 +12734,7 @@ section p {
 .wallet-page__payout-value--green {
   color: #10b981;
   font-weight: 700;
+  font-size: 1rem;
 }
 
 .wallet-page__payout-empty {
@@ -12379,136 +12760,221 @@ section p {
 }
 
 .wallet-page__requests-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+
+/* Responsive grid for investment request cards */
+@media (max-width: 640px) {
+  .wallet-page__requests-list {
+    grid-template-columns: 1fr;
+    /* 1 card per row on mobile */
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .wallet-page__requests-list {
+    grid-template-columns: repeat(2, 1fr);
+    /* 2 cards per row on tablet */
+    gap: 1.125rem;
+  }
+}
+
+@media (min-width: 1025px) {
+  .wallet-page__requests-list {
+    grid-template-columns: repeat(3, 1fr);
+    /* 3 cards per row on desktop */
+    gap: 1.25rem;
+  }
 }
 
 .wallet-page__request-card {
   background: #ffffff;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1), 0 1px 2px rgba(15, 23, 42, 0.06);
   border: 1px solid #e2e8f0;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.wallet-page__request-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .wallet-page__request-card:hover {
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15), 0 4px 10px rgba(15, 23, 42, 0.1);
   border-color: #cbd5e1;
+  transform: translateY(-2px);
+}
+
+.wallet-page__request-card:hover::before {
+  opacity: 1;
 }
 
 .wallet-page__request-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  gap: 0.75rem;
 }
 
 .wallet-page__request-info {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.375rem;
   flex: 1;
+  min-width: 0;
 }
 
 .wallet-page__request-property {
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   color: #0f172a;
   margin: 0;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .wallet-page__request-date {
   font-size: 0.8125rem;
-  color: #0f172a;
+  color: #64748b;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.wallet-page__request-date::before {
+  content: '📅';
+  font-size: 0.875rem;
 }
 
 .wallet-page__request-status {
-  padding: 0.375rem 0.75rem;
-  border-radius: 0;
-  font-size: 0.8125rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .wallet-page__request-status--pending {
-  background: #fef3c7;
-  color: #d97706;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #b45309;
+  border: 1px solid #fcd34d;
 }
 
 .wallet-page__request-status--approved {
-  background: #d1fae5;
-  color: #059669;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #047857;
+  border: 1px solid #6ee7b7;
 }
 
 .wallet-page__request-status--rejected {
-  background: #fee2e2;
-  color: #dc2626;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
 }
 
 .wallet-page__request-details {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.75rem;
   margin-bottom: 0.75rem;
+  flex: 1;
 }
 
 .wallet-page__request-detail-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.wallet-page__request-detail-row:last-child {
+  border-bottom: none;
 }
 
 .wallet-page__request-label {
   font-size: 0.8125rem;
-  color: #0f172a;
-  font-weight: 600;
+  color: #64748b;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
 }
 
 .wallet-page__request-value {
   font-size: 0.875rem;
   color: #0f172a;
   font-weight: 600;
+  text-align: right;
 }
 
 /* Rejection Reason Section */
 .wallet-page__rejection-section {
-  background: #fef2f2;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
   border: 1px solid #fecaca;
-  border-radius: 0.5rem;
+  border-radius: 0.625rem;
   padding: 1rem;
   margin-top: 1rem;
+  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.1);
 }
 
 .wallet-page__rejection-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  gap: 0.625rem;
+  margin-bottom: 0.875rem;
 }
 
 .wallet-page__rejection-header svg {
   color: #dc2626;
   flex-shrink: 0;
+  width: 20px;
+  height: 20px;
 }
 
 .wallet-page__rejection-title {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #dc2626;
+  color: #b91c1c;
   margin: 0;
 }
 
 .wallet-page__rejection-content {
   background: #ffffff;
-  border-radius: 0;
-  padding: 0.875rem;
+  border-radius: 0.5rem;
+  padding: 0.875rem 1rem;
   border: 1px solid #fee2e2;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .wallet-page__rejection-content p {
@@ -12521,37 +12987,41 @@ section p {
 
 /* Admin Notes Section */
 .wallet-page__admin-notes-section {
-  background: #f0f9ff;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
   border: 1px solid #bae6fd;
-  border-radius: 0.5rem;
+  border-radius: 0.625rem;
   padding: 1rem;
   margin-top: 1rem;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.1);
 }
 
 .wallet-page__admin-notes-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  gap: 0.625rem;
+  margin-bottom: 0.875rem;
 }
 
 .wallet-page__admin-notes-header svg {
   color: #2563eb;
   flex-shrink: 0;
+  width: 20px;
+  height: 20px;
 }
 
 .wallet-page__admin-notes-title {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #2563eb;
+  color: #1e40af;
   margin: 0;
 }
 
 .wallet-page__admin-notes-content {
   background: #ffffff;
-  border-radius: 0;
-  padding: 0.875rem;
+  border-radius: 0.5rem;
+  padding: 0.875rem 1rem;
   border: 1px solid #dbeafe;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .wallet-page__admin-notes-content p {
@@ -12576,6 +13046,7 @@ section p {
 
   .wallet-page__header {
     gap: 0.375rem;
+    margin-top: -0.25rem;
   }
 
   .wallet-page__title {
@@ -12592,7 +13063,7 @@ section p {
     margin-bottom: 0.25rem;
   }
 
-  .wallet-page__header > div {
+  .wallet-page__header>div {
     padding-left: 2.5rem;
   }
 
@@ -12705,85 +13176,155 @@ section p {
 
   .wallet-page__quick-actions {
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.875rem;
   }
 
   .wallet-page__action-btn {
     width: 100%;
-    padding: 0.75rem 1.25rem;
-    font-size: 0.875rem;
+    padding: 0.875rem 1.5rem;
+    font-size: 0.9375rem;
+    min-height: 52px;
+    border-radius: 0.625rem;
+  }
+
+  .wallet-page__action-btn svg {
+    width: 18px;
+    height: 18px;
   }
 
   .wallet-page__table-container {
-    border-radius: 0;
+    border-radius: 0.5rem;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
+  }
+
+  .wallet-page__table-container::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .wallet-page__table-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+  }
+
+  .wallet-page__table-container::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 4px;
+  }
+
+  .wallet-page__table-container::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
   }
 
   .wallet-page__table-header {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-    padding: 0.75rem;
-    display: none; /* Hide header on mobile, show as labels */
+    grid-template-columns: 95px 110px 1.5fr 110px 100px;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    display: grid;
+    min-width: 700px;
+    background: #F2F6FA;
+    border-bottom: 2px solid #E2E8F0;
+    position: sticky;
+    left: 0;
+    z-index: 1;
   }
 
   .wallet-page__table-header--investments {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1.8fr 100px 100px 90px 110px 100px;
+    min-width: 750px;
+  }
+
+  .wallet-page__table-header-item {
+    font-size: 0.7rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 700;
+    color: #2F3A4C;
   }
 
   .wallet-page__table-body {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    min-width: 700px;
   }
 
   .wallet-page__table-row {
-    grid-template-columns: 1fr;
-    gap: 0;
-    padding: 0.75rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 0;
-    background: #ffffff;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-    margin-bottom: 0.5rem;
+    grid-template-columns: 95px 110px 1.5fr 110px 100px;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    min-width: 700px;
+    align-items: center;
+    border-bottom: 1px solid #E2E8F0;
   }
 
   .wallet-page__table-row--investments {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1.8fr 100px 100px 90px 110px 100px;
+    min-width: 750px;
   }
 
   .wallet-page__table-row:last-child {
+    border-bottom: none;
     margin-bottom: 0;
   }
 
-  .wallet-page__table-cell {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.8125rem;
-    padding: 0.375rem 0;
-    border-bottom: 1px solid #f1f5f9;
+  .wallet-page__table-row--clickable:active {
+    background: #F5FAFF;
   }
 
-  .wallet-page__table-cell:last-child {
-    border-bottom: none;
+  .wallet-page__table-cell {
+    font-size: 0.8rem;
+    padding: 0.375rem 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    color: #2F3A4C;
+    line-height: 1.4;
   }
 
   .wallet-page__table-cell::before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-size: 0.7rem;
-    flex-shrink: 0;
-    min-width: 80px;
+    display: none;
+  }
+
+  /* Don't truncate cells that contain badges - target by nth-child for Type and Status columns */
+  .wallet-page__table-row>.wallet-page__table-cell:nth-child(2),
+  .wallet-page__table-row>.wallet-page__table-cell:nth-child(5) {
+    overflow: visible;
+    white-space: normal;
+    text-overflow: unset;
   }
 
   .wallet-page__table-cell--description {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
+    white-space: normal;
+    word-break: break-word;
+    overflow: visible;
+    text-overflow: unset;
+    line-height: 1.5;
+    color: #64748b;
+    font-size: 0.75rem;
+  }
+
+  .wallet-page__table-cell--amount {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #2F3A4C;
+  }
+
+  .wallet-page__table-cell--green {
+    color: #10b981;
+  }
+
+  .wallet-page__type-badge,
+  .wallet-page__status-badge {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.65rem;
+    white-space: nowrap;
+    display: inline-block;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .wallet-page__view-btn {
@@ -14524,6 +15065,7 @@ section p {
 
 /* Responsive Styles */
 @media (max-width: 768px) {
+
   /* Withdrawal pages - independent CSS, start from top */
   .withdraw-info-page,
   .contact-owner-page,
@@ -14544,12 +15086,15 @@ section p {
   .property-sale-offline-page__container,
   .transfer-ownership-page__container {
     gap: 0.75rem;
-    padding-top: 64px !important; /* Exact match to header height: 40px (back button) + 12px (top padding) + 12px (bottom padding) = 64px - no gap */
+    padding-top: 64px !important;
+    /* Exact match to header height: 40px (back button) + 12px (top padding) + 12px (bottom padding) = 64px - no gap */
     margin-top: 0 !important;
-    padding-left: 1rem; /* 16px */
-    padding-right: 1rem; /* 16px */
+    padding-left: 1rem;
+    /* 16px */
+    padding-right: 1rem;
+    /* 16px */
   }
-  
+
   /* Fixed headers at top on mobile */
   .withdraw-info-page__header,
   .contact-owner-page__header,
@@ -14564,7 +15109,8 @@ section p {
     z-index: 1000 !important;
     background: #ffffff !important;
     border-bottom: 1px solid #e2e8f0 !important;
-    padding: 0.75rem 1rem !important; /* 12px top/bottom, 16px left/right */
+    padding: 0.75rem 1rem !important;
+    /* 12px top/bottom, 16px left/right */
     margin: 0 !important;
     gap: 0.5rem;
     box-sizing: border-box !important;
@@ -14572,7 +15118,8 @@ section p {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    height: 64px; /* Exact height: 40px (back button) + 12px (top padding) + 12px (bottom padding) = 64px */
+    height: 64px;
+    /* Exact height: 40px (back button) + 12px (top padding) + 12px (bottom padding) = 64px */
   }
 
   .withdraw-info-page__title,
@@ -14650,18 +15197,22 @@ section p {
 
 /* Small Mobile (480px and below) - Adjust header padding */
 @media (max-width: 480px) {
+
   .withdraw-info-page__header,
   .contact-owner-page__header,
   .property-sale-offline-page__header,
   .transfer-ownership-page__header {
-    padding: 0.75rem 0.75rem !important; /* 12px all around */
+    padding: 0.75rem 0.75rem !important;
+    /* 12px all around */
   }
 
   .withdraw-info-page__container,
   .contact-owner-page__container,
   .property-sale-offline-page__container,
   .transfer-ownership-page__container {
-    padding-left: 0.75rem !important; /* 12px */
-    padding-right: 0.75rem !important; /* 12px */
+    padding-left: 0.75rem !important;
+    /* 12px */
+    padding-right: 0.75rem !important;
+    /* 12px */
   }
 }

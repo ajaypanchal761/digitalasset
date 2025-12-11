@@ -501,20 +501,29 @@
     padding: 0 !important;
     padding-bottom: 6rem !important;
     margin: 0 !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
   }
 
+  /* Remove gap from mobile-scroll-area for kyc-page */
+  .mobile-scroll-area > .kyc-page {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
   .kyc-content {
     padding: 1rem;
-    padding-top: 64px !important; /* Exact match to header height: 40px (back button) + 12px (top padding) + 12px (bottom padding) = 64px - no gap */
+    padding-top: (3rem) !important;
     margin: 0 !important; /* Remove all margins to prevent gaps */
+    margin-top: 0 !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
     box-sizing: border-box;
     width: 100%;
     max-width: 100%;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
   }
 
   /* Fixed header at top on mobile */
@@ -539,9 +548,24 @@
     height: 64px; /* Exact height: 40px (back button) + 12px (top padding) + 12px (bottom padding) = 64px */
   }
 
-  .kyc-status-section,
+  .kyc-content {
+    padding-top: calc(3rem) !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    padding-bottom: 1.5rem !important;
+  }
+
+  .kyc-status-section {
+    margin-top: 0 !important;
+    padding-top: 0.25rem !important; /* Minimized top padding */
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+    padding-bottom: 1.25rem !important;
+  }
+
   .kyc-form-section {
     padding: 1.25rem;
+    margin-top: 0 !important;
   }
 
   .kyc-digilocker-card {

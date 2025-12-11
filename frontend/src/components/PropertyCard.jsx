@@ -27,7 +27,8 @@ const PropertyCard = ({ property, onInvest, onClick }) => {
       style={{ cursor: onClick ? "pointer" : "default" }}
     >
       <div className="property-card__content">
-        <div className="property-card__left">
+        {/* First Row: Logo and Name */}
+        <div className="property-card__row property-card__row--first">
           <div className="property-card__icon">
             <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect width="32" height="32" rx="6" fill="#e0e7ff" />
@@ -40,36 +41,21 @@ const PropertyCard = ({ property, onInvest, onClick }) => {
               />
             </svg>
           </div>
-          <div className="property-card__info">
-            <div className="property-card__name">{property.title}</div>
-            <div className="property-card__type">Digital Property</div>
-            {onInvest && (
-              <button
-                className="property-card__invest-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // Check if property is active before allowing investment
-                  if (property.status !== 'active') {
-                    alert(`This property is ${property.status}. Only active properties are available for investment.`);
-                    return;
-                  }
-                  onInvest(property);
-                }}
-                disabled={property.status !== 'active'}
-                title={property.status !== 'active' ? `This property is ${property.status}. Only active properties are available for investment.` : 'Invest in this property'}
-              >
-                {property.status === 'active' ? 'Invest Now' : `Property ${property.status?.charAt(0).toUpperCase() + property.status?.slice(1) || 'Unavailable'}`}
-              </button>
-            )}
+          <div className="property-card__name">{property.title}</div>
+        </div>
+        
+        {/* Second Row: Min Investment */}
+        <div className="property-card__row property-card__row--second">
+          <div className="property-card__price-section">
+            <span className="property-card__price-label">Min Investment</span>
+            <span className="property-card__price">{formatCurrency(minInvestment, "INR")}</span>
           </div>
         </div>
-        <div className="property-card__right">
-          <div className="property-card__price-section">
-            <div className="property-card__price-label">Min Investment</div>
-            <div className="property-card__price">{formatCurrency(minInvestment, "INR")}</div>
-          </div>
+        
+        {/* Third Row: Return */}
+        <div className="property-card__row property-card__row--third">
           <div className="property-card__return-section">
-            <div className="property-card__return-label">Return</div>
+            <span className="property-card__return-label">Return</span>
             <div className={`property-card__return ${isPositive ? "property-card__return--profit" : "property-card__return--loss"}`}>
               <span className="property-card__return-value">
                 {isPositive ? "+" : "-"}
@@ -87,6 +73,28 @@ const PropertyCard = ({ property, onInvest, onClick }) => {
             </div>
           </div>
         </div>
+        
+        {/* Fourth Row: Invest Now Button */}
+        {onInvest && (
+          <div className="property-card__row property-card__row--fourth">
+            <button
+              className="property-card__invest-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Check if property is active before allowing investment
+                if (property.status !== 'active') {
+                  alert(`This property is ${property.status}. Only active properties are available for investment.`);
+                  return;
+                }
+                onInvest(property);
+              }}
+              disabled={property.status !== 'active'}
+              title={property.status !== 'active' ? `This property is ${property.status}. Only active properties are available for investment.` : 'Invest in this property'}
+            >
+              {property.status === 'active' ? 'Invest Now' : `Property ${property.status?.charAt(0).toUpperCase() + property.status?.slice(1) || 'Unavailable'}`}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

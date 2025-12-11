@@ -305,109 +305,111 @@ const Chat = () => {
 
   return (
     <div className="chat-page">
-      {/* Header */}
-      <header className="chat-header">
-        <button 
-          type="button" 
-          className="chat-header__back-btn" 
-          onClick={() => navigate("/dashboard")}
-          aria-label="Go back to home"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5M12 19L5 12L12 5" />
-          </svg>
-        </button>
-        <div className="chat-header__avatar">
-          <div className="chat-header__avatar-circle">
-            <span className="chat-header__avatar-initials">A</span>
-          </div>
-        </div>
-        <div className="chat-header__info">
-          <h1 className="chat-header__name">Admin</h1>
-          <p className="chat-header__status">Online</p>
-        </div>
-        <div className="chat-header__spacer"></div>
-      </header>
-
-      {/* Messages Container */}
-      <div className="chat-messages">
-        {loading ? (
-          <div className="chat-loading">
-            <p>Loading messages...</p>
-          </div>
-        ) : messages.length === 0 ? (
-          <div className="chat-empty">
-            <p>No messages yet. Start the conversation!</p>
-          </div>
-        ) : (
-          messages.map((message, index) => {
-            // WhatsApp-like behavior for USER chat:
-            // - senderType === 'User' → Message sent by current user → Right side (blue) = SENT
-            // - senderType === 'Admin' → Message received from admin → Left side (grey) = RECEIVED
-            const senderType = String(message.senderType || '').trim();
-            const isUserMessage = senderType === 'User';
-            
-            if (index < 3 || messages.length - index <= 3) {
-              console.log(`🔵 USER CHAT - Rendering message ${index + 1}/${messages.length}:`, {
-                id: message.id,
-                originalSenderType: message.senderType,
-                normalizedSenderType: senderType,
-                senderTypeType: typeof message.senderType,
-                isUserMessage,
-                expectedSide: isUserMessage ? 'RIGHT (blue - SENT)' : 'LEFT (grey - RECEIVED)',
-                className: isUserMessage ? 'chat-message--user' : 'chat-message--admin',
-                bubbleClass: isUserMessage ? 'chat-message__bubble--user' : 'chat-message__bubble--admin',
-                text: message.text?.substring(0, 30),
-                comparison: `"${senderType}" === "User" = ${senderType === 'User'}`,
-              });
-            }
-            
-            return (
-              <div
-                key={message.id || `msg-${message.createdAt}-${Math.random()}`}
-                className={`chat-message ${isUserMessage ? "chat-message--user" : "chat-message--admin"}`}
-              >
-                <div className={`chat-message__bubble ${isUserMessage ? "chat-message__bubble--user" : "chat-message__bubble--admin"}`}>
-                  <p className="chat-message__text">{message.text}</p>
-                </div>
-                <span className="chat-message__timestamp">{message.timestamp}</span>
-              </div>
-            );
-          })
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input Section */}
-      <footer className="chat-input-section">
-        <form className="chat-input-form" onSubmit={handleSendMessage}>
-          <input
-            type="text"
-            className="chat-input"
-            placeholder="Type a Message..."
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            disabled={sending || loading}
-          />
+      <div className="chat-container">
+        {/* Header */}
+        <header className="chat-header">
           <button 
-            type="submit" 
-            className="chat-input__send-btn" 
-            aria-label="Send message"
-            disabled={sending || loading || !inputMessage.trim()}
+            type="button" 
+            className="chat-header__back-btn" 
+            onClick={() => navigate("/dashboard")}
+            aria-label="Go back to home"
           >
-            {sending ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="chat-input__send-spinner">
-                <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
-                <path d="M12 2C6.477 2 2 6.477 2 12" strokeLinecap="round" />
-              </svg>
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19L5 12L12 5" />
+            </svg>
           </button>
-        </form>
-      </footer>
+          <div className="chat-header__avatar">
+            <div className="chat-header__avatar-circle">
+              <span className="chat-header__avatar-initials">A</span>
+            </div>
+          </div>
+          <div className="chat-header__info">
+            <h1 className="chat-header__name">Admin</h1>
+            <p className="chat-header__status">Online</p>
+          </div>
+          <div className="chat-header__spacer"></div>
+        </header>
+
+        {/* Messages Container */}
+        <div className="chat-messages">
+          {loading ? (
+            <div className="chat-loading">
+              <p>Loading messages...</p>
+            </div>
+          ) : messages.length === 0 ? (
+            <div className="chat-empty">
+              <p>No messages yet. Start the conversation!</p>
+            </div>
+          ) : (
+            messages.map((message, index) => {
+              // WhatsApp-like behavior for USER chat:
+              // - senderType === 'User' → Message sent by current user → Right side (blue) = SENT
+              // - senderType === 'Admin' → Message received from admin → Left side (grey) = RECEIVED
+              const senderType = String(message.senderType || '').trim();
+              const isUserMessage = senderType === 'User';
+              
+              if (index < 3 || messages.length - index <= 3) {
+                console.log(`🔵 USER CHAT - Rendering message ${index + 1}/${messages.length}:`, {
+                  id: message.id,
+                  originalSenderType: message.senderType,
+                  normalizedSenderType: senderType,
+                  senderTypeType: typeof message.senderType,
+                  isUserMessage,
+                  expectedSide: isUserMessage ? 'RIGHT (blue - SENT)' : 'LEFT (grey - RECEIVED)',
+                  className: isUserMessage ? 'chat-message--user' : 'chat-message--admin',
+                  bubbleClass: isUserMessage ? 'chat-message__bubble--user' : 'chat-message__bubble--admin',
+                  text: message.text?.substring(0, 30),
+                  comparison: `"${senderType}" === "User" = ${senderType === 'User'}`,
+                });
+              }
+              
+              return (
+                <div
+                  key={message.id || `msg-${message.createdAt}-${Math.random()}`}
+                  className={`chat-message ${isUserMessage ? "chat-message--user" : "chat-message--admin"}`}
+                >
+                  <div className={`chat-message__bubble ${isUserMessage ? "chat-message__bubble--user" : "chat-message__bubble--admin"}`}>
+                    <p className="chat-message__text">{message.text}</p>
+                  </div>
+                  <span className="chat-message__timestamp">{message.timestamp}</span>
+                </div>
+              );
+            })
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input Section */}
+        <footer className="chat-input-section">
+          <form className="chat-input-form" onSubmit={handleSendMessage}>
+            <input
+              type="text"
+              className="chat-input"
+              placeholder="Type a Message..."
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              disabled={sending || loading}
+            />
+            <button 
+              type="submit" 
+              className="chat-input__send-btn" 
+              aria-label="Send message"
+              disabled={sending || loading || !inputMessage.trim()}
+            >
+              {sending ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="chat-input__send-spinner">
+                  <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+                  <path d="M12 2C6.477 2 2 6.477 2 12" strokeLinecap="round" />
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </button>
+          </form>
+        </footer>
+      </div>
     </div>
   );
 };
