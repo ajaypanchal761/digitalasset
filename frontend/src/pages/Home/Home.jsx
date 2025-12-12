@@ -1,12 +1,13 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import heroBackground from "../../assets/hero-section-main.jpg";
+import heroBackground from "../../assets/newEarth.jpg";
 import "./Home.css";
 
 const Home = () => {
   const navigate = useNavigate();
   const sectionsRef = useRef([]);
   const heroRef = useRef(null);
+  const requestRef = useRef();
 
   useEffect(() => {
     // Intersection Observer for scroll animations
@@ -27,24 +28,39 @@ const Home = () => {
       if (section) observer.observe(section);
     });
 
-    // Parallax effect for hero background (subtle)
-    const handleScroll = () => {
+    // Optimized Parallax with requestAnimationFrame
+    const animateParallax = () => {
       if (heroRef.current) {
-        const scrolled = window.pageYOffset;
-        const parallaxSpeed = 0.3;
+        const scrolled = window.scrollY;
+        
+        // Only animate if hero is in view
         if (scrolled < window.innerHeight) {
-          heroRef.current.style.transform = `translate3d(0, ${scrolled * parallaxSpeed}px, 0)`;
+          // Check for reduced motion preference
+          const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          
+          if (!prefersReducedMotion) {
+            // Background moves slightly slower than scroll (0.04) for depth
+            // We clamp values to prevent excessive shifting
+            const limit = 50; 
+            const parallaxValue = Math.min(Math.max(scrolled * 0.04, -limit), limit);
+            
+            heroRef.current.style.transform = `translate3d(0, ${parallaxValue}px, 0)`;
+          }
         }
       }
+      requestRef.current = requestAnimationFrame(animateParallax);
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    // Start loop
+    requestRef.current = requestAnimationFrame(animateParallax);
 
     return () => {
       sectionsRef.current.forEach((section) => {
         if (section) observer.unobserve(section);
       });
-      window.removeEventListener("scroll", handleScroll);
+      if (requestRef.current) {
+        cancelAnimationFrame(requestRef.current);
+      }
     };
   }, []);
 
@@ -61,36 +77,93 @@ const Home = () => {
         <div className="home-hero__background" ref={heroRef}>
           <img 
             src={heroBackground} 
-            alt="Handshake background" 
+            alt="Global Trading Network" 
             className="home-hero__bg-image"
             loading="eager"
           />
+          <div className="home-hero__overlay"></div>
+          
+          {/* Particles Container */}
+          <div className="home-hero__particles">
+             <span className="particle particle--1"></span>
+             <span className="particle particle--2"></span>
+             <span className="particle particle--3"></span>
+             <span className="particle particle--4"></span>
+          </div>
+
+          {/* Moving Graph SVG Overlay - Multi-layer */}
+          <div className="home-hero__graph-container">
+            <svg className="home-hero__graph-svg" viewBox="0 0 1000 300" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="graphGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="rgba(12, 142, 244, 0)" />
+                  <stop offset="50%" stopColor="rgba(12, 142, 244, 0.4)" />
+                  <stop offset="100%" stopColor="rgba(12, 142, 244, 0)" />
+                </linearGradient>
+                <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="2" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+              </defs>
+              
+              {/* Layer 3 (Back - Slowest, Faint) */}
+              <path 
+                className="home-hero__graph-line line-slow"
+                d="M-200,280 C0,280 100,250 200,260 S 400,220 500,240 S 700,180 800,200 S 1000,150 1200,180"
+                fill="none"
+                stroke="rgba(255, 255, 255, 0.08)"
+                strokeWidth="1"
+              />
+
+              {/* Layer 2 (Middle - Medium speed) */}
+              <path 
+                className="home-hero__graph-line line-medium"
+                d="M-200,250 C0,250 50,200 150,220 S 300,180 400,200 S 550,100 650,120 S 800,50 900,80 S 1050,20 1200,50"
+                fill="none"
+                stroke="rgba(12, 142, 244, 0.2)"
+                strokeWidth="2"
+              />
+
+              {/* Layer 1 (Front - Fastest, Glowing) */}
+              <path 
+                className="home-hero__graph-line line-fast"
+                d="M-200,220 C-50,220 50,150 200,180 S 400,100 550,130 S 750,40 900,80 S 1100,10 1250,50"
+                fill="none"
+                stroke="url(#graphGradient)"
+                strokeWidth="3"
+                filter="url(#glow)"
+              />
+              
+              {/* Floating dots on the main path */}
+              <circle cx="200" cy="180" r="3" className="home-hero__graph-dot dot-1" />
+              <circle cx="550" cy="130" r="4" className="home-hero__graph-dot dot-2" />
+              <circle cx="900" cy="80" r="3" className="home-hero__graph-dot dot-3" />
+            </svg>
+          </div>
         </div>
-        <div className="home-hero__overlay"></div>
+
         <div className="home-hero__container">
-          <div className="home-hero__content-wrapper">
-            <div className="home-hero__content">
-              <h1 className="home-hero__title">
-                <span className="home-hero__title-line">Welcome to</span>
-                <span className="home-hero__highlight">DigitalAssets</span>
-              </h1>
-              <p className="home-hero__subtitle">
-                Your Gateway to Real Estate Investment Opportunities
-              </p>
-              <div className="home-hero__actions">
-                <button
-                  className="home-hero__btn home-hero__btn--primary"
-                  onClick={() => navigate("/explore")}
-                >
-                  Explore Properties
-                </button>
-                <button
-                  className="home-hero__btn home-hero__btn--secondary"
-                  onClick={() => navigate("/dashboard")}
-                >
-                  View Dashboard
-                </button>
-              </div>
+          <div className="home-hero__content">
+            <h1 className="home-hero__title">
+              <span className="home-hero__title-line">Take Control of</span>
+              <span className="home-hero__highlight">Your Investments</span>
+            </h1>
+            <p className="home-hero__subtitle">
+              Experience the future of fractional ownership — data-driven, secure, and designed for smart investors.
+            </p>
+            <div className="home-hero__actions">
+              <button
+                className="home-hero__btn home-hero__btn--primary"
+                onClick={() => navigate("/explore")}
+              >
+                Explore Properties
+              </button>
+              <button
+                className="home-hero__btn home-hero__btn--secondary"
+                onClick={() => navigate("/dashboard")}
+              >
+                View Dashboard
+              </button>
             </div>
           </div>
         </div>

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAppState } from "../context/AppStateContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-import logoImage from "../assets/logo.png";
+import logoImage from "../assets/logo1.png";
 
 // Icon components must be defined before they're used in arrays
 function HomeIcon({ active }) {

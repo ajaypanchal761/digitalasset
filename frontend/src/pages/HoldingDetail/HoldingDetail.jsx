@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext.jsx";
 import { useMemo, useState } from "react";
 import { certificateAPI } from "../../services/api.js";
+import "./HoldingDetail.css";
 
 const HoldingDetail = () => {
   const { id } = useParams();

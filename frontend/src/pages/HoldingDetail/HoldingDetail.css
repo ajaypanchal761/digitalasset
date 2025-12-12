@@ -1,0 +1,312 @@
+/* Holding Detail Page Styles */
+.holding-detail {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    background-color: #f8fafc;
+    min-height: 100vh;
+}
+
+.holding-detail__header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.holding-detail__back-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    color: #334155;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.holding-detail__back-btn:hover {
+    background: #f8fafc;
+}
+
+.holding-detail__header-box {
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    margin-bottom: 2rem;
+}
+
+.holding-detail__header-content {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.holding-detail__title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+}
+
+.holding-detail__type {
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin: 0.25rem 0 0.5rem 0;
+}
+
+.holding-detail__property-link {
+    background: none;
+    border: none;
+    color: #2563eb;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.875rem;
+}
+
+.holding-detail__status {
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.holding-detail__status--matured {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.holding-detail__status--locked {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.holding-detail__info-card {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.holding-detail__info-item {
+    background: #ffffff;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.holding-detail__info-label {
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.holding-detail__info-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.holding-detail__info-value--green {
+    color: #059669;
+}
+
+.holding-detail__section {
+    background: #ffffff;
+    border-radius: 1rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.holding-detail__section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 1.5rem 0;
+}
+
+.holding-detail__details-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.holding-detail__detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+}
+
+.holding-detail__detail-label {
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.holding-detail__detail-value {
+    color: #0f172a;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* Earnings Specific */
+.holding-detail__earnings-card {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.holding-detail__earnings-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    gap: 0.5rem;
+    background: #f8fafc;
+}
+
+.holding-detail__earnings-item:last-child {
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.holding-detail__earnings-item:last-child {
+    border-bottom: none;
+}
+
+.holding-detail__earnings-label {
+    font-weight: 600;
+    color: #475569;
+}
+
+.holding-detail__earnings-value {
+    font-weight: 700;
+    color: #0f172a;
+}
+
+/* Withdrawal Options */
+.holding-detail__withdrawal-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.holding-detail__withdrawal-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+}
+
+.holding-detail__withdrawal-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.holding-detail__withdrawal-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.holding-detail__withdrawal-btn--active {
+    background: #2563eb;
+    color: #fff;
+}
+
+.holding-detail__withdrawal-btn--disabled {
+    background: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .holding-detail {
+        padding: 1rem;
+        margin-top: 5rem;
+        /* Significant top margin as requested */
+    }
+
+    .holding-detail__header-top {
+        margin-bottom: 1.5rem;
+    }
+
+    .holding-detail__header-box {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .holding-detail__header-content {
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .holding-detail__title {
+        font-size: 1.5rem;
+    }
+
+    .holding-detail__info-card {
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .holding-detail__section {
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .holding-detail__earnings-card {
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .holding-detail__earnings-item {
+        padding: 1rem;
+    }
+
+    .holding-detail__details-list {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .holding-detail__withdrawal-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .holding-detail__withdrawal-btn {
+        width: 100%;
+    }
+}

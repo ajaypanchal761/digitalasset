@@ -225,42 +225,16 @@ const PropertyDetail = () => {
   return (
     <div className="property-detail">
       {/* Header Section */}
-      <div className="property-detail__header">
-        <div className="property-detail__header-top">
-          <button onClick={() => navigate(-1)} className="property-detail__back-btn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Back
-          </button>
-          <button 
-            onClick={() => {
-              if (!calculateROI || !property) return;
-              // Check if property is active before allowing investment
-              if (property.status !== 'active') {
-                alert(`This property is ${property.status}. Only active properties are available for investment.`);
-                return;
-              }
-              navigate("/invest", { 
-                state: { 
-                  propertyId: property._id || property.id,
-                  propertyTitle: property.title,
-                  investmentAmount: calculateROI.investmentAmount,
-                  monthlyEarning: calculateROI.monthlyEarning,
-                  totalEarnings: calculateROI.totalEarnings,
-                  lockInMonths: calculateROI.lockInMonths,
-                  maturityDate: calculateROI.maturityDate,
-                  monthlyReturnRate: property.monthlyReturnRate || 0.5,
-                } 
-              });
-            }} 
-            className="property-detail__invest-btn property-detail__invest-btn--top"
-            disabled={property.status !== 'active'}
-            title={property.status !== 'active' ? `This property is ${property.status}. Only active properties are available for investment.` : 'Invest in this property'}
-          >
-            {property.status === 'active' ? 'Invest Now' : `Property ${property.status.charAt(0).toUpperCase() + property.status.slice(1)}`}
-          </button>
+      <button onClick={() => navigate(-1)} className="property-detail__back-btn-wrapper">
+        <div className="property-detail__back-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Back
         </div>
+      </button>
+
+      <div className="property-detail__header">
         <div className="property-detail__header-box">
           <div className="property-detail__header-content">
             <div className="property-detail__icon">
