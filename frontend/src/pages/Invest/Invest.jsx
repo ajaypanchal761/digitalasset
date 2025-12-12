@@ -128,12 +128,24 @@ const Invest = () => {
   if (!property) {
     return (
       <div className="invest-page">
-        <div className="invest-page__not-found">
-          <h2>Property Not Found</h2>
-          <p>Please select a property to invest in.</p>
-          <button onClick={() => navigate("/explore")} className="invest-page__btn invest-page__btn--primary">
-            Browse Properties
-          </button>
+        <div className="invest-page__container">
+          <div className="invest-page__header">
+            <button onClick={() => navigate(-1)} className="invest-page__back-btn" aria-label="Go back">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 12H5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M12 19L5 12L12 5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <h1 className="invest-page__title">My Investments</h1>
+            <div className="invest-page__header-spacer"></div>
+          </div>
+          <div className="invest-page__not-found">
+            <h2>Property Not Found</h2>
+            <p>Please select a property to invest in.</p>
+            <button onClick={() => navigate("/explore")} className="invest-page__btn invest-page__btn--primary">
+              Browse Properties
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -151,6 +163,7 @@ const Invest = () => {
             Back
           </button>
           <h1 className="invest-page__title">Invest in {property.title}</h1>
+          <div className="invest-page__header-spacer"></div>
         </div>
 
         {/* Property Info Card */}

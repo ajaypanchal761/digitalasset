@@ -9138,9 +9138,11 @@ section p {
   }
 
   .explore-properties-section__header-wrapper {
-    padding: 0 0.75rem;
-    margin-bottom: 1rem;
-    gap: 0.5rem;
+    padding: 1rem 0.75rem;
+    margin-bottom: 1.5rem;
+    gap: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: #ffffff;
   }
 
   .explore-properties-section__back-btn {
@@ -9172,93 +9174,98 @@ section p {
     max-width: 100vw;
     box-sizing: border-box;
     overflow-x: hidden;
-    margin-top: 1rem;
+    margin-top: 1.5rem;
   }
 
   .explore-properties-section__cards {
-    gap: 0.65rem;
+    gap: 1rem;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    padding-bottom: 2rem;
   }
 
   .property-card {
-    padding: 0.75rem;
-    gap: 0.65rem;
-    border-radius: 0.625rem;
+    margin-top: 0.5rem;
+    padding: 1rem;
+    gap: 0.75rem;
+    border-radius: 1rem;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
     overflow: hidden;
     min-height: auto;
+    background: #ffffff;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid #f1f5f9;
   }
 
   .property-card__content {
-    gap: 0.65rem;
+    gap: 0.85rem;
   }
 
   .property-card__row--first {
-    gap: 0.65rem;
+    gap: 0.85rem;
   }
 
   .property-card__row--second,
   .property-card__row--third {
-    gap: 0.75rem;
+    gap: 1rem;
   }
 
   .property-card__icon {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     flex-shrink: 0;
   }
 
   .property-card__icon svg {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
   }
 
   .property-card__name {
-    font-size: 0.875rem;
+    font-size: 1rem;
     line-height: 1.3;
     word-wrap: break-word;
     overflow-wrap: break-word;
-    font-weight: 600;
+    font-weight: 700;
   }
 
   .property-card__price-section,
   .property-card__return-section {
-    gap: 0.35rem;
+    gap: 0.5rem;
   }
 
   .property-card__price-label,
   .property-card__return-label {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     font-weight: 500;
   }
 
   .property-card__price {
-    font-size: 0.95rem;
+    font-size: 1.1rem;
     font-weight: 700;
   }
 
   .property-card__return {
-    font-size: 0.8rem;
-    gap: 0.2rem;
+    font-size: 0.9rem;
+    gap: 0.25rem;
   }
 
   .property-card__return-value {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     font-weight: 600;
   }
 
   .property-card__arrow {
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
   }
 
   .property-card__invest-btn {
-    padding: 0.5rem 0.875rem;
-    font-size: 0.8rem;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
     width: 100%;
   }
 }
@@ -15345,6 +15352,14 @@ section p {
 /* Small Mobile (480px and below) - Adjust header padding */
 @media (max-width: 480px) {
 
+  .mobile-content {
+    padding: 1rem 0.75rem 5rem;
+    padding-top: 3rem;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+  }
+
   .withdraw-info-page__header,
   .contact-owner-page__header,
   .property-sale-offline-page__header,
@@ -15858,4 +15873,90 @@ section p {
   .withdraw-info-page__option-card {
     padding: 1.25rem;
   }
+}
+
+/* Invest Page Styles */
+.invest-page__header {
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.invest-page__title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.invest-page__back-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f172a;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.invest-page__back-btn:hover {
+  background-color: #f1f5f9;
+}
+
+/* Invest Page Mobile Header */
+.invest-page__header-spacer {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .invest-page {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  .invest-page__header {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.75rem 1.25rem;
+    margin: 0;
+    z-index: 100;
+    justify-content: space-between;
+    gap: 0;
+    box-sizing: border-box;
+  }
+
+  .invest-page__title {
+    font-size: 1.125rem;
+    text-align: center;
+    flex: 1;
+  }
+
+  .invest-page__header-spacer {
+    display: block;
+    width: 40px;
+  }
+}
+
+/* Plain Mobile Content (No Padding) for KYC/Invest headers */
+.mobile-content--plain {
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.mobile-shell--plain {
+  padding: 0 !important;
 }

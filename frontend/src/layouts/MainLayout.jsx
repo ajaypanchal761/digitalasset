@@ -400,6 +400,8 @@ const MainLayout = () => {
   const isHelpPage = location.pathname === "/help" || location.pathname.startsWith("/help/");
   const isFAQPage = location.pathname === "/faq";
   const isSupportPage = location.pathname === "/support";
+  const isKYCPage = location.pathname === "/kyc";
+  const isInvestPage = location.pathname.startsWith("/invest");
   
   // Show wallet balance box only on Dashboard and Wallet pages
   const shouldShowWalletBalance = isDashboardPage || isWalletPage;
@@ -456,7 +458,7 @@ const MainLayout = () => {
 
     return (
       <div className="mobile-shell">
-        {!isHomePage && !isPropertyDetailPage && !isHoldingDetailPage && !isEditProfilePage && !isExplorePage && !isChatPage && !isHoldingsPage && (
+        {!isHomePage && !isPropertyDetailPage && !isHoldingDetailPage && !isEditProfilePage && !isExplorePage && !isChatPage && !isHoldingsPage && !isKYCPage && !isInvestPage && (
           <header className="mobile-header">
             <div className="mobile-header__row">
               <NavLink to="/home" className="mobile-header__logo">

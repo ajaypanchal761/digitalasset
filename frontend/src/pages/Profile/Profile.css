@@ -5,7 +5,8 @@
   background: linear-gradient(to bottom, #f8fafc 0%, #ffffff 20%);
   display: flex;
   flex-direction: column;
-  padding-bottom: 6rem; /* Add bottom padding for fixed navbar */
+  padding-bottom: 6rem;
+  /* Add bottom padding for fixed navbar */
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -155,6 +156,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -401,7 +403,8 @@
 /* Mobile specific adjustments */
 @media (max-width: 640px) {
   .profile-page {
-    padding-bottom: 5.5rem; /* Space for bottom navigation */
+    padding-bottom: 5.5rem;
+    /* Space for bottom navigation */
   }
 
   .profile-header {
@@ -555,4 +558,3 @@
     height: 18px;
   }
 }
-

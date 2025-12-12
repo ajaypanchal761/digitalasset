@@ -185,6 +185,44 @@ const Help = () => {
       </header>
 
       <div className="help-content">
+        {/* Search */}
+        <div className="help-search">
+          <div className="help-search__wrapper">
+            <svg
+              className="help-search__icon"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            <input
+              type="text"
+              className="help-search__input"
+              placeholder="Search for articles, topics..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                className="help-search__clear"
+                onClick={() => setSearchQuery("")}
+                aria-label="Clear search"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 6 6 18" />
+                  <path d="m6 6 12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Quick Actions */}
         <div className="help-quick-actions">
           <button
