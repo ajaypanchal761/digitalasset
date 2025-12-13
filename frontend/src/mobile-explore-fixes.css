@@ -1,0 +1,53 @@
+/* =========================================
+   Mobile Explore Page Fixes
+   ========================================= */
+@media (max-width: 768px) {
+
+    /* Ensure the explore page content is scrollable and has space for bottom nav */
+    .mobile-content.mobile-content--explore {
+        display: block !important;
+        overflow-y: auto !important;
+        height: 100vh !important;
+        padding-bottom: 100px !important;
+        /* Space for bottom nav + extra */
+        box-sizing: border-box;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Reset container widths for mobile within the explore page */
+    .mobile-content--explore .explore-properties-section {
+        width: 100%;
+        max-width: 100%;
+        padding-bottom: 2rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Ensure cards container stacking */
+    .mobile-content--explore .explore-properties-section__cards {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        padding: 0 1rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Ensure card sizing */
+    .mobile-content--explore .explore-properties-section__cards .property-card {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+    }
+
+    /* Header adjustments */
+    .mobile-content--explore .explore-properties-section__header-wrapper {
+        padding: 1rem;
+        position: sticky;
+        top: 0;
+        background: #fff;
+        z-index: 10;
+        margin-bottom: 1rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+}

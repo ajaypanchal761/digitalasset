@@ -157,7 +157,7 @@ const Invest = () => {
         {/* Header */}
         <div className="invest-page__header">
           <button onClick={() => navigate(-1)} className="invest-page__back-btn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             Back
@@ -224,17 +224,72 @@ const Invest = () => {
             <label htmlFor="timePeriod" className="invest-page__label">
               Investment Period (Months) <span className="invest-page__required">*</span>
             </label>
-            <select
-              id="timePeriod"
-              value={formData.timePeriod}
-              onChange={(e) => handleInputChange("timePeriod", parseInt(e.target.value))}
-              className={`invest-page__input invest-page__input--select ${errors.timePeriod ? "invest-page__input--error" : ""}`}
-            >
-              <option value={3}>3 Months (Lock-in Period)</option>
-              <option value={6}>6 Months</option>
-              <option value={12}>12 Months (1 Year)</option>
-              <option value={24}>24 Months (2 Years)</option>
-            </select>
+            {/* Custom Dropdown Implementation */}
+            <div className="invest-page__custom-select-wrapper" style={{ position: 'relative' }}>
+              <button 
+                type="button"
+                className={`invest-page__input invest-page__input--select ${errors.timePeriod ? "invest-page__input--error" : ""}`}
+                onClick={() => setFormData(prev => ({ ...prev, isDropdownOpen: !prev.isDropdownOpen }))}
+                style={{ textAlign: 'left', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
+              >
+                <span>
+                  {formData.timePeriod === 3 ? "3 Months (Lock-in Period)" :
+                   formData.timePeriod === 6 ? "6 Months" :
+                   formData.timePeriod === 12 ? "12 Months (1 Year)" :
+                   "24 Months (2 Years)"}
+                </span>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ transform: formData.isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
+                  <path d="M2 4L6 8L10 4" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              
+              {formData.isDropdownOpen && (
+                <div className="invest-page__dropdown-menu" style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  background: '#fff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '0.75rem',
+                  marginTop: '4px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  zIndex: 50,
+                  overflow: 'hidden'
+                }}>
+                  {[
+                    { val: 3, label: "3 Months (Lock-in Period)" },
+                    { val: 6, label: "6 Months" },
+                    { val: 12, label: "12 Months (1 Year)" },
+                    { val: 24, label: "24 Months (2 Years)" }
+                  ].map((opt) => (
+                    <button
+                      key={opt.val}
+                      type="button"
+                      onClick={() => {
+                        handleInputChange("timePeriod", opt.val);
+                        setFormData(prev => ({ ...prev, isDropdownOpen: false }));
+                      }}
+                      className="invest-page__dropdown-item"
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '0.75rem 1rem',
+                        background: formData.timePeriod === opt.val ? '#eff6ff' : '#fff',
+                        border: 'none',
+                        borderBottom: '1px solid #f1f5f9',
+                        color: formData.timePeriod === opt.val ? '#2563eb' : '#0f172a',
+                        fontWeight: formData.timePeriod === opt.val ? 600 : 400,
+                        cursor: 'pointer',
+                        display: 'block'
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             {errors.timePeriod && <span className="invest-page__error">{errors.timePeriod}</span>}
             <span className="invest-page__hint">Minimum lock-in period is 3 months</span>
           </div>

@@ -218,147 +218,154 @@ const EditProfile = () => {
 
   return (
     <div className="edit-profile">
-      {/* Header */}
-      <header className="edit-profile__header">
-        <button type="button" className="edit-profile__back-btn" onClick={handleBack} aria-label="Go back">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5M12 19L5 12L12 5" />
-          </svg>
-        </button>
-        <h1 className="edit-profile__title">Edit Profile</h1>
-        <button 
-          type="button" 
-          className="edit-profile__save-btn" 
-          onClick={handleSave} 
-          aria-label="Save changes"
-          disabled={saving}
-        >
-          {saving ? (
-            <span>Saving...</span>
-          ) : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 6L9 17L4 12" />
+      <div className="edit-profile__container">
+        {/* Header */}
+        <header className="edit-profile__header">
+          <button type="button" className="edit-profile__back-btn" onClick={handleBack} aria-label="Go back">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 19l-7-7 7-7" />
             </svg>
-          )}
-        </button>
-      </header>
+          </button>
+          <h1 className="edit-profile__title">Edit Profile</h1>
+          <button 
+            type="button" 
+            className="edit-profile__save-btn" 
+            onClick={handleSave} 
+            aria-label="Save changes"
+            disabled={saving}
+          >
+            {saving ? (
+              <span style={{ fontSize: '0.9rem' }}>Save</span>
+            ) : (
+              <span className="edit-profile__save-text">Save</span>
+            )}
+          </button>
+        </header>
 
-      {/* Profile Picture */}
-      <div className="edit-profile__avatar-section">
-        <div className="edit-profile__avatar-wrapper">
-          {avatarPreview ? (
-            <img 
-              src={avatarPreview} 
-              alt={formData.name} 
-              className="edit-profile__avatar"
-              loading="lazy"
-              decoding="async"
-            />
-          ) : (
-            <div className="edit-profile__avatar-fallback">
-              {formData.name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")
-                .toUpperCase()
-                .slice(0, 2)}
+        <div className="edit-profile__content">
+          {/* Profile Picture */}
+          <div className="edit-profile__avatar-section">
+            <div className="edit-profile__avatar-wrapper">
+              {avatarPreview ? (
+                <img 
+                  src={avatarPreview} 
+                  alt={formData.name} 
+                  className="edit-profile__avatar"
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : (
+                <div className="edit-profile__avatar-fallback">
+                  {formData.name
+                    ? formData.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase()
+                        .slice(0, 2)
+                    : "U"}
+                </div>
+              )}
+              <label htmlFor="avatar-upload" className="edit-profile__camera-btn" aria-label="Change profile picture">
+                <input
+                  type="file"
+                  id="avatar-upload"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  style={{ display: "none" }}
+                />
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 4H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
+              </label>
             </div>
-          )}
-          <label htmlFor="avatar-upload" className="edit-profile__camera-btn" aria-label="Change profile picture">
-            <input
-              type="file"
-              id="avatar-upload"
-              accept="image/*"
-              onChange={handleAvatarChange}
-              style={{ display: "none" }}
-            />
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 4H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z" />
-              <circle cx="12" cy="13" r="4" />
-            </svg>
-          </label>
-        </div>
-      </div>
+          </div>
 
-      {/* Form Fields */}
-      <div className="edit-profile__form">
-        <div className="edit-profile__field">
-          <label htmlFor="name" className="edit-profile__label">
-            Name
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            className="edit-profile__input"
-            placeholder="Enter your name"
-          />
-        </div>
+          {/* Form Fields */}
+          <div className="edit-profile__form">
+            <div className="edit-profile__field">
+              <label htmlFor="name" className="edit-profile__label">
+                Name
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                className="edit-profile__input"
+                placeholder="Enter your name"
+              />
+            </div>
 
-        <div className="edit-profile__field">
-          <label htmlFor="email" className="edit-profile__label">
-            E mail address
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            className="edit-profile__input"
-            placeholder="Enter your email"
-            readOnly
-            style={{ backgroundColor: "#f1f5f9", cursor: "not-allowed" }}
-          />
-          <span className="edit-profile__hint">Email cannot be changed (used for OTP verification)</span>
-        </div>
+            <div className="edit-profile__field">
+              <label htmlFor="email" className="edit-profile__label">
+                Email address
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className="edit-profile__input"
+                placeholder="Enter your email"
+                readOnly
+                style={{ backgroundColor: "#f8fafc", cursor: "not-allowed", color: "#64748b" }}
+              />
+              <span className="edit-profile__hint">Email cannot be changed</span>
+            </div>
 
-        <div className="edit-profile__field">
-          <label htmlFor="username" className="edit-profile__label">
-            User name
-          </label>
-          <input
-            type="text"
-            id="username"
-            name="username"
-            value={formData.username}
-            onChange={handleInputChange}
-            className="edit-profile__input"
-            placeholder="Enter your username"
-          />
-        </div>
+            <div className="edit-profile__field">
+              <label htmlFor="username" className="edit-profile__label">
+                Username
+              </label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                value={formData.username}
+                onChange={handleInputChange}
+                className="edit-profile__input"
+                placeholder="Enter your username"
+                readOnly
+                style={{ backgroundColor: "#f8fafc", cursor: "not-allowed", color: "#64748b" }}
+              />
+               <span className="edit-profile__hint">Username is auto-generated</span>
+            </div>
 
-        <div className="edit-profile__field">
-          <label htmlFor="phone" className="edit-profile__label">
-            Phone number
-          </label>
-          <div className="edit-profile__phone-wrapper">
-            <Select
-              name="countryCode"
-              value={formData.countryCode}
-              onChange={handleInputChange}
-              options={[
-                { value: '+91', label: '+91' },
-                { value: '+1', label: '+1' },
-                { value: '+44', label: '+44' },
-                { value: '+86', label: '+86' },
-                { value: '+971', label: '+971' },
-                { value: '+65', label: '+65' },
-                { value: '+60', label: '+60' },
-              ]}
-              className="edit-profile__country-code"
-            />
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              value={formData.phone}
-              onChange={handleInputChange}
-              className="edit-profile__input edit-profile__input--phone"
-              placeholder="Enter your phone number"
-            />
+            <div className="edit-profile__field">
+              <label htmlFor="phone" className="edit-profile__label">
+                Phone number
+              </label>
+              <div className="edit-profile__phone-wrapper">
+                <Select
+                  name="countryCode"
+                  value={formData.countryCode}
+                  onChange={handleInputChange}
+                  options={[
+                    { value: '+91', label: '🇮🇳 +91' },
+                    { value: '+1', label: '🇺🇸 +1' },
+                    { value: '+44', label: '🇬🇧 +44' },
+                    { value: '+86', label: '🇨🇳 +86' },
+                    { value: '+971', label: '🇦🇪 +971' },
+                    { value: '+65', label: '🇸🇬 +65' },
+                    { value: '+60', label: '🇲🇾 +60' },
+                  ]}
+                  className="edit-profile__country-code"
+                />
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  className="edit-profile__input edit-profile__input--phone"
+                  placeholder="Enter your phone number"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>

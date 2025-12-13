@@ -2,6 +2,12 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import "./App.css";
 import "./styles/admin-enhancements.css";
+import "./mobile-explore-fixes.css";
+import "./mobile-property-fixes.css";
+import "./mobile-invest-fixes.css";
+import "./mobile-holdings-fixes.css";
+import "./mobile-profile-fixes.css";
+import "./mobile-edit-profile-fixes.css";
 import { ToastContainer } from "./components/Toast.jsx";
 import MainLayout from "./layouts/MainLayout.jsx";
 import AdminLayout from "./layouts/AdminLayout.jsx";

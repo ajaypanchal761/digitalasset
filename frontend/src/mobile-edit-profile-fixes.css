@@ -1,0 +1,252 @@
+/* Mobile & Web Edit Profile Fixes */
+
+/* Mobile Styling (Default) */
+.edit-profile {
+    width: 100%;
+    min-height: 100vh;
+    background: #ffffff;
+    box-sizing: border-box;
+}
+
+.edit-profile__container {
+    width: 100%;
+    padding-top: 60px;
+    /* Space for fixed header */
+}
+
+/* Mobile Header */
+.edit-profile__header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    box-sizing: border-box;
+    z-index: 100;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.edit-profile__back-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0f172a;
+    cursor: pointer;
+}
+
+.edit-profile__title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    flex: 1;
+    text-align: center;
+}
+
+/* Save Button */
+.edit-profile__save-btn {
+    background: transparent;
+    border: none;
+    font-weight: 600;
+    color: #2563eb;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.edit-profile__save-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Content & Form */
+.edit-profile__content {
+    padding-bottom: 2rem;
+}
+
+.edit-profile__avatar-section {
+    padding: 2rem 0;
+    display: flex;
+    justify-content: center;
+}
+
+.edit-profile__form {
+    padding: 0 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* Fields */
+.edit-profile__label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 0.4rem;
+}
+
+.edit-profile__input {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.75rem;
+    font-size: 1rem;
+    color: #0f172a;
+    background: #ffffff;
+    box-sizing: border-box;
+    transition: all 0.2s;
+}
+
+.edit-profile__input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    outline: none;
+}
+
+.edit-profile__input[readonly] {
+    background: #f8fafc;
+    color: #64748b;
+    border-color: #e2e8f0;
+}
+
+/* Phone Wrapper Mobile Fix - Stack Vertical */
+.edit-profile__phone-wrapper {
+    display: flex;
+    flex-direction: column;
+    /* Stack them vertical on mobile */
+    gap: 0.75rem;
+}
+
+.edit-profile__input--phone {
+    width: 100% !important;
+}
+
+/* Ensure Custom Select Matches Input Style and takes full width in stack */
+.edit-profile__country-code {
+    width: 100% !important;
+}
+
+.edit-profile__country-code .modern-select__trigger {
+    padding: 0.85rem 1rem !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 0.75rem !important;
+    font-size: 1rem !important;
+    background: #ffffff !important;
+    height: auto !important;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    width: 100% !important;
+    box-sizing: border-box;
+    justify-content: space-between;
+    /* Align text and arrow */
+}
+
+.edit-profile__country-code .modern-select__trigger:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+}
+
+.edit-profile__hint {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-top: 0.25rem;
+}
+
+/* Desktop / Web View */
+@media (min-width: 769px) {
+    .edit-profile {
+        background: #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .edit-profile__container {
+        width: 100%;
+        max-width: 600px;
+        background: #ffffff;
+        border-radius: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        padding-top: 0;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+    }
+
+    .edit-profile__header {
+        position: relative;
+        width: 100%;
+        height: auto;
+        padding: 1.5rem 2rem;
+        background: #ffffff;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .edit-profile__title {
+        text-align: center;
+        font-size: 1.5rem;
+    }
+
+    .edit-profile__back-btn {
+        width: 44px;
+        height: 44px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+    }
+
+    .edit-profile__back-btn:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+    }
+
+    .edit-profile__save-btn {
+        background: #2563eb;
+        color: #ffffff;
+        padding: 0.5rem 1.25rem;
+        border-radius: 0.5rem;
+        font-size: 0.95rem;
+        transition: background 0.2s;
+    }
+
+    .edit-profile__save-btn:hover {
+        background: #1d4ed8;
+    }
+
+    .edit-profile__content {
+        padding: 0 2rem 2rem 2rem;
+    }
+
+    .edit-profile__form {
+        padding: 0;
+        gap: 1.5rem;
+    }
+
+    .edit-profile__avatar-section {
+        padding: 2.5rem 0 2rem;
+    }
+
+    /* Desktop Phone Wrapper - Restore Row */
+    .edit-profile__phone-wrapper {
+        flex-direction: row !important;
+        gap: 0.75rem;
+    }
+
+    .edit-profile__country-code {
+        width: 140px !important;
+        /* Fixed width for select on desktop */
+    }
+}

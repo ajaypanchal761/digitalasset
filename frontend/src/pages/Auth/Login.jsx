@@ -16,18 +16,18 @@ const Login = () => {
   useEffect(() => {
     // On user login page, we should only check for user token, not admin token
     // Admin token should not prevent user from logging in
-    const userToken = localStorage.getItem('token');
-    const adminToken = localStorage.getItem('adminToken');
-    
+    const userToken = localStorage.getItem("token");
+    const adminToken = localStorage.getItem("adminToken");
+
     if (adminToken && !userToken) {
       // Admin token exists but no user token - this is fine, allow user to login
       // Don't do anything, just let the login flow proceed
-      console.log('ℹ️ Login - Admin token exists but allowing user login flow');
+      console.log("ℹ️ Login - Admin token exists but allowing user login flow");
     }
-    
+
     if (!loading && isAuthenticated && userToken) {
       // Only redirect if user is actually authenticated with user token
-      console.log('✅ Login - User already authenticated, redirecting to home');
+      console.log("✅ Login - User already authenticated, redirecting to home");
       navigate("/home", { replace: true });
     }
   }, [isAuthenticated, loading, navigate]);
@@ -37,7 +37,7 @@ const Login = () => {
     return (
       <div className="login-page">
         <div className="login-container">
-          <div style={{ padding: '2rem', textAlign: 'center' }}>
+          <div style={{ padding: "2rem", textAlign: "center" }}>
             <p>Loading...</p>
           </div>
         </div>
@@ -81,16 +81,16 @@ const Login = () => {
       // Send OTP via API
       const response = await authAPI.sendOTP({
         phone: phone,
-        purpose: 'login',
+        purpose: "login",
       });
 
       if (response.success) {
         // Navigate to login OTP verification page with phone number
         navigate("/auth/login-otp", {
-          state: { 
+          state: {
             phone: `+91 ${formatPhone(phone)}`,
             phoneNumber: phone,
-          }
+          },
         });
       } else {
         setErrors(response.message || "Failed to send OTP. Please try again.");
@@ -101,7 +101,7 @@ const Login = () => {
       try {
         if (err instanceof Error) {
           const msg = err.message;
-          if (typeof msg === 'string' && msg && !msg.includes('query')) {
+          if (typeof msg === "string" && msg && !msg.includes("query")) {
             errorMessage = msg;
           }
         }
@@ -121,29 +121,80 @@ const Login = () => {
       <div className="login-container">
         {/* Illustration */}
         <div className="login-illustration">
-          <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg
+            width="200"
+            height="200"
+            viewBox="0 0 200 200"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
             {/* Hand holding phone illustration */}
             <g>
               {/* Cloud shapes */}
-              <ellipse cx="50" cy="80" rx="30" ry="20" fill="#E5E7EB" opacity="0.5"/>
-              <ellipse cx="150" cy="100" rx="25" ry="15" fill="#E5E7EB" opacity="0.5"/>
-              <ellipse cx="80" cy="140" rx="20" ry="12" fill="#E5E7EB" opacity="0.5"/>
-              
+              <ellipse
+                cx="50"
+                cy="80"
+                rx="30"
+                ry="20"
+                fill="#E5E7EB"
+                opacity="0.5"
+              />
+              <ellipse
+                cx="150"
+                cy="100"
+                rx="25"
+                ry="15"
+                fill="#E5E7EB"
+                opacity="0.5"
+              />
+              <ellipse
+                cx="80"
+                cy="140"
+                rx="20"
+                ry="12"
+                fill="#E5E7EB"
+                opacity="0.5"
+              />
+
               {/* Stars */}
-              <circle cx="40" cy="60" r="2" fill="#FFFFFF"/>
-              <circle cx="160" cy="80" r="2" fill="#FFFFFF"/>
-              <circle cx="70" cy="120" r="2" fill="#FFFFFF"/>
-              
+              <circle cx="40" cy="60" r="2" fill="#FFFFFF" />
+              <circle cx="160" cy="80" r="2" fill="#FFFFFF" />
+              <circle cx="70" cy="120" r="2" fill="#FFFFFF" />
+
               {/* Hand */}
-              <path d="M100 120 L90 140 L95 145 L105 145 L110 140 L100 120 Z" fill="#F3D2C1"/>
-              
+              <path
+                d="M100 120 L90 140 L95 145 L105 145 L110 140 L100 120 Z"
+                fill="#F3D2C1"
+              />
+
               {/* Phone */}
-              <rect x="95" y="60" width="30" height="50" rx="4" fill="#374151"/>
-              <rect x="98" y="63" width="24" height="35" rx="2" fill="#FFFFFF"/>
-              
+              <rect
+                x="95"
+                y="60"
+                width="30"
+                height="50"
+                rx="4"
+                fill="#374151"
+              />
+              <rect
+                x="98"
+                y="63"
+                width="24"
+                height="35"
+                rx="2"
+                fill="#FFFFFF"
+              />
+
               {/* Checkmark circle on phone screen */}
-              <circle cx="110" cy="80" r="12" fill="#6366F1"/>
-              <path d="M105 80 L108 83 L115 76" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <circle cx="110" cy="80" r="12" fill="#6366F1" />
+              <path
+                d="M105 80 L108 83 L115 76"
+                stroke="#FFFFFF"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
             </g>
           </svg>
         </div>
@@ -151,7 +202,9 @@ const Login = () => {
         {/* Content */}
         <div className="login-content">
           <h1 className="login-title">Sign in</h1>
-          <p className="login-subtitle">Enter your phone number to verify your account</p>
+          <p className="login-subtitle">
+            Enter your phone number to verify your account
+          </p>
 
           <form className="login-form" onSubmit={handleSubmit}>
             {errors && <div className="login-error">{errors}</div>}
@@ -171,16 +224,22 @@ const Login = () => {
                 {isValid && (
                   <div className="phone-checkmark">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <circle cx="8" cy="8" r="8" fill="#10B981"/>
-                      <path d="M5 8 L7 10 L11 6" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <circle cx="8" cy="8" r="8" fill="#10B981" />
+                      <path
+                        d="M5 8 L7 10 L11 6"
+                        stroke="#FFFFFF"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                   </div>
                 )}
               </div>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="login-continue-btn"
               disabled={isSubmitting || !isValid}
             >

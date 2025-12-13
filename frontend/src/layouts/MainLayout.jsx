@@ -429,10 +429,13 @@ const MainLayout = () => {
     return null; // Will redirect in useEffect
   }
 
+  // Check specifically for the exact /invest path, not sub-routes like /invest/request
+  const isInvestMainPage = location.pathname === "/invest";
+
   if (isMobile && (isHomePage || isPropertyDetailPage || isHoldingDetailPage || isProfilePage || isEditProfilePage || isExplorePage || isChatPage || isHoldingsPage || isWithdrawInfoPage || isContactOwnerPage || isContactOwnerMessagesPage || isPropertySaleOfflinePage || isTransferOwnershipPage || isFindBuyerPage || isBuyerRequestsPage || isHelpPage || isFAQPage || isSupportPage)) {
     return (
       <div className="mobile-shell mobile-shell--plain">
-        <main className="mobile-content mobile-content--plain">
+        <main className={`mobile-content mobile-content--plain ${isExplorePage ? 'mobile-content--explore' : ''}`}>
           <Outlet />
         </main>
         {!isChatPage && (
@@ -538,7 +541,7 @@ const MainLayout = () => {
             {shouldShowWalletBalance && <WalletSummaryCard wallet={wallet} />}
           </header>
         )}
-        <main className="mobile-content">
+        <main className={`mobile-content ${isInvestMainPage ? 'mobile-content--invest' : ''}`}>
           <div className="mobile-scroll-area">
             <Outlet />
           </div>

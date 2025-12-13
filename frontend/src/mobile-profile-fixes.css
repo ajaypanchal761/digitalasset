@@ -1,0 +1,57 @@
+/* Mobile Profile Page Fixes */
+@media (max-width: 640px) {
+
+    /* 1. Ensure the main card allows height expansion */
+    .profile-info-card {
+        height: auto !important;
+        min-height: auto !important;
+        overflow: visible !important;
+        padding-bottom: 0 !important;
+    }
+
+    /* 2. Inner container - Switch to ROW layout so Image and Text are side-by-side */
+    .profile-info {
+        display: flex !important;
+        flex-direction: row !important;
+        /* Force row layout */
+        align-items: flex-start !important;
+        padding: 1.5rem 1.25rem 1.75rem 1.25rem !important;
+        height: auto !important;
+        gap: 1.25rem !important;
+        /* Space between image and text */
+    }
+
+    /* 3. Image Section - Should not grow */
+    .profile-picture-wrapper {
+        flex-shrink: 0 !important;
+    }
+
+    /* 4. Details Section - Take remaining space, but handle button */
+    .profile-details {
+        flex: 1 !important;
+        width: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    /* 5. Details Row - Column layout INSIDE details to stack Text and Button */
+    .profile-details__row {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 1rem !important;
+        width: 100% !important;
+    }
+
+    .profile-details__name-section {
+        width: 100% !important;
+    }
+
+    /* 6. Button Styling */
+    .profile-edit-btn {
+        width: 100% !important;
+        justify-content: center !important;
+        margin-top: 0.25rem !important;
+        position: relative !important;
+        z-index: 2;
+    }
+}

@@ -253,8 +253,12 @@
 @media (max-width: 768px) {
     .holding-detail {
         padding: 1rem;
-        margin-top: 5rem;
-        /* Significant top margin as requested */
+        padding-bottom: 8rem;
+        margin-top: 0;
+        margin-bottom: 0;
+        overflow-y: visible;
+        overflow-x: hidden;
+        /* Ensure proper scrolling and bottom spacing for fixed nav */
     }
 
     .holding-detail__header-top {

@@ -1,0 +1,116 @@
+/* Mobile Property Detail Fixes */
+@media (max-width: 768px) {
+
+    /* 1. Mobile Header */
+    .property-detail__mobile-header {
+        display: flex !important;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background: #ffffff;
+        border-bottom: 1px solid #e2e8f0;
+        /* The "slight line" */
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .property-detail__mobile-back-btn {
+        background: none;
+        border: none;
+        padding: 0.5rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #0f172a;
+        margin-right: 0.5rem;
+        border-radius: 50%;
+        transition: background-color 0.2s;
+    }
+
+    .property-detail__mobile-back-btn:active {
+        background-color: #f1f5f9;
+    }
+
+    .property-detail__mobile-back-btn svg {
+        width: 24px;
+        height: 24px;
+    }
+
+    /* Hide the old desktop back button wrapper */
+    .property-detail__back-btn-wrapper {
+        display: none !important;
+    }
+
+    /* 2. FAQ Section Fixes */
+    /* Remove any background/card styling from the FAQ container */
+    .property-detail__faq {
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 2rem 1rem 0 1rem !important;
+    }
+
+    .property-detail__faq-list {
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+
+    /* Ensure FAQ items have the specific look requested */
+    .property-detail__faq-item {
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        margin-bottom: 0.75rem;
+        background: #ffffff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        /* Slight shadow for individual items */
+    }
+
+    /* 3. Invest Button Fixes */
+    /* Make it scroll with page (static position) */
+    .property-detail__invest-btn--large {
+        position: relative !important;
+        bottom: auto !important;
+        left: auto !important;
+        transform: none !important;
+        width: 100% !important;
+        border-radius: 0.75rem !important;
+        margin-top: 0 !important;
+        box-shadow: 0 4px 6px rgba(37, 99, 235, 0.25) !important;
+        padding: 1rem 1.25rem !important;
+    }
+
+    .property-detail__bottom-action {
+        height: auto !important;
+        margin-top: 2rem !important;
+        margin-bottom: 0 !important;
+        padding: 0 1rem 2rem 1rem !important;
+        background: transparent !important;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Reset extra padding on wrapper that was for fixed button */
+    .property-detail__wrapper {
+        padding-bottom: 0 !important;
+    }
+}
+
+/* Hide mobile header on desktop */
+@media (min-width: 769px) {
+    .property-detail__mobile-header {
+        display: none !important;
+    }
+}
+/* Hide Desktop Back Button on Mobile */
+@media (max-width: 768px) {
+    .property-detail__desktop-back {
+        display: none !important;
+    }
+}
+

@@ -1,0 +1,35 @@
+/* Mobile Wallet Investments Page Fixes */
+@media (max-width: 768px) {
+
+    /* Target the correct class used in AllInvestments.jsx */
+    .wallet-page {
+        /* Adjusted top padding to be slightly less than before */
+        padding-top: 85px !important;
+        min-height: 100vh;
+        background: #f8fafc;
+        box-sizing: border-box;
+    }
+
+    /* Ensure the internal header (All Investments) flows naturally */
+    .wallet-page__header {
+        margin-bottom: 1.5rem !important;
+        position: relative !important;
+        z-index: 1;
+    }
+
+    /* Cards grid adjustment */
+    .wallet-page__stats-grid {
+        margin-bottom: 2rem !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        /* 2 columns for cards */
+        gap: 1rem !important;
+    }
+
+    /* Back button adjustments */
+    .wallet-page__back-btn {
+        width: 36px !important;
+        height: 36px !important;
+        margin-right: 0.5rem !important;
+    }
+}
