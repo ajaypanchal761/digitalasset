@@ -144,6 +144,7 @@ const Wallet = () => {
     };
   }, [holdings, wallet]);
 
+
   // Show loading state
   if (loading) {
     return (
@@ -248,7 +249,9 @@ const Wallet = () => {
                 </div>
                 <div className="wallet-page__stat-info">
                   <span className="wallet-page__stat-label">Active Investments</span>
-                  <span className="wallet-page__stat-value">{stats.activeInvestments}</span>
+                  <span className="wallet-page__stat-value">
+                    {stats.activeInvestments}
+                  </span>
                 </div>
               </div>
 
@@ -264,7 +267,9 @@ const Wallet = () => {
                 </div>
                 <div className="wallet-page__stat-info">
                   <span className="wallet-page__stat-label">Matured Investments</span>
-                  <span className="wallet-page__stat-value">{stats.maturedInvestments}</span>
+                  <span className="wallet-page__stat-value">
+                    {stats.maturedInvestments}
+                  </span>
                 </div>
               </div>
 
@@ -279,7 +284,9 @@ const Wallet = () => {
                 </div>
                 <div className="wallet-page__stat-info">
                   <span className="wallet-page__stat-label">Total Invested</span>
-                  <span className="wallet-page__stat-value">{formatCurrency(stats.totalInvested, walletData.currency)}</span>
+                  <span className="wallet-page__stat-value">
+                    {formatCurrency(stats.totalInvested, walletData.currency)}
+                  </span>
                 </div>
               </div>
 

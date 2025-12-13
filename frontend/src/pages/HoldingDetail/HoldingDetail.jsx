@@ -1,14 +1,26 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext.jsx";
 import { useMemo, useState } from "react";
-import { certificateAPI } from "../../services/api.js";
+import { certificateAPI, withdrawalAPI } from "../../services/api.js";
+import { useToast } from "../../context/ToastContext.jsx";
 import "./HoldingDetail.css";
 
 const HoldingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { holdings, listings, loading, error } = useAppState();
+  const { holdings, listings, loading, error, wallet } = useAppState();
+  const { showToast } = useToast();
   const [downloadingCertificate, setDownloadingCertificate] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [withdrawForm, setWithdrawForm] = useState({
+    amount: 0,
+    bankAccount: "",
+    accountNumber: "",
+    ifscCode: "",
+    accountHolderName: "",
+    acceptTerms: false,
+  });
+  const [withdrawErrors, setWithdrawErrors] = useState({});
 
   const holding = holdings.find((h) => (h._id || h.id) === id);
   const property = holding ? listings.find((p) => {
@@ -65,6 +77,15 @@ const HoldingDetail = () => {
     const monthsSincePurchase = calculateMonthsSincePurchase;
     return (holding.monthlyEarning || holding.amountInvested * 0.005) * monthsSincePurchase;
   }, [holding, calculateMonthsSincePurchase]);
+
+  const walletData = wallet || {
+    currency: "INR",
+    balance: 0,
+    earningsReceived: 0,
+    withdrawableBalance: 0,
+  };
+
+  const maxEarningsWithdrawAmount = holding?.totalEarningsReceived || totalExpectedEarnings || 0;
 
   // Handle certificate download
   const handleDownloadCertificate = async () => {
@@ -128,22 +149,25 @@ const HoldingDetail = () => {
   }
 
   return (
-    <div className="holding-detail">
-      {/* Header Section */}
-      <div className="holding-detail__header">
-        <div className="holding-detail__header-top">
+    <>
+      {/* Top Header - Full Width */}
+      <div className="holding-detail__top-header">
+        <div className="holding-detail__top-header-content">
           <button onClick={() => navigate(-1)} className="holding-detail__back-btn">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             Back
           </button>
-          <div className="holding-detail__header-actions">
-            <span className={`holding-detail__status ${isMatured ? "holding-detail__status--matured" : "holding-detail__status--locked"}`}>
-              {isMatured ? "Matured" : "Locked"}
-            </span>
-          </div>
+          <span className={`holding-detail__status ${isMatured ? "holding-detail__status--matured" : "holding-detail__status--locked"}`}>
+            {isMatured ? "Matured" : "Locked"}
+          </span>
         </div>
+      </div>
+
+      <div className="holding-detail">
+        {/* Header Section */}
+        <div className="holding-detail__header">
         <div className="holding-detail__header-box">
           <div className="holding-detail__header-content">
             <div className="holding-detail__icon">
@@ -337,20 +361,31 @@ const HoldingDetail = () => {
               disabled={!canWithdrawEarnings}
               onClick={() => {
                 if (!canWithdrawEarnings) return;
-
-                const holdingId = holding._id || holding.id;
-
-                // Navigate to Wallet and open the withdraw modal in earnings mode.
-                // This keeps styling in Wallet and reuses the existing modal.
-                navigate("/wallet", {
-                  state: {
-                    openWithdrawModal: true,
-                    source: "earnings",
-                    holdingId,
-                    // Suggest full earnings amount; user can edit in modal if needed.
-                    prefillAmount: holding.totalEarningsReceived || totalExpectedEarnings || 0,
-                  },
-                });
+                
+                // Check if mobile view - show modal on same page
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                  setShowWithdrawModal(true);
+                  setWithdrawForm({
+                    amount: holding.totalEarningsReceived || totalExpectedEarnings || 0,
+                    bankAccount: "",
+                    accountNumber: "",
+                    ifscCode: "",
+                    accountHolderName: "",
+                    acceptTerms: false,
+                  });
+                } else {
+                  // Desktop: navigate to wallet page
+                  const holdingId = holding._id || holding.id;
+                  navigate("/wallet", {
+                    state: {
+                      openWithdrawModal: true,
+                      source: "earnings",
+                      holdingId,
+                      prefillAmount: holding.totalEarningsReceived || totalExpectedEarnings || 0,
+                    },
+                  });
+                }
               }}
             >
               {canWithdrawEarnings ? "Withdraw Earnings" : "Not Available"}
@@ -376,7 +411,303 @@ const HoldingDetail = () => {
           </div>
         </div>
       )}
-    </div>
+
+      {/* Withdraw Modal for Mobile */}
+      {showWithdrawModal && (
+        <div className="withdraw-modal-overlay" onClick={() => setShowWithdrawModal(false)}>
+          <div className="withdraw-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="withdraw-modal__header">
+              <h2 className="withdraw-modal__title">Withdraw Funds</h2>
+              <button className="withdraw-modal__close" onClick={() => setShowWithdrawModal(false)}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="withdraw-modal__content">
+              {/* Withdrawable Balance Info */}
+              <div className="withdraw-modal__balance-info">
+                <div className="withdraw-modal__balance-item">
+                  <span className="withdraw-modal__balance-label">Available Balance</span>
+                  <span className="withdraw-modal__balance-value">{formatCurrency(walletData.balance || 0, walletData.currency)}</span>
+                </div>
+                <div className="withdraw-modal__balance-item">
+                  <span className="withdraw-modal__balance-label">Withdrawable Amount</span>
+                  <span className="withdraw-modal__balance-value withdraw-modal__balance-value--green">
+                    {formatCurrency(maxEarningsWithdrawAmount, walletData.currency)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Withdrawal Form */}
+              <form
+                className="withdraw-modal__form"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+
+                  // Validate form fields
+                  const errors = {};
+                  if (!withdrawForm.amount || withdrawForm.amount <= 0) {
+                    errors.amount = "Please enter a valid amount";
+                  } else if (withdrawForm.amount > maxEarningsWithdrawAmount) {
+                    errors.amount = `Maximum earnings you can withdraw is ${formatCurrency(maxEarningsWithdrawAmount, walletData.currency)}`;
+                  }
+                  if (!withdrawForm.accountNumber) {
+                    errors.accountNumber = "Account number is required";
+                  }
+                  if (!withdrawForm.ifscCode) {
+                    errors.ifscCode = "IFSC code is required";
+                  }
+                  if (!withdrawForm.accountHolderName) {
+                    errors.accountHolderName = "Account holder name is required";
+                  }
+                  if (!withdrawForm.acceptTerms) {
+                    errors.acceptTerms = "You must accept the terms";
+                  }
+
+                  if (Object.keys(errors).length > 0) {
+                    setWithdrawErrors(errors);
+                    return;
+                  }
+
+                  // Build payload for withdrawal API
+                  const payload = {
+                    amount: withdrawForm.amount,
+                    type: "earnings",
+                    bankDetails: {
+                      accountNumber: withdrawForm.accountNumber,
+                      ifscCode: withdrawForm.ifscCode,
+                      accountHolderName: withdrawForm.accountHolderName,
+                      bankName: withdrawForm.bankAccount === "saved" ? "Saved Bank Account" : "Custom Bank",
+                    },
+                  };
+
+                  try {
+                    const response = await withdrawalAPI.create(payload);
+
+                    if (response && response.success === false) {
+                      throw new Error(response.message || "Withdrawal request failed");
+                    }
+
+                    showToast(
+                      "Withdrawal request submitted successfully! It will be processed within 2-3 business days.",
+                      "success"
+                    );
+
+                    setShowWithdrawModal(false);
+                    setWithdrawForm({
+                      amount: 0,
+                      bankAccount: "",
+                      accountNumber: "",
+                      ifscCode: "",
+                      accountHolderName: "",
+                      acceptTerms: false,
+                    });
+                    setWithdrawErrors({});
+                  } catch (error) {
+                    console.error("Error submitting withdrawal:", error);
+                    showToast(
+                      error.message || "Failed to submit withdrawal request. Please try again.",
+                      "error"
+                    );
+                  }
+                }}
+              >
+                {/* Amount */}
+                <div className="withdraw-modal__field">
+                  <label htmlFor="withdraw-amount" className="withdraw-modal__label">
+                    Withdrawal Amount (₹) <span className="withdraw-modal__required">*</span>
+                  </label>
+                  <input
+                    id="withdraw-amount"
+                    type="number"
+                    min="1"
+                    max={maxEarningsWithdrawAmount}
+                    step="100"
+                    value={withdrawForm.amount}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 0;
+                      setWithdrawForm({ ...withdrawForm, amount: value });
+                      if (withdrawErrors.amount) {
+                        setWithdrawErrors({ ...withdrawErrors, amount: null });
+                      }
+                    }}
+                    className={`withdraw-modal__input ${withdrawErrors.amount ? "withdraw-modal__input--error" : ""}`}
+                    placeholder="Enter amount to withdraw"
+                  />
+                  {withdrawErrors.amount && <span className="withdraw-modal__error">{withdrawErrors.amount}</span>}
+                  <span className="withdraw-modal__hint">
+                    Maximum earnings withdrawable: {formatCurrency(maxEarningsWithdrawAmount, walletData.currency)}
+                  </span>
+                </div>
+
+                {/* Bank Account Selection */}
+                <div className="withdraw-modal__field">
+                  <label htmlFor="bank-account" className="withdraw-modal__label">
+                    Select Bank Account <span className="withdraw-modal__required">*</span>
+                  </label>
+                  <select
+                    id="bank-account"
+                    value={withdrawForm.bankAccount}
+                    onChange={(e) => {
+                      setWithdrawForm({ ...withdrawForm, bankAccount: e.target.value });
+                      if (e.target.value === "saved") {
+                        setWithdrawForm({
+                          ...withdrawForm,
+                          bankAccount: "saved",
+                          accountNumber: "1234567890",
+                          ifscCode: "HDFC0001234",
+                          accountHolderName: "Yunus Ahmed",
+                        });
+                      }
+                    }}
+                    className={`withdraw-modal__input withdraw-modal__input--select ${withdrawErrors.bankAccount ? "withdraw-modal__input--error" : ""}`}
+                  >
+                    <option value="">Select bank account</option>
+                    <option value="saved">Saved Account (HDFC Bank - ****7890)</option>
+                    <option value="new">Add New Account</option>
+                  </select>
+                  {withdrawErrors.bankAccount && <span className="withdraw-modal__error">{withdrawErrors.bankAccount}</span>}
+                </div>
+
+                {/* Account Number */}
+                <div className="withdraw-modal__field">
+                  <label htmlFor="account-number" className="withdraw-modal__label">
+                    Account Number <span className="withdraw-modal__required">*</span>
+                  </label>
+                  <input
+                    id="account-number"
+                    type="text"
+                    value={withdrawForm.accountNumber}
+                    onChange={(e) => {
+                      setWithdrawForm({ ...withdrawForm, accountNumber: e.target.value });
+                      if (withdrawErrors.accountNumber) {
+                        setWithdrawErrors({ ...withdrawErrors, accountNumber: null });
+                      }
+                    }}
+                    className={`withdraw-modal__input ${withdrawErrors.accountNumber ? "withdraw-modal__input--error" : ""}`}
+                    placeholder="Enter account number"
+                    maxLength={18}
+                  />
+                  {withdrawErrors.accountNumber && <span className="withdraw-modal__error">{withdrawErrors.accountNumber}</span>}
+                </div>
+
+                {/* IFSC Code */}
+                <div className="withdraw-modal__field">
+                  <label htmlFor="ifsc-code" className="withdraw-modal__label">
+                    IFSC Code <span className="withdraw-modal__required">*</span>
+                  </label>
+                  <input
+                    id="ifsc-code"
+                    type="text"
+                    value={withdrawForm.ifscCode}
+                    onChange={(e) => {
+                      setWithdrawForm({ ...withdrawForm, ifscCode: e.target.value.toUpperCase() });
+                      if (withdrawErrors.ifscCode) {
+                        setWithdrawErrors({ ...withdrawErrors, ifscCode: null });
+                      }
+                    }}
+                    className={`withdraw-modal__input ${withdrawErrors.ifscCode ? "withdraw-modal__input--error" : ""}`}
+                    placeholder="Enter IFSC code"
+                    maxLength={11}
+                    style={{ textTransform: "uppercase" }}
+                  />
+                  {withdrawErrors.ifscCode && <span className="withdraw-modal__error">{withdrawErrors.ifscCode}</span>}
+                </div>
+
+                {/* Account Holder Name */}
+                <div className="withdraw-modal__field">
+                  <label htmlFor="account-holder" className="withdraw-modal__label">
+                    Account Holder Name <span className="withdraw-modal__required">*</span>
+                  </label>
+                  <input
+                    id="account-holder"
+                    type="text"
+                    value={withdrawForm.accountHolderName}
+                    onChange={(e) => {
+                      setWithdrawForm({ ...withdrawForm, accountHolderName: e.target.value });
+                      if (withdrawErrors.accountHolderName) {
+                        setWithdrawErrors({ ...withdrawErrors, accountHolderName: null });
+                      }
+                    }}
+                    className={`withdraw-modal__input ${withdrawErrors.accountHolderName ? "withdraw-modal__input--error" : ""}`}
+                    placeholder="Enter account holder name"
+                  />
+                  {withdrawErrors.accountHolderName && <span className="withdraw-modal__error">{withdrawErrors.accountHolderName}</span>}
+                </div>
+
+                {/* Withdrawal Summary */}
+                <div className="withdraw-modal__summary">
+                  <h3 className="withdraw-modal__summary-title">Withdrawal Summary</h3>
+                  <div className="withdraw-modal__summary-item">
+                    <span className="withdraw-modal__summary-label">Withdrawal Amount</span>
+                    <span className="withdraw-modal__summary-value">
+                      {withdrawForm.amount > 0 ? formatCurrency(withdrawForm.amount, walletData.currency) : "₹0"}
+                    </span>
+                  </div>
+                  <div className="withdraw-modal__summary-item">
+                    <span className="withdraw-modal__summary-label">Processing Fee</span>
+                    <span className="withdraw-modal__summary-value">Free</span>
+                  </div>
+                  <div className="withdraw-modal__summary-item withdraw-modal__summary-item--total">
+                    <span className="withdraw-modal__summary-label">Amount to be Credited</span>
+                    <span className="withdraw-modal__summary-value withdraw-modal__summary-value--highlight">
+                      {withdrawForm.amount > 0 ? formatCurrency(withdrawForm.amount, walletData.currency) : "₹0"}
+                    </span>
+                  </div>
+                  <div className="withdraw-modal__summary-note">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path d="M12 16V12M12 8H12.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span>Withdrawal will be processed within 2-3 business days</span>
+                  </div>
+                </div>
+
+                {/* Terms and Conditions */}
+                <div className="withdraw-modal__field">
+                  <label className={`withdraw-modal__checkbox-label ${withdrawErrors.acceptTerms ? "withdraw-modal__checkbox-label--error" : ""}`}>
+                    <input
+                      type="checkbox"
+                      checked={withdrawForm.acceptTerms}
+                      onChange={(e) => {
+                        setWithdrawForm({ ...withdrawForm, acceptTerms: e.target.checked });
+                        if (withdrawErrors.acceptTerms) {
+                          setWithdrawErrors({ ...withdrawErrors, acceptTerms: null });
+                        }
+                      }}
+                      className="withdraw-modal__checkbox"
+                    />
+                    <span>
+                      I confirm that the bank account details are correct and I authorize the withdrawal <span className="withdraw-modal__required">*</span>
+                    </span>
+                  </label>
+                  {withdrawErrors.acceptTerms && <span className="withdraw-modal__error">{withdrawErrors.acceptTerms}</span>}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="withdraw-modal__actions">
+                  <button type="button" className="withdraw-modal__btn withdraw-modal__btn--cancel" onClick={() => setShowWithdrawModal(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="withdraw-modal__btn withdraw-modal__btn--submit">
+                    Confirm Withdrawal
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+      </div>
+    </>
   );
 };
 

@@ -25,6 +25,15 @@
   position: sticky;
   top: 0;
   z-index: 10;
+  /* Animation initial state */
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.profile-header.profile-item--visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .profile-header__back {
@@ -79,6 +88,15 @@
   width: calc(100% - 2.5rem);
   max-width: 100%;
   box-sizing: border-box;
+  /* Animation initial state */
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out, box-shadow 0.3s ease;
+}
+
+.profile-info-card.profile-item--visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .profile-info-card:hover {
@@ -115,6 +133,26 @@
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(12, 142, 244, 0.25);
   border: 4px solid #ffffff;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile-info-card.profile-item--visible .profile-picture,
+.profile-info-card.profile-item--visible .profile-picture-fallback {
+  animation: profilePicturePop 0.6s ease-out 0.3s backwards;
+}
+
+@keyframes profilePicturePop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .profile-picture__camera {
@@ -192,6 +230,20 @@
   margin: 0 0 0.25rem 0;
   line-height: 1.2;
   letter-spacing: -0.02em;
+  opacity: 0;
+  transform: translateY(-5px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.profile-info-card.profile-item--visible .profile-name {
+  animation: profileNameFade 0.5s ease-out 0.2s forwards;
+}
+
+@keyframes profileNameFade {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .profile-username {
@@ -200,6 +252,13 @@
   margin: 0 0 0.35rem 0;
   line-height: 1.3;
   font-weight: 500;
+  opacity: 0;
+  transform: translateY(-5px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.profile-info-card.profile-item--visible .profile-username {
+  animation: profileTextFade 0.5s ease-out 0.3s forwards;
 }
 
 .profile-email {
@@ -207,6 +266,20 @@
   color: #94a3b8;
   margin: 0;
   line-height: 1.4;
+  opacity: 0;
+  transform: translateY(-5px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.profile-info-card.profile-item--visible .profile-email {
+  animation: profileTextFade 0.5s ease-out 0.35s forwards;
+}
+
+@keyframes profileTextFade {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .profile-edit-btn {
@@ -226,6 +299,19 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  opacity: 0;
+  transform: translateX(10px);
+}
+
+.profile-info-card.profile-item--visible .profile-edit-btn {
+  animation: profileButtonSlide 0.5s ease-out 0.4s forwards;
+}
+
+@keyframes profileButtonSlide {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .profile-edit-btn:hover {
@@ -277,6 +363,16 @@
   box-sizing: border-box;
   overflow: hidden;
   min-width: 0;
+  /* Animation initial state */
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out, all 0.2s ease;
+  transition-delay: var(--animation-delay, 0s);
+}
+
+.profile-menu__item.profile-item--visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .profile-menu__item:hover {

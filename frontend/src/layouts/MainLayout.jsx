@@ -112,7 +112,7 @@ const desktopNavLinks = [
 ];
 
 const bottomNavLinks = [
-  { to: "/home", label: "Home", icon: HomeIcon },
+  { to: "/dashboard", label: "Dashboard", icon: HomeIcon },
   { to: "/chat", label: "Chat", icon: ChatIcon },
   { to: "/wallet", label: "Wallet", icon: WalletIcon },
   { to: "/profile", label: "Profile", icon: UserIcon },
@@ -265,6 +265,13 @@ const MainLayout = () => {
   // List of public routes that don't require authentication
   const publicRoutes = ["/explore", "/property/"];
   const isPublicRoute = publicRoutes.some(route => location.pathname.startsWith(route));
+
+  // Redirect /home to /dashboard in mobile view
+  useEffect(() => {
+    if (isMobile && location.pathname === "/home") {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [isMobile, location.pathname, navigate]);
 
   // Check authentication and redirect if needed
   useEffect(() => {
@@ -464,7 +471,7 @@ const MainLayout = () => {
         {!isHomePage && !isPropertyDetailPage && !isHoldingDetailPage && !isEditProfilePage && !isExplorePage && !isChatPage && !isHoldingsPage && !isKYCPage && !isInvestPage && (
           <header className="mobile-header">
             <div className="mobile-header__row">
-              <NavLink to="/home" className="mobile-header__logo">
+              <NavLink to="/dashboard" className="mobile-header__logo">
                 <img src={logoImage} alt="DigitalAssets" className="mobile-header__logo-img" />
               </NavLink>
               <div className="mobile-header__user-section">

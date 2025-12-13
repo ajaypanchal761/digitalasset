@@ -4,7 +4,7 @@
     /* Target the correct class used in AllInvestments.jsx */
     .wallet-page {
         /* Adjusted top padding to be slightly less than before */
-        padding-top: 85px !important;
+        padding-top: 40px !important;
         min-height: 100vh;
         background: #f8fafc;
         box-sizing: border-box;

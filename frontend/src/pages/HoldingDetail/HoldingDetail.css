@@ -2,16 +2,28 @@
 .holding-detail {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 0;
     background-color: #f8fafc;
     min-height: 100vh;
 }
 
-.holding-detail__header-top {
+.holding-detail__top-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #ffffff;
+    width: 100%;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.holding-detail__top-header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
 }
 
 .holding-detail__back-btn {
@@ -32,6 +44,10 @@
 
 .holding-detail__back-btn:hover {
     background: #f8fafc;
+}
+
+.holding-detail__header {
+    padding: 2rem;
 }
 
 .holding-detail__header-box {
@@ -79,6 +95,8 @@
     border-radius: 2rem;
     font-weight: 600;
     font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .holding-detail__status--matured {
@@ -199,11 +217,35 @@
 .holding-detail__earnings-label {
     font-weight: 600;
     color: #475569;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
 }
 
 .holding-detail__earnings-value {
     font-weight: 700;
     color: #0f172a;
+    font-size: 1.5rem;
+}
+
+.holding-detail__earnings-value--green {
+    color: #059669;
+}
+
+.holding-detail__earnings-value--highlight {
+    color: #0f172a;
+    font-size: 1.75rem;
+}
+
+.holding-detail__earnings-subtext {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+}
+
+.holding-detail__earnings-item--total {
+    background: #f1f5f9;
+    border: 2px solid #e2e8f0;
 }
 
 /* Withdrawal Options */
@@ -227,6 +269,23 @@
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+}
+
+.holding-detail__withdrawal-label {
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.holding-detail__withdrawal-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.holding-detail__withdrawal-value--green {
+    color: #059669;
 }
 
 .holding-detail__withdrawal-btn {
@@ -261,8 +320,12 @@
         /* Ensure proper scrolling and bottom spacing for fixed nav */
     }
 
-    .holding-detail__header-top {
-        margin-bottom: 1.5rem;
+    .holding-detail__top-header-content {
+        padding: 0.875rem 1rem;
+    }
+
+    .holding-detail__header {
+        padding: 1rem;
     }
 
     .holding-detail__header-box {
@@ -299,9 +362,41 @@
         padding: 1rem;
     }
 
+    .holding-detail__earnings-item--total {
+        grid-column: 1 / -1;
+    }
+
+    .holding-detail__earnings-label {
+        font-size: 0.75rem;
+    }
+
+    .holding-detail__earnings-value {
+        font-size: 1.25rem;
+    }
+
+    .holding-detail__earnings-value--highlight {
+        font-size: 1.5rem;
+    }
+
+    .holding-detail__earnings-subtext {
+        font-size: 0.75rem;
+    }
+
     .holding-detail__details-list {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
         gap: 1rem;
+    }
+
+    .holding-detail__detail-item {
+        padding: 0.875rem;
+    }
+
+    .holding-detail__detail-label {
+        font-size: 0.75rem;
+    }
+
+    .holding-detail__detail-value {
+        font-size: 0.875rem;
     }
 
     .holding-detail__withdrawal-item {
@@ -310,7 +405,57 @@
         gap: 1rem;
     }
 
+    .holding-detail__withdrawal-info {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        gap: 0.75rem;
+    }
+
+    .holding-detail__withdrawal-label {
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+
+    .holding-detail__withdrawal-value {
+        font-size: 1.1rem;
+        white-space: nowrap;
+    }
+
     .holding-detail__withdrawal-btn {
         width: 100%;
+    }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+    .holding-detail__details-list {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .holding-detail__details-list {
+        gap: 0.75rem;
+    }
+
+    .holding-detail__detail-item {
+        padding: 0.75rem;
+    }
+
+    .holding-detail__earnings-card {
+        gap: 0.75rem;
+    }
+
+    .holding-detail__earnings-item {
+        padding: 0.875rem;
+    }
+
+    .holding-detail__earnings-value {
+        font-size: 1.1rem;
+    }
+
+    .holding-detail__earnings-value--highlight {
+        font-size: 1.3rem;
     }
 }

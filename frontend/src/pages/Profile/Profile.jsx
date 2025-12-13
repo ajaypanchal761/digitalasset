@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
@@ -11,6 +11,7 @@ const Profile = () => {
   const { showToast } = useToast();
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
+  const scrollTimeoutRef = useRef(null);
   
   // Use user from AuthContext (fetched from backend)
   const user = authUser || {
@@ -174,6 +175,97 @@ const Profile = () => {
     : user.name
     ? `@${user.name.toLowerCase().replace(/\s+/g, "")}`
     : "@user";
+
+  // Scroll-triggered animations
+  useEffect(() => {
+    // Intersection Observer for scroll-triggered animations
+    const observerOptions = {
+      threshold: [0, 0.1, 0.2],
+      rootMargin: "0px",
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("profile-item--visible");
+        }
+      });
+    }, observerOptions);
+
+    // Scroll handler as backup to ensure animations trigger on every scroll
+    const handleScroll = () => {
+      const elements = document.querySelectorAll(".profile-header, .profile-info-card, .profile-menu__item");
+      elements.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        const isVisible = rect.top < window.innerHeight * 0.9 && rect.bottom > 0;
+        if (isVisible) {
+          el.classList.add("profile-item--visible");
+        }
+      });
+    };
+
+    // Throttled scroll handler
+    const throttledScroll = () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+      scrollTimeoutRef.current = setTimeout(() => {
+        handleScroll();
+        scrollTimeoutRef.current = null;
+      }, 50);
+    };
+
+    window.addEventListener("scroll", throttledScroll, { passive: true });
+    
+    // Initial check
+    handleScroll();
+
+    const setupObserver = () => {
+      // Observe profile header
+      const header = document.querySelector(".profile-header");
+      if (header) {
+        const rect = header.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+          header.classList.add("profile-item--visible");
+        }
+        observer.observe(header);
+      }
+
+      // Observe profile info card
+      const infoCard = document.querySelector(".profile-info-card");
+      if (infoCard) {
+        const rect = infoCard.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+          infoCard.classList.add("profile-item--visible");
+        }
+        observer.observe(infoCard);
+      }
+
+      // Observe menu items with delay
+      const menuItems = document.querySelectorAll(".profile-menu__item");
+      menuItems.forEach((item, index) => {
+        item.style.setProperty("--animation-delay", `${index * 0.08}s`);
+        const rect = item.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+          item.classList.add("profile-item--visible");
+        }
+        observer.observe(item);
+      });
+    };
+
+    // Setup observer after a short delay
+    const timeoutId = setTimeout(setupObserver, 200);
+    const timeoutId2 = setTimeout(setupObserver, 400);
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(timeoutId2);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      window.removeEventListener("scroll", throttledScroll);
+      const allElements = document.querySelectorAll(".profile-header, .profile-info-card, .profile-menu__item");
+      allElements.forEach((el) => observer.unobserve(el));
+    };
+  }, [authUser]);
 
   // Show loading state
   if (authLoading) {

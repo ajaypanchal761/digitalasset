@@ -595,13 +595,6 @@ const AdminHeader = ({ userName = 'Admin User', userAvatar = null, userEmail = n
                 </svg>
                 Profile Settings
               </button>
-              <button className="admin-header__user-menu-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="3"/>
-                  <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"/>
-                </svg>
-                Preferences
-              </button>
               <div className="admin-header__user-menu-divider"></div>
               <button className="admin-header__user-menu-item admin-header__user-menu-item--danger" onClick={handleLogout}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
