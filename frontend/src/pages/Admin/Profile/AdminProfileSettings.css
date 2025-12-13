@@ -108,11 +108,20 @@
 
 .admin-profile-settings__country-code {
   flex-shrink: 0;
-  min-width: 100px;
+  min-width: 90px;
+  max-width: 110px;
 }
 
 .admin-profile-settings__country-code .modern-select__trigger {
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 1.75rem 0.75rem 0.75rem;
+  min-width: 90px;
+}
+
+.admin-profile-settings__country-code .modern-select__value {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .admin-profile-settings__input--phone {
@@ -296,14 +305,32 @@
   }
 
   .admin-profile-settings__phone-wrapper {
-    flex-direction: column;
-    gap: 0.75rem;
+    flex-direction: row;
+    gap: 0.5rem;
   }
 
   .admin-profile-settings__country-code {
-    width: 100%;
-    padding: 0.625rem 0.875rem;
+    width: auto;
+    min-width: 90px;
+    max-width: 110px;
+  }
+
+  .admin-profile-settings__country-code .modern-select__trigger {
+    padding: 0.625rem 1.5rem 0.625rem 0.625rem;
     font-size: 0.9375rem;
+    min-width: 90px;
+  }
+
+  .admin-profile-settings__country-code .modern-select__value {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
+    flex: 0 0 auto;
+  }
+
+  .admin-profile-settings__country-code .modern-select__arrow {
+    flex-shrink: 0;
+    margin-left: 0.25rem;
   }
 
   .admin-profile-settings__section {
@@ -418,8 +445,26 @@
   }
 
   .admin-profile-settings__country-code {
-    padding: 0.5625rem 0.75rem;
+    min-width: 85px;
+    max-width: 105px;
+  }
+
+  .admin-profile-settings__country-code .modern-select__trigger {
+    padding: 0.5625rem 1.25rem 0.5625rem 0.5625rem;
     font-size: 0.875rem;
+    min-width: 85px;
+  }
+
+  .admin-profile-settings__country-code .modern-select__value {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
+    flex: 0 0 auto;
+  }
+
+  .admin-profile-settings__country-code .modern-select__arrow {
+    flex-shrink: 0;
+    margin-left: 0.25rem;
   }
 
   .admin-profile-settings__section {
