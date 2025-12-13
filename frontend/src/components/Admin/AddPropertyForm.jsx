@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAdmin } from '../../context/AdminContext';
+import Select from '../common/Select';
 
 // Helper function to convert data URL to File
 const dataURLtoFile = (dataurl, filename) => {
@@ -358,18 +359,19 @@ const AddPropertyForm = ({ onClose, property = null }) => {
 
             <div className="add-property-form__field">
               <label className="add-property-form__label">Property Type</label>
-              <select
+              <Select
                 name="propertyType"
                 value={formData.propertyType}
                 onChange={handleInputChange}
                 className="add-property-form__select"
-              >
-                <option value="Digital Property">Digital Property</option>
-                <option value="Tech Infrastructure">Tech Infrastructure</option>
-                <option value="Data Center">Data Center</option>
-                <option value="Co-working Space">Co-working Space</option>
-                <option value="Commercial Property">Commercial Property</option>
-              </select>
+                options={[
+                  { value: 'Digital Property', label: 'Digital Property' },
+                  { value: 'Tech Infrastructure', label: 'Tech Infrastructure' },
+                  { value: 'Data Center', label: 'Data Center' },
+                  { value: 'Co-working Space', label: 'Co-working Space' },
+                  { value: 'Commercial Property', label: 'Commercial Property' },
+                ]}
+              />
             </div>
 
             <div className="add-property-form__field">
@@ -533,16 +535,17 @@ const AddPropertyForm = ({ onClose, property = null }) => {
             
             <div className="add-property-form__field">
               <label className="add-property-form__label">Property Status</label>
-              <select
+              <Select
                 name="status"
                 value={formData.status}
                 onChange={handleInputChange}
                 className="add-property-form__select"
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="closed">Closed</option>
-              </select>
+                options={[
+                  { value: 'active', label: 'Active' },
+                  { value: 'inactive', label: 'Inactive' },
+                  { value: 'closed', label: 'Closed' },
+                ]}
+              />
             </div>
           </div>
 

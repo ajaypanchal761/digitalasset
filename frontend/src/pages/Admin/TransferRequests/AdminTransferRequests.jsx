@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '../../../context/ToastContext.jsx';
 import { adminAPI } from '../../../services/api.js';
+import Select from '../../../components/common/Select';
 import './AdminTransferRequests.css';
 
 const AdminTransferRequests = () => {
@@ -136,19 +137,20 @@ const AdminTransferRequests = () => {
       <div className="admin-transfer-requests__header">
         <h1 className="admin-transfer-requests__title">Transfer Requests</h1>
         <div className="admin-transfer-requests__filters">
-          <select
+          <Select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="admin-transfer-requests__filter-select"
-          >
-            <option value="all">All Requests</option>
-            <option value="admin_pending">Pending Review</option>
-            <option value="admin_approved">Approved</option>
-            <option value="admin_rejected">Rejected</option>
-            <option value="completed">Completed</option>
-            <option value="pending">Pending Buyer Response</option>
-            <option value="accepted">Accepted by Buyer</option>
-          </select>
+            options={[
+              { value: 'all', label: 'All Requests' },
+              { value: 'admin_pending', label: 'Pending Review' },
+              { value: 'admin_approved', label: 'Approved' },
+              { value: 'admin_rejected', label: 'Rejected' },
+              { value: 'completed', label: 'Completed' },
+              { value: 'pending', label: 'Pending Buyer Response' },
+              { value: 'accepted', label: 'Accepted by Buyer' },
+            ]}
+          />
         </div>
       </div>
 

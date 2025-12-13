@@ -260,11 +260,28 @@
 .admin-withdrawals__filter-select,
 .admin-payouts__filter-select,
 .admin-help-articles__filter-select,
-.admin-investment-requests__filter-select {
+.admin-investment-requests__filter-select,
+.admin-contact-owner__filter-select,
+.admin-transfer-requests__filter-select,
+.admin-contact-owner__status-select {
   border-radius: 8px !important;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
   font-weight: 400;
   cursor: pointer;
+}
+
+/* Custom Select component styling for admin */
+.admin-properties__filter-select .modern-select__trigger,
+.admin-users__filter-select .modern-select__trigger,
+.admin-withdrawals__filter-select .modern-select__trigger,
+.admin-payouts__filter-select .modern-select__trigger,
+.admin-help-articles__filter-select .modern-select__trigger,
+.admin-investment-requests__filter-select .modern-select__trigger,
+.admin-contact-owner__filter-select .modern-select__trigger,
+.admin-transfer-requests__filter-select .modern-select__trigger,
+.admin-contact-owner__status-select .modern-select__trigger {
+  border-radius: 8px !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .admin-properties__filter-select:focus,
@@ -272,7 +289,23 @@
 .admin-withdrawals__filter-select:focus,
 .admin-payouts__filter-select:focus,
 .admin-help-articles__filter-select:focus,
-.admin-investment-requests__filter-select:focus {
+.admin-investment-requests__filter-select:focus,
+.admin-contact-owner__filter-select:focus,
+.admin-transfer-requests__filter-select:focus,
+.admin-contact-owner__status-select:focus {
+  box-shadow: 0 0 0 4px rgba(12, 142, 244, 0.1), 0 2px 8px rgba(12, 142, 244, 0.15) !important;
+  transform: translateY(-1px);
+}
+
+.admin-properties__filter-select .modern-select__trigger:focus,
+.admin-users__filter-select .modern-select__trigger:focus,
+.admin-withdrawals__filter-select .modern-select__trigger:focus,
+.admin-payouts__filter-select .modern-select__trigger:focus,
+.admin-help-articles__filter-select .modern-select__trigger:focus,
+.admin-investment-requests__filter-select .modern-select__trigger:focus,
+.admin-contact-owner__filter-select .modern-select__trigger:focus,
+.admin-transfer-requests__filter-select .modern-select__trigger:focus,
+.admin-contact-owner__status-select .modern-select__trigger:focus {
   box-shadow: 0 0 0 4px rgba(12, 142, 244, 0.1), 0 2px 8px rgba(12, 142, 244, 0.15) !important;
   transform: translateY(-1px);
 }
@@ -774,11 +807,30 @@
   .admin-withdrawals__filter-select,
   .admin-payouts__filter-select,
   .admin-help-articles__filter-select,
-  .admin-investment-requests__filter-select {
+  .admin-investment-requests__filter-select,
+  .admin-contact-owner__filter-select,
+  .admin-transfer-requests__filter-select {
     border-radius: 6px !important;
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .admin-properties__filter-select .modern-select__trigger,
+  .admin-users__filter-select .modern-select__trigger,
+  .admin-withdrawals__filter-select .modern-select__trigger,
+  .admin-payouts__filter-select .modern-select__trigger,
+  .admin-help-articles__filter-select .modern-select__trigger,
+  .admin-investment-requests__filter-select .modern-select__trigger,
+  .admin-contact-owner__filter-select .modern-select__trigger,
+  .admin-transfer-requests__filter-select .modern-select__trigger {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 38px !important;
+    padding: 0.625rem 2.25rem 0.625rem 0.875rem !important;
+    font-size: 0.9rem !important;
+    line-height: 1.5 !important;
     box-sizing: border-box !important;
   }
 

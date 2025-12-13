@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '../../../context/ToastContext.jsx';
 import { adminAPI } from '../../../services/api.js';
+import Select from '../../../components/common/Select';
 import './AdminContactOwner.css';
 
 const AdminContactOwner = () => {
@@ -173,18 +174,19 @@ const AdminContactOwner = () => {
           </p>
         </div>
         <div className="admin-contact-owner__filters">
-          <select
+          <Select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="admin-contact-owner__filter-select"
-          >
-            <option value="all">All Messages</option>
-            <option value="pending">Pending ({statusCounts.pending || 0})</option>
-            <option value="read">Read ({statusCounts.read || 0})</option>
-            <option value="replied">Replied ({statusCounts.replied || 0})</option>
-            <option value="resolved">Resolved ({statusCounts.resolved || 0})</option>
-            <option value="closed">Closed ({statusCounts.closed || 0})</option>
-          </select>
+            options={[
+              { value: 'all', label: 'All Messages' },
+              { value: 'pending', label: `Pending (${statusCounts.pending || 0})` },
+              { value: 'read', label: `Read (${statusCounts.read || 0})` },
+              { value: 'replied', label: `Replied (${statusCounts.replied || 0})` },
+              { value: 'resolved', label: `Resolved (${statusCounts.resolved || 0})` },
+              { value: 'closed', label: `Closed (${statusCounts.closed || 0})` },
+            ]}
+          />
         </div>
       </div>
 
@@ -335,16 +337,17 @@ const AdminContactOwner = () => {
                 <label className="admin-contact-owner__label">
                   Update Status
                 </label>
-                <select
+                <Select
                   className="admin-contact-owner__status-select"
                   value={statusUpdate}
                   onChange={(e) => setStatusUpdate(e.target.value)}
-                >
-                  <option value="read">Read</option>
-                  <option value="replied">Replied</option>
-                  <option value="resolved">Resolved</option>
-                  <option value="closed">Closed</option>
-                </select>
+                  options={[
+                    { value: 'read', label: 'Read' },
+                    { value: 'replied', label: 'Replied' },
+                    { value: 'resolved', label: 'Resolved' },
+                    { value: 'closed', label: 'Closed' },
+                  ]}
+                />
                 <label className="admin-contact-owner__label">
                   Admin Notes (Optional)
                 </label>
