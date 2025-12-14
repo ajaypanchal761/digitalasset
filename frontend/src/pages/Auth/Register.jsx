@@ -132,6 +132,12 @@ const Register = () => {
 
   return (
     <div className="register-page">
+      {/* Decorative floating squares - desktop only */}
+      <div className="auth-bg-decoration">
+        <div className="auth-square auth-square-1"></div>
+        <div className="auth-square auth-square-2"></div>
+      </div>
+      
       <div className="register-container">
         {/* Illustration */}
         <div className="register-illustration">

@@ -2,9 +2,15 @@
 .holding-detail {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0;
+    padding: 2rem;
     background-color: #f8fafc;
     min-height: 100vh;
+}
+
+.holding-detail *,
+.holding-detail *::before,
+.holding-detail *::after {
+    box-sizing: border-box;
 }
 
 .holding-detail__top-header {
@@ -47,7 +53,8 @@
 }
 
 .holding-detail__header {
-    padding: 2rem;
+    padding: 0;
+    margin-bottom: 2rem;
 }
 
 .holding-detail__header-box {
@@ -111,7 +118,7 @@
 
 .holding-detail__info-card {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 1.5rem;
     margin-bottom: 2rem;
 }
@@ -311,7 +318,7 @@
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
     .holding-detail {
-        padding: 1rem;
+        padding: 0;
         padding-bottom: 8rem;
         margin-top: 0;
         margin-bottom: 0;
@@ -324,33 +331,85 @@
         padding: 0.875rem 1rem;
     }
 
+    /* Hide "Back" text on mobile, show only arrow */
+    .holding-detail__back-text {
+        display: none;
+    }
+
+    .holding-detail__back-btn {
+        padding: 0.5rem;
+        min-width: 36px;
+        gap: 0;
+    }
+
+    /* Hide status badge on mobile */
+    .holding-detail__status {
+        display: none;
+    }
+
     .holding-detail__header {
-        padding: 1rem;
+        padding: 0;
+        margin-bottom: 0;
     }
 
     .holding-detail__header-box {
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
+        padding: 1.25rem 1rem;
+        margin: 0 1rem 1rem 1rem;
+        border-radius: 0.75rem;
     }
 
     .holding-detail__header-content {
         flex-direction: row;
         align-items: center;
-        gap: 1rem;
+        gap: 0.875rem;
+    }
+
+    .holding-detail__icon svg {
+        width: 40px;
+        height: 40px;
     }
 
     .holding-detail__title {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
+        line-height: 1.3;
+    }
+
+    .holding-detail__type {
+        font-size: 0.75rem;
+    }
+
+    .holding-detail__property-link {
+        font-size: 0.8rem;
     }
 
     .holding-detail__info-card {
         grid-template-columns: 1fr 1fr;
-        gap: 1rem;
+        gap: 0.75rem;
+        padding: 0 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .holding-detail__info-item {
+        padding: 1rem 0.75rem;
+        min-width: 0;
+    }
+
+    .holding-detail__info-label {
+        font-size: 0.65rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .holding-detail__info-value {
+        font-size: 1.125rem;
+        word-break: break-word;
     }
 
     .holding-detail__section {
-        padding: 1rem;
-        margin-bottom: 1.5rem;
+        padding: 1.5rem 1rem;
+        margin: 0 1rem 1.5rem 1rem;
+        border-radius: 0.75rem;
     }
 
     .holding-detail__earnings-card {
