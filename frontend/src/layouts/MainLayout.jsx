@@ -477,11 +477,6 @@ const MainLayout = () => {
               <div className="mobile-header__user-section">
                 {isAuthenticated && authUser ? (
                   <>
-                    <div className="mobile-header__welcome">
-                      <span className="mobile-header__welcome-name">
-                        {authUser.name}
-                      </span>
-                    </div>
                     <div className="mobile-header__avatar-wrapper" ref={mobileProfileDropdownRef}>
                       <button
                         type="button"
@@ -526,9 +521,6 @@ const MainLayout = () => {
                   </>
                 ) : (
                   <>
-                    <div className="mobile-header__welcome">
-                      <span className="mobile-header__welcome-name">Guest</span>
-                    </div>
                     <button
                       type="button"
                       className="avatar-button"
@@ -572,72 +564,72 @@ const MainLayout = () => {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div className="brand">
-          <NavLink to="/home" className="brand__link">
-            <img src={logoImage} alt="DigitalAssets" className="brand__logo" />
-          </NavLink>
-        </div>
-        <nav className="nav-links">
-          {desktopNavLinks.map(({ to, label }) => (
-            <NavLink key={to} to={to} className="nav-link">
-              {label}
+          <div className="brand">
+            <NavLink to="/home" className="brand__link">
+              <img src={logoImage} alt="DigitalAssets" className="brand__logo" />
             </NavLink>
-          ))}
-        </nav>
-        <div className="app-header__profile">
-          {isAuthenticated && authUser ? (
-            <>
-              <span className="app-header__welcome">Welcome back, {authUser.name}</span>
-              <div className="app-header__avatar-wrapper" ref={profileDropdownRef}>
-                <button
-                  type="button"
-                  className="app-header__avatar-button"
-                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                  aria-label="User menu"
-                >
-                  <div className="app-header__avatar">
-                    <Avatar name={authUser.name} avatarUrl={authUser.avatarUrl} initials={authUser.avatarInitials} />
-                  </div>
+          </div>
+          <nav className="nav-links">
+            {desktopNavLinks.map(({ to, label }) => (
+              <NavLink key={to} to={to} className="nav-link">
+                {label}
+              </NavLink>
+            ))}
+          </nav>
+          <div className="app-header__profile">
+            {isAuthenticated && authUser ? (
+              <>
+                <span className="app-header__welcome">Welcome back, {authUser.name}</span>
+                <div className="app-header__avatar-wrapper" ref={profileDropdownRef}>
+                  <button
+                    type="button"
+                    className="app-header__avatar-button"
+                    onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                    aria-label="User menu"
+                  >
+                    <div className="app-header__avatar">
+                      <Avatar name={authUser.name} avatarUrl={authUser.avatarUrl} initials={authUser.avatarInitials} />
+                    </div>
+                  </button>
+                  {showProfileDropdown && (
+                    <div className="app-header__dropdown">
+                      <button
+                        type="button"
+                        className="app-header__dropdown-item"
+                        onClick={handleProfileClick}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                          <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        Profile
+                      </button>
+                      <button
+                        type="button"
+                        className="app-header__dropdown-item app-header__dropdown-item--danger"
+                        onClick={handleLogout}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                          <polyline points="16 17 21 12 16 7"/>
+                          <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <span className="app-header__welcome">Welcome</span>
+                <button type="button" className="app-header__auth-btn" onClick={handleAuthAction}>
+                  {authButtonLabel}
                 </button>
-                {showProfileDropdown && (
-                  <div className="app-header__dropdown">
-                    <button
-                      type="button"
-                      className="app-header__dropdown-item"
-                      onClick={handleProfileClick}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                        <circle cx="12" cy="7" r="4"/>
-                      </svg>
-                      Profile
-                    </button>
-                    <button
-                      type="button"
-                      className="app-header__dropdown-item app-header__dropdown-item--danger"
-                      onClick={handleLogout}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                        <polyline points="16 17 21 12 16 7"/>
-                        <line x1="21" y1="12" x2="9" y2="12"/>
-                      </svg>
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <span className="app-header__welcome">Welcome</span>
-              <button type="button" className="app-header__auth-btn" onClick={handleAuthAction}>
-                {authButtonLabel}
-              </button>
-            </>
-          )}
-        </div>
-      </header>
+              </>
+            )}
+          </div>
+        </header>
       <main className="app-content">
         {shouldShowWalletBalance && <WalletSummaryCard wallet={wallet} />}
         <div className="app-content__page">

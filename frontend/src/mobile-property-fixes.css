@@ -100,6 +100,49 @@
     .property-detail__wrapper {
         padding-bottom: 0 !important;
     }
+
+    /* 4. Make Header Card Full Width with Margins */
+    .property-detail__header {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .property-detail__header-box {
+        width: calc(100% - 2rem) !important;
+        margin: 1rem 1rem 0 1rem !important;
+        padding: 1.5rem !important;
+        box-sizing: border-box !important;
+    }
+
+    .property-detail__header-content {
+        gap: 1rem !important;
+    }
+
+    .property-detail__icon {
+        width: 48px !important;
+        height: 48px !important;
+    }
+
+    .property-detail__icon svg {
+        width: 48px !important;
+        height: 48px !important;
+    }
+
+    .property-detail__title {
+        font-size: 1.5rem !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .property-detail__type {
+        font-size: 0.85rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .property-detail__description {
+        font-size: 0.9rem !important;
+        line-height: 1.5 !important;
+    }
 }
 
 /* Hide mobile header on desktop */

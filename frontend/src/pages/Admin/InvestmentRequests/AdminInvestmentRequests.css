@@ -108,6 +108,7 @@
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
   align-items: flex-end;
+  padding-top: 2rem;
 }
 
 .admin-investment-requests__search {
@@ -145,16 +146,20 @@
 }
 
 .admin-investment-requests__filter-group {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  justify-content: flex-end;
+  min-width: 150px;
 }
 
 .admin-investment-requests__filter-label {
+  position: absolute;
+  top: -1.5rem;
+  left: 0;
   font-size: 0.875rem;
   font-weight: 600;
   color: #475569;
+  white-space: nowrap;
 }
 
 .admin-investment-requests__filter-select {

@@ -24,24 +24,43 @@ const Earnings = () => {
     const earnings = [];
     holdings.forEach((holding) => {
       if (holding.totalEarningsReceived > 0) {
+        const holdingId = holding._id || holding.id;
+        
+        // Get property ID (handle both populated and unpopulated cases)
+        const propertyId = holding.propertyId?._id || holding.propertyId?.id || holding.propertyId || holding.property;
+        
+        // Get property name - check populated propertyId first, then listings
+        let propertyName = "Unknown Property";
+        if (holding.propertyId && typeof holding.propertyId === 'object' && holding.propertyId.title) {
+          // Property is populated from backend
+          propertyName = holding.propertyId.title;
+        } else {
+          // Try to find property from listings
+          const property = listings.find((p) => {
+            const pId = p._id || p.id;
+            return pId && propertyId && (pId.toString() === propertyId.toString());
+          });
+          propertyName = property?.title || "Unknown Property";
+        }
+        
         const monthsSincePurchase = Math.floor((new Date() - new Date(holding.purchaseDate)) / (1000 * 60 * 60 * 24 * 30));
         for (let i = 1; i <= monthsSincePurchase && i <= holding.lockInMonths; i++) {
           const earningDate = new Date(holding.purchaseDate);
           earningDate.setMonth(earningDate.getMonth() + i);
           earnings.push({
-            id: `earn-${holding.id}-${i}`,
+            id: `earn-${holdingId}-${i}`,
             date: earningDate.toISOString().split("T")[0],
             amount: holding.monthlyEarning || holding.amountInvested * 0.005,
-            description: `Monthly earning from ${holding.name}`,
-            propertyId: holding.propertyId,
-            holdingId: holding.id,
-            propertyName: holding.name,
+            description: `Monthly earning from ${propertyName}`,
+            propertyId: propertyId,
+            holdingId: holdingId,
+            propertyName: propertyName,
           });
         }
       }
     });
     return earnings.sort((a, b) => new Date(b.date) - new Date(a.date));
-  }, [holdings]);
+  }, [holdings, listings]);
 
   // Calculate summary
   const summary = useMemo(() => {

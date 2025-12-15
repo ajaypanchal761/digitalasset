@@ -138,14 +138,33 @@ const AllInvestments = () => {
               <div className="wallet-page__table-body">
                 {sortedHoldings.map((holding) => {
                   const isMatured = holding.status === "matured" || holding.daysRemaining === 0;
+                  const holdingId = holding._id || holding.id;
+                  
+                  // Get property ID (handle both populated and unpopulated cases)
+                  const propertyId = holding.propertyId?._id || holding.propertyId?.id || holding.propertyId || holding.property;
+                  
+                  // Get property name - check populated propertyId first, then listings
+                  let propertyName = "Unknown Property";
+                  if (holding.propertyId && typeof holding.propertyId === 'object' && holding.propertyId.title) {
+                    // Property is populated from backend
+                    propertyName = holding.propertyId.title;
+                  } else {
+                    // Try to find property from listings
+                    const property = listings.find((p) => {
+                      const pId = p._id || p.id;
+                      return pId && propertyId && (pId.toString() === propertyId.toString());
+                    });
+                    propertyName = property?.title || "Unknown Property";
+                  }
+                  
                   return (
                     <div
-                      key={holding.id}
+                      key={holdingId}
                       className="wallet-page__table-row wallet-page__table-row--clickable wallet-page__table-row--investments"
-                      onClick={() => navigate(`/holding/${holding.id}`)}
+                      onClick={() => navigate(`/holding/${holdingId}`)}
                     >
                       <span className="wallet-page__table-cell wallet-page__table-cell--property" data-label="Property">
-                        <span className="wallet-page__property-name">{holding.name}</span>
+                        <span className="wallet-page__property-name">{propertyName}</span>
                       </span>
                       <span className="wallet-page__table-cell" data-label="Invested">
                         {formatCurrency(holding.amountInvested, wallet.currency)}
@@ -166,7 +185,7 @@ const AllInvestments = () => {
                           className="wallet-page__view-btn"
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigate(`/holding/${holding.id}`);
+                            navigate(`/holding/${holdingId}`);
                           }}
                         >
                           View

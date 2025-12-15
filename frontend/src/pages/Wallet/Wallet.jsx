@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
@@ -26,6 +26,25 @@ const Wallet = () => {
     acceptTerms: false,
   });
   const [withdrawErrors, setWithdrawErrors] = useState({});
+  const [isBankDropdownOpen, setIsBankDropdownOpen] = useState(false);
+  const bankDropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (bankDropdownRef.current && !bankDropdownRef.current.contains(event.target)) {
+        setIsBankDropdownOpen(false);
+      }
+    };
+
+    if (isBankDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isBankDropdownOpen]);
 
   const formatCurrency = (value, currency = "INR") =>
     new Intl.NumberFormat("en-IN", {
@@ -1059,28 +1078,81 @@ const Wallet = () => {
                     <label htmlFor="bank-account" className="withdraw-modal__label">
                       Select Bank Account <span className="withdraw-modal__required">*</span>
                     </label>
-                    <select
-                      id="bank-account"
-                      value={withdrawForm.bankAccount}
-                      onChange={(e) => {
-                        setWithdrawForm({ ...withdrawForm, bankAccount: e.target.value });
-                        // Auto-fill if saved account selected
-                        if (e.target.value === "saved") {
-                          setWithdrawForm({
-                            ...withdrawForm,
-                            bankAccount: "saved",
-                            accountNumber: "1234567890",
-                            ifscCode: "HDFC0001234",
-                            accountHolderName: "Yunus Ahmed",
-                          });
-                        }
-                      }}
-                      className={`withdraw-modal__input withdraw-modal__input--select ${withdrawErrors.bankAccount ? "withdraw-modal__input--error" : ""}`}
-                    >
-                      <option value="">Select bank account</option>
-                      <option value="saved">Saved Account (HDFC Bank - ****7890)</option>
-                      <option value="new">Add New Account</option>
-                    </select>
+                    <div className="withdraw-modal__custom-dropdown" ref={bankDropdownRef}>
+                      <button
+                        type="button"
+                        id="bank-account"
+                        onClick={() => setIsBankDropdownOpen(!isBankDropdownOpen)}
+                        className={`withdraw-modal__dropdown-toggle ${withdrawForm.bankAccount ? "withdraw-modal__dropdown-toggle--selected" : ""} ${withdrawErrors.bankAccount ? "withdraw-modal__input--error" : ""}`}
+                      >
+                        <span className="withdraw-modal__dropdown-value">
+                          {withdrawForm.bankAccount === "saved"
+                            ? "Saved Account (HDFC Bank - ****7890)"
+                            : withdrawForm.bankAccount === "new"
+                            ? "Add New Account"
+                            : "Select bank account"}
+                        </span>
+                        <svg
+                          width="12"
+                          height="8"
+                          viewBox="0 0 12 8"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          className={`withdraw-modal__dropdown-arrow ${isBankDropdownOpen ? "withdraw-modal__dropdown-arrow--open" : ""}`}
+                        >
+                          <path d="M1 1L6 6L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </button>
+                      {isBankDropdownOpen && (
+                        <div className="withdraw-modal__dropdown-menu">
+                          <button
+                            type="button"
+                            className={`withdraw-modal__dropdown-item ${withdrawForm.bankAccount === "" ? "withdraw-modal__dropdown-item--selected" : ""}`}
+                            onClick={() => {
+                              setWithdrawForm({ ...withdrawForm, bankAccount: "" });
+                              setIsBankDropdownOpen(false);
+                              if (withdrawErrors.bankAccount) {
+                                setWithdrawErrors({ ...withdrawErrors, bankAccount: null });
+                              }
+                            }}
+                          >
+                            Select bank account
+                          </button>
+                          <button
+                            type="button"
+                            className={`withdraw-modal__dropdown-item ${withdrawForm.bankAccount === "saved" ? "withdraw-modal__dropdown-item--selected" : ""}`}
+                            onClick={() => {
+                              setWithdrawForm({
+                                ...withdrawForm,
+                                bankAccount: "saved",
+                                accountNumber: "1234567890",
+                                ifscCode: "HDFC0001234",
+                                accountHolderName: "Yunus Ahmed",
+                              });
+                              setIsBankDropdownOpen(false);
+                              if (withdrawErrors.bankAccount) {
+                                setWithdrawErrors({ ...withdrawErrors, bankAccount: null });
+                              }
+                            }}
+                          >
+                            Saved Account (HDFC Bank - ****7890)
+                          </button>
+                          <button
+                            type="button"
+                            className={`withdraw-modal__dropdown-item ${withdrawForm.bankAccount === "new" ? "withdraw-modal__dropdown-item--selected" : ""}`}
+                            onClick={() => {
+                              setWithdrawForm({ ...withdrawForm, bankAccount: "new" });
+                              setIsBankDropdownOpen(false);
+                              if (withdrawErrors.bankAccount) {
+                                setWithdrawErrors({ ...withdrawErrors, bankAccount: null });
+                              }
+                            }}
+                          >
+                            Add New Account
+                          </button>
+                        </div>
+                      )}
+                    </div>
                     {withdrawErrors.bankAccount && <span className="withdraw-modal__error">{withdrawErrors.bankAccount}</span>}
                   </div>
 

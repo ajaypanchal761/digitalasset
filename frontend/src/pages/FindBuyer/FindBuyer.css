@@ -29,6 +29,13 @@
   gap: 1rem;
 }
 
+/* Add spacing between top navigation header and page header on web view */
+@media (min-width: 769px) {
+  .find-buyer-page__header {
+    margin-top: 2rem;
+  }
+}
+
 .find-buyer-page__back {
   width: 40px;
   height: 40px;
