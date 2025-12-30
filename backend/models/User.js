@@ -109,6 +109,20 @@ userSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
+// Post-save hook to process offline buyer requests when KYC is approved
+userSchema.post('save', async function(doc) {
+  // Only process if KYC status changed to 'approved'
+  if (doc.kycStatus === 'approved' && doc.isModified('kycStatus')) {
+    try {
+      const { processOfflineBuyerRequests } = await import('../services/kycApprovalService.js');
+      await processOfflineBuyerRequests(doc._id, doc.email);
+    } catch (error) {
+      console.error('Error processing offline buyer requests after KYC approval:', error);
+      // Don't throw error - KYC approval should still succeed
+    }
+  }
+});
+
 const User = mongoose.model('User', userSchema);
 
 export default User;

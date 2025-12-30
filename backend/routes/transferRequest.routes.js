@@ -1,6 +1,5 @@
 import express from 'express';
 import {
-  getAvailableBuyers,
   createTransferRequest,
   getReceivedRequests,
   getSentRequests,
@@ -15,7 +14,6 @@ const router = express.Router();
 // All routes require authentication
 router.use(protect);
 
-router.get('/users/available-buyers', getAvailableBuyers);
 router.post('/', createTransferRequest);
 router.get('/received', getReceivedRequests);
 router.get('/sent', getSentRequests);

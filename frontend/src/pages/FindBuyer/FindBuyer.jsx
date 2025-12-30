@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
-import { transferRequestAPI } from "../../services/api.js";
+import { offlineBuyerRequestAPI } from "../../services/api.js";
 import "./FindBuyer.css";
 
 const FindBuyer = () => {
@@ -19,12 +19,15 @@ const FindBuyer = () => {
     return hId === searchId;
   });
 
-  const [availableBuyers, setAvailableBuyers] = useState([]);
-  const [sentRequests, setSentRequests] = useState([]);
+  const [formData, setFormData] = useState({
+    buyerName: "",
+    buyerEmail: "",
+    buyerPhone: "",
+  });
+  const [errors, setErrors] = useState({});
+  const [sending, setSending] = useState(false);
+  const [offlineRequests, setOfflineRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sendingRequest, setSendingRequest] = useState(null);
-  const [activeTab, setActiveTab] = useState("buyers"); // "buyers" or "requests"
-  const [salePrice, setSalePrice] = useState(holding?.amountInvested || 0);
 
   useEffect(() => {
     // Wait for holdings to load before checking
@@ -46,30 +49,21 @@ const FindBuyer = () => {
       return;
     }
 
-    fetchData();
+    fetchOfflineRequests();
   }, [holding, holdingId, holdingsLoading, navigate, showToast]);
 
-  const fetchData = async () => {
+  const fetchOfflineRequests = async () => {
     try {
       setLoading(true);
-      
-      // Fetch available buyers
-      const buyersResponse = await transferRequestAPI.getAvailableBuyers();
-      if (buyersResponse.success) {
-        setAvailableBuyers(buyersResponse.data || []);
-      }
-
-      // Fetch sent requests
-      const requestsResponse = await transferRequestAPI.getSent();
-      if (requestsResponse.success) {
-        const holdingRequests = (requestsResponse.data || []).filter(
+      const response = await offlineBuyerRequestAPI.getAll();
+      if (response.success) {
+        const holdingRequests = (response.data || []).filter(
           (req) => (req.holdingId?._id || req.holdingId) === (holding?._id || holding?.id)
         );
-        setSentRequests(holdingRequests);
+        setOfflineRequests(holdingRequests);
       }
     } catch (error) {
-      console.error("Error fetching data:", error);
-      showToast(error.message || "Failed to load data", "error");
+      console.error("Error fetching offline requests:", error);
     } finally {
       setLoading(false);
     }
@@ -82,77 +76,62 @@ const FindBuyer = () => {
       maximumFractionDigits: 0,
     }).format(value);
 
-  const handleSendRequest = async (buyerId) => {
-    if (!salePrice || salePrice < (holding.amountInvested * 0.8)) {
-      showToast(
-        `Minimum sale price is ${formatCurrency(holding.amountInvested * 0.8, "INR")} (80% of investment)`,
-        "error"
-      );
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.buyerName.trim()) {
+      newErrors.buyerName = "Buyer name is required";
+    }
+
+    if (!formData.buyerEmail.trim()) {
+      newErrors.buyerEmail = "Buyer email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.buyerEmail)) {
+      newErrors.buyerEmail = "Invalid email format";
+    }
+
+    if (!formData.buyerPhone.trim()) {
+      newErrors.buyerPhone = "Buyer phone is required";
+    } else if (!/^\d{10}$/.test(formData.buyerPhone)) {
+      newErrors.buyerPhone = "Phone number must be 10 digits";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
       return;
     }
 
     try {
-      setSendingRequest(buyerId);
-      const response = await transferRequestAPI.create(
-        buyerId,
-        holding._id || holding.id,
-        salePrice
-      );
+      setSending(true);
+      const response = await offlineBuyerRequestAPI.create({
+        holdingId: holding._id || holding.id,
+        buyerName: formData.buyerName.trim(),
+        buyerEmail: formData.buyerEmail.trim(),
+        buyerPhone: formData.buyerPhone.trim(),
+      });
 
       if (response.success) {
-        showToast("Buy request sent successfully!", "success");
-        fetchData(); // Refresh data
-        setActiveTab("requests"); // Switch to requests tab
+        showToast("Email sent to offline buyer successfully!", "success");
+        setFormData({
+          buyerName: "",
+          buyerEmail: "",
+          buyerPhone: "",
+        });
+        fetchOfflineRequests();
       } else {
-        showToast(response.message || "Failed to send request", "error");
+        showToast(response.message || "Failed to send email", "error");
       }
     } catch (error) {
-      console.error("Error sending request:", error);
-      showToast(error.message || "Failed to send request", "error");
+      console.error("Error sending email:", error);
+      showToast(error.message || "Failed to send email", "error");
     } finally {
-      setSendingRequest(null);
+      setSending(false);
     }
-  };
-
-  const handleCancelRequest = async (requestId) => {
-    if (!window.confirm("Are you sure you want to cancel this request?")) {
-      return;
-    }
-
-    try {
-      const response = await transferRequestAPI.cancel(requestId);
-      if (response.success) {
-        showToast("Request cancelled successfully", "success");
-        fetchData();
-      } else {
-        showToast(response.message || "Failed to cancel request", "error");
-      }
-    } catch (error) {
-      console.error("Error cancelling request:", error);
-      showToast(error.message || "Failed to cancel request", "error");
-    }
-  };
-
-  const getStatusBadge = (status, buyerResponse) => {
-    if (status === "completed") {
-      return <span className="find-buyer__status-badge find-buyer__status-badge--completed">Completed</span>;
-    }
-    if (status === "admin_approved") {
-      return <span className="find-buyer__status-badge find-buyer__status-badge--approved">Approved</span>;
-    }
-    if (status === "admin_rejected" || status === "rejected") {
-      return <span className="find-buyer__status-badge find-buyer__status-badge--rejected">Rejected</span>;
-    }
-    if (status === "admin_pending") {
-      return <span className="find-buyer__status-badge find-buyer__status-badge--pending">Admin Review</span>;
-    }
-    if (status === "accepted" && buyerResponse === "accepted") {
-      return <span className="find-buyer__status-badge find-buyer__status-badge--accepted">Accepted</span>;
-    }
-    if (buyerResponse === "declined") {
-      return <span className="find-buyer__status-badge find-buyer__status-badge--declined">Declined</span>;
-    }
-    return <span className="find-buyer__status-badge find-buyer__status-badge--pending">Pending</span>;
   };
 
   if (loading) {
@@ -181,7 +160,7 @@ const FindBuyer = () => {
               <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
-          <h1 className="find-buyer-page__title">Find Buyer</h1>
+          <h1 className="find-buyer-page__title">Find Offline Buyer</h1>
           <div style={{ width: "24px" }}></div>
         </div>
 
@@ -197,170 +176,152 @@ const FindBuyer = () => {
               <span className="find-buyer-page__property-label">Your Investment</span>
               <span className="find-buyer-page__property-value">{formatCurrency(holding.amountInvested, "INR")}</span>
             </div>
-            <div className="find-buyer-page__property-item">
-              <span className="find-buyer-page__property-label">Sale Price</span>
-              <input
-                type="number"
-                className="find-buyer-page__price-input"
-                value={salePrice}
-                onChange={(e) => setSalePrice(Number(e.target.value))}
-                min={holding.amountInvested * 0.8}
-                placeholder="Enter sale price"
-              />
-            </div>
-            <p className="find-buyer-page__price-hint">
-              Minimum {formatCurrency(holding.amountInvested * 0.8, "INR")} (80% of your investment)
-            </p>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="find-buyer-page__tabs">
-          <button
-            className={`find-buyer-page__tab ${activeTab === "buyers" ? "find-buyer-page__tab--active" : ""}`}
-            onClick={() => setActiveTab("buyers")}
-          >
-            Available Buyers ({availableBuyers.length})
-          </button>
-          <button
-            className={`find-buyer-page__tab ${activeTab === "requests" ? "find-buyer-page__tab--active" : ""}`}
-            onClick={() => setActiveTab("requests")}
-          >
-            Sent Requests ({sentRequests.length})
-          </button>
+        {/* Info Card */}
+        <div className="find-buyer-page__info-card" style={{ 
+          background: "#f0f9ff", 
+          padding: "1rem", 
+          borderRadius: "8px", 
+          marginBottom: "1.5rem",
+          border: "1px solid #bae6fd"
+        }}>
+          <p style={{ margin: 0, color: "#0369a1", fontSize: "0.875rem" }}>
+            <strong>Note:</strong> Enter the details of an external buyer (not registered on the platform). 
+            An email will be sent to them with property details and instructions to sign up. 
+            The property will be automatically transferred once they complete KYC verification.
+          </p>
         </div>
 
-        {/* Buyers List */}
-        {activeTab === "buyers" && (
-          <div className="find-buyer-page__buyers-list">
-            {availableBuyers.length === 0 ? (
-              <div className="find-buyer-page__empty">
-                <p>No available buyers found</p>
-              </div>
-            ) : (
-              availableBuyers.map((buyer) => {
-                const hasPendingRequest = sentRequests.some(
-                  (req) =>
-                    (req.buyerId?._id || req.buyerId) === (buyer._id || buyer.id) &&
-                    ["pending", "accepted", "admin_pending"].includes(req.status)
-                );
+        {/* Offline Buyer Form */}
+        <form className="find-buyer-page__form" onSubmit={handleSubmit}>
+          <h3 className="find-buyer-page__form-title">Offline Buyer Information</h3>
 
-                return (
-                  <div key={buyer._id || buyer.id} className="find-buyer-page__buyer-card">
-                    <div className="find-buyer-page__buyer-info">
-                      <div className="find-buyer-page__buyer-avatar">
-                        {buyer.avatarUrl ? (
-                          <img src={buyer.avatarUrl} alt={buyer.name} />
-                        ) : (
-                          <div className="find-buyer-page__buyer-avatar-placeholder">
-                            {buyer.name?.charAt(0).toUpperCase() || "U"}
-                          </div>
-                        )}
-                      </div>
-                      <div className="find-buyer-page__buyer-details">
-                        <h4 className="find-buyer-page__buyer-name">{buyer.name}</h4>
-                        <p className="find-buyer-page__buyer-email">{buyer.email}</p>
-                        {buyer.phone && <p className="find-buyer-page__buyer-phone">{buyer.phone}</p>}
-                      </div>
-                    </div>
-                    <button
-                      className={`find-buyer-page__send-btn ${hasPendingRequest ? "find-buyer-page__send-btn--disabled" : ""}`}
-                      onClick={() => !hasPendingRequest && handleSendRequest(buyer._id || buyer.id)}
-                      disabled={hasPendingRequest || sendingRequest === (buyer._id || buyer.id)}
-                    >
-                      {sendingRequest === (buyer._id || buyer.id)
-                        ? "Sending..."
-                        : hasPendingRequest
-                        ? "Request Sent"
-                        : "Send Buy Request"}
-                    </button>
-                  </div>
-                );
-              })
-            )}
+          {/* Buyer Name */}
+          <div className="find-buyer-page__field">
+            <label htmlFor="buyer-name" className="find-buyer-page__label">
+              Buyer Name <span className="find-buyer-page__required">*</span>
+            </label>
+            <input
+              id="buyer-name"
+              type="text"
+              value={formData.buyerName}
+              onChange={(e) => {
+                setFormData({ ...formData, buyerName: e.target.value });
+                if (errors.buyerName) {
+                  setErrors({ ...errors, buyerName: null });
+                }
+              }}
+              className={`find-buyer-page__input ${errors.buyerName ? "find-buyer-page__input--error" : ""}`}
+              placeholder="Enter buyer's full name"
+            />
+            {errors.buyerName && <span className="find-buyer-page__error">{errors.buyerName}</span>}
           </div>
-        )}
+
+          {/* Buyer Email */}
+          <div className="find-buyer-page__field">
+            <label htmlFor="buyer-email" className="find-buyer-page__label">
+              Buyer Email <span className="find-buyer-page__required">*</span>
+            </label>
+            <input
+              id="buyer-email"
+              type="email"
+              value={formData.buyerEmail}
+              onChange={(e) => {
+                setFormData({ ...formData, buyerEmail: e.target.value });
+                if (errors.buyerEmail) {
+                  setErrors({ ...errors, buyerEmail: null });
+                }
+              }}
+              className={`find-buyer-page__input ${errors.buyerEmail ? "find-buyer-page__input--error" : ""}`}
+              placeholder="Enter buyer's email address"
+            />
+            {errors.buyerEmail && <span className="find-buyer-page__error">{errors.buyerEmail}</span>}
+          </div>
+
+          {/* Buyer Phone */}
+          <div className="find-buyer-page__field">
+            <label htmlFor="buyer-phone" className="find-buyer-page__label">
+              Buyer Phone Number <span className="find-buyer-page__required">*</span>
+            </label>
+            <input
+              id="buyer-phone"
+              type="tel"
+              maxLength="10"
+              value={formData.buyerPhone}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, "");
+                setFormData({ ...formData, buyerPhone: value });
+                if (errors.buyerPhone) {
+                  setErrors({ ...errors, buyerPhone: null });
+                }
+              }}
+              className={`find-buyer-page__input ${errors.buyerPhone ? "find-buyer-page__input--error" : ""}`}
+              placeholder="Enter buyer's phone number"
+            />
+            {errors.buyerPhone && <span className="find-buyer-page__error">{errors.buyerPhone}</span>}
+          </div>
+
+          {/* Submit Button */}
+          <div className="find-buyer-page__actions">
+            <button
+              type="button"
+              className="find-buyer-page__btn find-buyer-page__btn--cancel"
+              onClick={() => navigate(-1)}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="find-buyer-page__btn find-buyer-page__btn--primary"
+              disabled={sending}
+            >
+              {sending ? "Sending Email..." : "Send Email"}
+            </button>
+          </div>
+        </form>
 
         {/* Sent Requests List */}
-        {activeTab === "requests" && (
-          <div className="find-buyer-page__requests-list">
-            {sentRequests.length === 0 ? (
-              <div className="find-buyer-page__empty">
-                <p>No requests sent yet</p>
-              </div>
-            ) : (
-              sentRequests.map((request) => {
-                const buyer = request.buyerId;
-                const canProceed = request.status === "accepted" && request.buyerResponse === "accepted";
-                const canCancel = ["pending", "accepted"].includes(request.status);
-
-                return (
-                  <div key={request._id || request.id} className="find-buyer-page__request-card">
-                    <div className="find-buyer-page__request-header">
-                      <div className="find-buyer-page__request-buyer">
-                        <div className="find-buyer-page__buyer-avatar">
-                          {buyer?.avatarUrl ? (
-                            <img src={buyer.avatarUrl} alt={buyer?.name} />
-                          ) : (
-                            <div className="find-buyer-page__buyer-avatar-placeholder">
-                              {buyer?.name?.charAt(0).toUpperCase() || "U"}
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <h4 className="find-buyer-page__request-buyer-name">{buyer?.name || "N/A"}</h4>
-                          <p className="find-buyer-page__request-buyer-email">{buyer?.email || "N/A"}</p>
-                        </div>
-                      </div>
-                      {getStatusBadge(request.status, request.buyerResponse)}
+        {offlineRequests.length > 0 && (
+          <div className="find-buyer-page__requests-section">
+            <h3 className="find-buyer-page__form-title">Sent Requests</h3>
+            <div className="find-buyer-page__requests-list">
+              {offlineRequests.map((request) => (
+                <div key={request._id || request.id} className="find-buyer-page__request-card">
+                  <div className="find-buyer-page__request-header">
+                    <div>
+                      <h4 className="find-buyer-page__request-buyer-name">{request.buyerName}</h4>
+                      <p className="find-buyer-page__request-buyer-email">{request.buyerEmail}</p>
+                      <p className="find-buyer-page__request-buyer-phone">{request.buyerPhone}</p>
                     </div>
-                    <div className="find-buyer-page__request-details">
+                    <span className={`find-buyer-page__status-badge ${
+                      request.status === "completed" 
+                        ? "find-buyer-page__status-badge--completed" 
+                        : "find-buyer-page__status-badge--pending"
+                    }`}>
+                      {request.status === "completed" ? "Completed" : "Pending"}
+                    </span>
+                  </div>
+                  <div className="find-buyer-page__request-details">
+                    <div className="find-buyer-page__request-detail-item">
+                      <span className="find-buyer-page__request-detail-label">Request Date</span>
+                      <span className="find-buyer-page__request-detail-value">
+                        {new Date(request.createdAt).toLocaleDateString("en-IN")}
+                      </span>
+                    </div>
+                    {request.status === "completed" && request.transferCompletedDate && (
                       <div className="find-buyer-page__request-detail-item">
-                        <span className="find-buyer-page__request-detail-label">Sale Price</span>
-                        <span className="find-buyer-page__request-detail-value">{formatCurrency(request.salePrice, "INR")}</span>
-                      </div>
-                      <div className="find-buyer-page__request-detail-item">
-                        <span className="find-buyer-page__request-detail-label">Request Date</span>
+                        <span className="find-buyer-page__request-detail-label">Transfer Completed</span>
                         <span className="find-buyer-page__request-detail-value">
-                          {new Date(request.createdAt).toLocaleDateString("en-IN")}
+                          {new Date(request.transferCompletedDate).toLocaleDateString("en-IN")}
                         </span>
                       </div>
-                    </div>
-                    <div className="find-buyer-page__request-actions">
-                      {canProceed && (
-                        <button
-                          className="find-buyer-page__proceed-btn"
-                          onClick={async () => {
-                            try {
-                              const response = await transferRequestAPI.initiateTransfer(request._id || request.id);
-                              if (response.success) {
-                                showToast("Transfer request sent to admin for approval", "success");
-                                fetchData();
-                              } else {
-                                showToast(response.message || "Failed to initiate transfer", "error");
-                              }
-                            } catch (error) {
-                              console.error("Error initiating transfer:", error);
-                              showToast(error.message || "Failed to initiate transfer", "error");
-                            }
-                          }}
-                        >
-                          Proceed to Transfer
-                        </button>
-                      )}
-                      {canCancel && (
-                        <button
-                          className="find-buyer-page__cancel-btn"
-                          onClick={() => handleCancelRequest(request._id || request.id)}
-                        >
-                          Cancel Request
-                        </button>
-                      )}
-                    </div>
+                    )}
                   </div>
-                );
-              })
-            )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -369,4 +330,3 @@ const FindBuyer = () => {
 };
 
 export default FindBuyer;
-

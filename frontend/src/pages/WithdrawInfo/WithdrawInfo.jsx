@@ -62,32 +62,32 @@ const WithdrawInfo = () => {
           <div className="withdraw-info-page__step">
             <div className="withdraw-info-page__step-number">1</div>
             <div className="withdraw-info-page__step-content">
-              <h4 className="withdraw-info-page__step-title">Contact Owner or Find Buyer</h4>
-              <p className="withdraw-info-page__step-text">Contact the property owner for sale options or find a buyer from the platform</p>
+              <h4 className="withdraw-info-page__step-title">Contact Owner or Find Offline Buyer</h4>
+              <p className="withdraw-info-page__step-text">Contact the property owner for sale options or find an external buyer (not registered on the platform)</p>
             </div>
           </div>
 
             <div className="withdraw-info-page__step">
               <div className="withdraw-info-page__step-number">2</div>
               <div className="withdraw-info-page__step-content">
-                <h4 className="withdraw-info-page__step-title">Find a Buyer</h4>
-                <p className="withdraw-info-page__step-text">Wait for a buyer to purchase your property holding</p>
+                <h4 className="withdraw-info-page__step-title">Send Email to Buyer</h4>
+                <p className="withdraw-info-page__step-text">Send an email to the offline buyer with property details and platform link</p>
               </div>
             </div>
 
             <div className="withdraw-info-page__step">
               <div className="withdraw-info-page__step-number">3</div>
               <div className="withdraw-info-page__step-content">
-                <h4 className="withdraw-info-page__step-title">Transfer Ownership</h4>
-                <p className="withdraw-info-page__step-text">Transfer all profile details (email, phone, etc.) to the new buyer</p>
+                <h4 className="withdraw-info-page__step-title">Buyer Signs Up and Completes KYC</h4>
+                <p className="withdraw-info-page__step-text">The buyer visits the platform, signs up, and completes KYC verification</p>
               </div>
             </div>
 
             <div className="withdraw-info-page__step">
               <div className="withdraw-info-page__step-number">4</div>
               <div className="withdraw-info-page__step-content">
-                <h4 className="withdraw-info-page__step-title">Complete Withdrawal</h4>
-                <p className="withdraw-info-page__step-text">Once ownership is transferred, you can withdraw the sale proceeds</p>
+                <h4 className="withdraw-info-page__step-title">Automatic Transfer & Withdrawal</h4>
+                <p className="withdraw-info-page__step-text">Once KYC is approved, the property is automatically transferred and you can withdraw the sale proceeds</p>
               </div>
             </div>
           </div>
@@ -121,8 +121,8 @@ const WithdrawInfo = () => {
                   <path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <h4 className="withdraw-info-page__option-title">Find Buyer</h4>
-              <p className="withdraw-info-page__option-text">Find a buyer from the platform to purchase your property holding</p>
+              <h4 className="withdraw-info-page__option-title">Find Offline Buyer</h4>
+              <p className="withdraw-info-page__option-text">Find an external buyer (not registered on the platform) to purchase your property holding</p>
             </div>
           </div>
         </div>
@@ -136,21 +136,21 @@ const WithdrawInfo = () => {
                 <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M12 16V12M12 8H12.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              <span>All profile details including email, phone number, and mandatory KYC information must be transferred to the buyer</span>
+              <span>The offline buyer must sign up on the platform and complete KYC verification</span>
             </li>
             <li className="withdraw-info-page__note-item">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M12 16V12M12 8H12.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              <span>Withdrawal is only possible after successful ownership transfer is completed</span>
+              <span>Property transfer happens automatically once the buyer's KYC is approved</span>
             </li>
             <li className="withdraw-info-page__note-item">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M12 16V12M12 8H12.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              <span>Sale proceeds will be credited to your wallet once the transfer process is verified</span>
+              <span>Sale proceeds will be credited to your wallet once the transfer is completed</span>
             </li>
           </ul>
         </div>
@@ -161,7 +161,7 @@ const WithdrawInfo = () => {
             Contact Owner
           </button>
           <button className="withdraw-info-page__btn withdraw-info-page__btn--outline" onClick={() => navigate("/find-buyer", { state: { holdingId } })}>
-            Find Buyer
+            Find Offline Buyer
           </button>
         </div>
       </div>

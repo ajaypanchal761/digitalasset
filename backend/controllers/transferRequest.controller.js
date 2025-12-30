@@ -3,30 +3,6 @@ import User from '../models/User.js';
 import Property from '../models/Property.js';
 import Holding from '../models/Holding.js';
 
-// @desc    Get list of available buyers (all users except current user)
-// @route   GET /api/users/available-buyers
-// @access  Private
-export const getAvailableBuyers = async (req, res) => {
-  try {
-    const users = await User.find({
-      _id: { $ne: req.user.id },
-      role: 'investor',
-      accountStatus: 'active',
-    })
-      .select('name email phone avatarUrl')
-      .sort({ name: 1 });
-
-    res.json({
-      success: true,
-      data: users,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to fetch available buyers',
-    });
-  }
-};
 
 // @desc    Check if holding is eligible for withdrawal (3 months passed)
 // @route   GET /api/withdrawals/eligible/:holdingId

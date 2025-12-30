@@ -9,6 +9,19 @@ import { calculateMonthlyEarning, calculateMaturityDate, isMatured } from '../ut
 // @access  Private
 export const getHoldings = async (req, res) => {
   try {
+    // Check for offline buyer requests when user logs in and KYC is approved
+    // This ensures we catch any transfers that might have been missed
+    try {
+      const user = await User.findById(req.user.id);
+      if (user && user.kycStatus === 'approved') {
+        const { processOfflineBuyerRequests } = await import('../services/kycApprovalService.js');
+        await processOfflineBuyerRequests(user._id, user.email);
+      }
+    } catch (error) {
+      console.error('Error processing offline buyer requests on holdings fetch:', error);
+      // Continue even if this fails
+    }
+
     const holdings = await Holding.find({ userId: req.user.id })
       .populate('propertyId', 'title description image')
       .sort({ purchaseDate: -1 });

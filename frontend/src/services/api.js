@@ -646,11 +646,6 @@ export const transferRequestAPI = {
     return apiRequest(`/withdrawals/eligible/${holdingId}`);
   },
 
-  // Get available buyers (all users except current user)
-  getAvailableBuyers: async () => {
-    return apiRequest('/transfer-requests/users/available-buyers');
-  },
-
   // Create transfer request
   create: async (buyerId, holdingId, salePrice) => {
     return apiRequest('/transfer-requests', {
@@ -689,6 +684,23 @@ export const transferRequestAPI = {
     return apiRequest(`/transfer-requests/${requestId}/cancel`, {
       method: 'PUT',
     });
+  },
+};
+
+// ==================== OFFLINE BUYER REQUEST API ====================
+
+export const offlineBuyerRequestAPI = {
+  // Create offline buyer request and send email
+  create: async (data) => {
+    return apiRequest('/offline-buyer-requests', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Get offline buyer requests for seller
+  getAll: async () => {
+    return apiRequest('/offline-buyer-requests');
   },
 };
 
