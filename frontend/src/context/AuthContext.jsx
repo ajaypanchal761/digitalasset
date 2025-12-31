@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { authAPI, adminAuthAPI } from '../services/api.js';
-import logger from '../utils/logger.js';
+import { authAPI, adminAuthAPI } from '../services/api';
+import logger from '../utils/logger';
 
 const AuthContext = createContext(null);
 
