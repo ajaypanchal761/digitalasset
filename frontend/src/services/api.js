@@ -30,14 +30,14 @@ const getAdminToken = () => {
   if (cachedAdminToken !== null && (now - tokenCacheTime) < TOKEN_CACHE_DURATION) {
     return cachedAdminToken;
   }
-  
+
   const token = localStorage.getItem('adminToken');
-  
-  
+
+
   // Update cache
   cachedAdminToken = token;
   tokenCacheTime = now;
-  
+
   return token;
 };
 
@@ -48,13 +48,13 @@ const setAdminToken = (token) => {
     }
     return;
   }
-  
+
   localStorage.setItem('adminToken', token);
-  
+
   // Update cache
   cachedAdminToken = token;
   tokenCacheTime = Date.now();
-  
+
   if (process.env.NODE_ENV === 'development') {
     // Token saved - no logging needed
   }
@@ -62,11 +62,11 @@ const setAdminToken = (token) => {
 
 const removeAdminToken = () => {
   localStorage.removeItem('adminToken');
-  
+
   // Clear cache
   cachedAdminToken = null;
   tokenCacheTime = 0;
-  
+
   if (process.env.NODE_ENV === 'development') {
     // Token removed - no logging needed
   }
@@ -77,20 +77,20 @@ const apiRequest = async (url, options = {}) => {
   // Check if this is an admin route
   // Property routes need admin token when creating/updating/deleting
   // Help articles routes should use admin token if available (for admin panel)
-  const isAdminRoute = url.startsWith('/admin-auth') || 
-                       url.startsWith('/admin') ||
-                       (url.startsWith('/properties') && (options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE' || options.method === 'PATCH')) ||
-                       url.startsWith('/help-articles');
-  
+  const isAdminRoute = url.startsWith('/admin-auth') ||
+    url.startsWith('/admin') ||
+    (url.startsWith('/properties') && (options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE' || options.method === 'PATCH')) ||
+    url.startsWith('/help-articles');
+
   // Get tokens once (cached, so multiple calls are efficient)
   const adminToken = getAdminToken();
   const userToken = getToken();
   const hasAdminToken = !!adminToken;
-  
-  const isPropertyAdminOp = url.startsWith('/properties') && 
-                            (options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE' || options.method === 'PATCH') &&
-                            hasAdminToken;
-  
+
+  const isPropertyAdminOp = url.startsWith('/properties') &&
+    (options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE' || options.method === 'PATCH') &&
+    hasAdminToken;
+
   // For help-articles, prefer admin token if available (allows admins to see all articles)
   // Otherwise use user token or no token for public access
   let token;
@@ -99,10 +99,10 @@ const apiRequest = async (url, options = {}) => {
   } else {
     token = (isAdminRoute || isPropertyAdminOp) ? adminToken : userToken;
   }
-  
+
   // Check if body is FormData - if so, don't set Content-Type (browser will set it with boundary)
   const isFormData = options.body instanceof FormData;
-  
+
   const config = {
     ...options,
     headers: {
@@ -122,7 +122,7 @@ const apiRequest = async (url, options = {}) => {
       // Network error handled by error handler
       throw new Error('Network error. Please check your connection and try again.');
     }
-    
+
     // Parse response as text first, then JSON
     let responseText = '';
     try {
@@ -151,9 +151,9 @@ const apiRequest = async (url, options = {}) => {
       }
     } catch (parseError) {
       // If not JSON, create error object from text
-      data = { 
-        success: false, 
-        message: responseText || `Server error: ${response.status}` 
+      data = {
+        success: false,
+        message: responseText || `Server error: ${response.status}`
       };
     }
 
@@ -161,7 +161,7 @@ const apiRequest = async (url, options = {}) => {
       // Handle rate limiting (429) - don't retry automatically
       if (response.status === 429) {
         let errorMessage = 'Too many requests. Please wait a moment and try again.';
-        
+
         try {
           if (data && typeof data === 'object' && data !== null && !Array.isArray(data)) {
             if (data.message && typeof data.message === 'string' && data.message.trim()) {
@@ -173,13 +173,13 @@ const apiRequest = async (url, options = {}) => {
         } catch (e) {
           // Use default message
         }
-        
+
         // Log rate limit error (but don't spam)
         // Rate limit error - handled by error message
-        
+
         throw new Error(errorMessage);
       }
-      
+
       // If unauthorized, remove appropriate token and redirect
       if (response.status === 401) {
         if (isAdminRoute || isPropertyAdminOp) {
@@ -190,11 +190,11 @@ const apiRequest = async (url, options = {}) => {
           window.location.href = '/auth/login';
         }
       }
-      
+
       // Extract error message safely from response data
       // Response data is already parsed JSON, so it's safe
       let errorMessage = `Request failed with status ${response.status}`;
-      
+
       try {
         // data is already a plain object from JSON.parse, so it's safe to access
         if (data && typeof data === 'object' && data !== null && !Array.isArray(data)) {
@@ -211,9 +211,9 @@ const apiRequest = async (url, options = {}) => {
         // If extraction fails, use default message
         // Error extraction failed - use default message
       }
-      
+
       // Error logged via error message
-      
+
       // Throw simple error with just message string
       // errorMessage is guaranteed to be a string at this point
       throw new Error(errorMessage);
@@ -223,17 +223,17 @@ const apiRequest = async (url, options = {}) => {
   } catch (error) {
     // If error was thrown from our code above, it already has the correct message
     // Just re-throw it - our Error instances are safe to access
-    
+
     // Check if it's an Error instance we created (safe to access)
     if (error instanceof Error) {
       const msg = error.message;
-      
+
       // Error handled via error message
-      
+
       // Re-throw the error with its message
       throw error;
     }
-    
+
     // If it's not an Error instance, create one
     throw new Error('An unexpected error occurred. Please try again.');
   }
@@ -256,11 +256,11 @@ export const authAPI = {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
-    
+
     if (response.success && response.token) {
       setToken(response.token);
     }
-    
+
     return response;
   },
 
@@ -286,11 +286,11 @@ export const authAPI = {
       method: 'POST',
       body: JSON.stringify(data),
     });
-    
+
     if (response.success && response.token) {
       setToken(response.token);
     }
-    
+
     return response;
   },
 
@@ -473,12 +473,12 @@ export const certificateAPI = {
 
     // Get the blob from response
     const blob = await response.blob();
-    
+
     // Create a download link
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    
+
     // Get filename from Content-Disposition header or use default
     const contentDisposition = response.headers.get('Content-Disposition');
     let filename = 'Investment_Certificate.pdf';
@@ -488,7 +488,7 @@ export const certificateAPI = {
         filename = filenameMatch[1];
       }
     }
-    
+
     link.setAttribute('download', filename);
     document.body.appendChild(link);
     link.click();
@@ -540,20 +540,20 @@ export const profileAPI = {
   // Submit KYC documents
   submitKYC: async (kycData) => {
     const formData = new FormData();
-    
+
     // Append files
     if (kycData.panCard) formData.append('panCard', kycData.panCard);
     if (kycData.aadhaarCard) formData.append('aadhaarCard', kycData.aadhaarCard);
     if (kycData.photo) formData.append('photo', kycData.photo);
     if (kycData.addressProof) formData.append('addressProof', kycData.addressProof);
-    
+
     // Append text fields
     if (kycData.panNumber) formData.append('panNumber', kycData.panNumber);
     if (kycData.aadhaarNumber) formData.append('aadhaarNumber', kycData.aadhaarNumber);
-    
+
     // Get token for authorization
     const token = getToken();
-    
+
     return apiRequest('/profile/kyc', {
       method: 'POST',
       body: formData,
@@ -561,6 +561,38 @@ export const profileAPI = {
       headers: {
         Authorization: token ? `Bearer ${token}` : '',
       },
+    });
+  },
+
+  // Verify PAN
+  verifyPan: async (panNumber) => {
+    return apiRequest('/profile/verify-pan', {
+      method: 'POST',
+      body: JSON.stringify({ panNumber }),
+    });
+  },
+
+  // Send Aadhaar OTP
+  sendAadhaarOTP: async (aadhaarNumber) => {
+    return apiRequest('/profile/aadhaar-otp', {
+      method: 'POST',
+      body: JSON.stringify({ aadhaarNumber }),
+    });
+  },
+
+  // Verify Aadhaar OTP
+  verifyAadhaarOTP: async (otp, refId) => {
+    return apiRequest('/profile/verify-aadhaar-otp', {
+      method: 'POST',
+      body: JSON.stringify({ otp, refId }),
+    });
+  },
+
+  // Verify Bank Account
+  verifyBank: async (accountNumber, ifsc) => {
+    return apiRequest('/profile/verify-bank', {
+      method: 'POST',
+      body: JSON.stringify({ accountNumber, ifsc }),
     });
   },
 
@@ -1003,7 +1035,7 @@ export const uploadAPI = {
     const adminToken = getAdminToken();
     const userToken = getToken();
     const token = adminToken || userToken;
-    
+
     const response = await fetch(`${API_URL}/upload/image`, {
       method: 'POST',
       headers: {
@@ -1034,7 +1066,7 @@ export const uploadAPI = {
     const adminToken = getAdminToken();
     const userToken = getToken();
     const token = adminToken || userToken;
-    
+
     const response = await fetch(`${API_URL}/upload/document`, {
       method: 'POST',
       headers: {
@@ -1074,11 +1106,11 @@ export const adminAuthAPI = {
       method: 'POST',
       body: JSON.stringify(userData),
     });
-    
+
     if (response.success && response.token) {
       setAdminToken(response.token);
     }
-    
+
     return response;
   },
 
@@ -1089,12 +1121,12 @@ export const adminAuthAPI = {
       hasPassword: !!data.password,
       timestamp: new Date().toISOString()
     });
-    
+
     const response = await apiRequest('/admin-auth/login', {
       method: 'POST',
       body: JSON.stringify(data),
     });
-    
+
     console.log('📥 adminAuthAPI.login - Response received:', {
       success: response?.success,
       hasToken: !!response?.token,
@@ -1103,10 +1135,10 @@ export const adminAuthAPI = {
       responseKeys: response ? Object.keys(response) : null,
       timestamp: new Date().toISOString()
     });
-    
+
     // Check for token in response
     const token = response?.token || response?.data?.token || response?.accessToken;
-    
+
     console.log('🔍 adminAuthAPI.login - Token extraction:', {
       hasResponse: !!response,
       responseSuccess: response?.success,
@@ -1116,12 +1148,12 @@ export const adminAuthAPI = {
       tokenLength: token?.length,
       tokenPreview: token ? token.substring(0, 50) + '...' : 'null'
     });
-    
+
     if (response && response.success && token) {
       console.log('✅ adminAuthAPI.login - Valid response with token, saving to localStorage...');
       // Save admin token to localStorage with key 'adminToken'
       setAdminToken(token);
-      
+
       // Verify token was saved
       const verifyToken = localStorage.getItem('adminToken');
       console.log('✅ adminAuthAPI.login - Token verification:', {
@@ -1137,7 +1169,7 @@ export const adminAuthAPI = {
         error: response?.error
       });
     }
-    
+
     return response;
   },
 
@@ -1147,11 +1179,11 @@ export const adminAuthAPI = {
       method: 'POST',
       body: JSON.stringify(data),
     });
-    
+
     if (response.success && response.token) {
       setAdminToken(response.token);
     }
-    
+
     return response;
   },
 

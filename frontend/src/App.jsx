@@ -1,6 +1,5 @@
 ﻿import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import "./App.css";
 import "./styles/admin-enhancements.css";
 import "./mobile-explore-fixes.css";
 import "./mobile-property-fixes.css";
@@ -70,10 +69,10 @@ const NotFound = lazy(() => import("./pages/NotFound.jsx"));
 
 // Loading component
 const LoadingFallback = () => (
-  <div style={{ 
-    display: 'flex', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
+  <div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
     minHeight: '50vh',
     fontSize: '1.1rem',
     color: '#64748b'

@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import axios from 'axios';
 
 // @desc    Get user profile
 // @route   GET /api/profile
@@ -194,4 +195,195 @@ export const updateBankDetails = async (req, res) => {
   }
 };
 
+// Quick eKYC API Key (Should be in .env in production)
+const QUICKEKYC_API_KEY = process.env.QUICKEKYC_API_KEY;
+const QUICKEKYC_BASE_URL = process.env.QUICKEKYC_BASE_URL || "https://api.quickekyc.com/api/v1";
 
+console.log("Quick eKYC Config Loaded:", {
+  BaseURL: QUICKEKYC_BASE_URL,
+  KeyLoaded: !!QUICKEKYC_API_KEY
+});
+
+// @desc    Verify PAN
+// @route   POST /api/profile/verify-pan
+// @access  Private
+export const verifyPan = async (req, res) => {
+  try {
+    const { panNumber } = req.body;
+
+    // Call Quick eKYC PAN Verification API (detailed)
+    const response = await axios.post(`${QUICKEKYC_BASE_URL}/pan/pan`, {
+      key: QUICKEKYC_API_KEY,
+      id_number: panNumber
+    });
+
+    const { data, status } = response.data; // API response structure
+
+    if (status === 'success') {
+      // Update user status
+      await User.findByIdAndUpdate(req.user.id, {
+        'kycDocuments.panNumber': panNumber,
+        // We might want to store the verified name as well if the model supports it
+      });
+
+      res.json({
+        success: true,
+        data: {
+          fullName: data.full_name,
+          status: "VALID",
+          panNumber: panNumber
+        }
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: "Invalid PAN Number or Verification Failed"
+      });
+    }
+  } catch (error) {
+    console.error('PAN Verification Error:', error.response?.data || error.message);
+    res.status(500).json({
+      success: false,
+      message: error.response?.data?.message || error.message
+    });
+  }
+};
+
+// @desc    Send Aadhaar OTP
+// @route   POST /api/profile/aadhaar-otp
+// @access  Private
+export const sendAadhaarOtp = async (req, res) => {
+  try {
+    const { aadhaarNumber } = req.body;
+
+    const response = await axios.post(`${QUICKEKYC_BASE_URL}/aadhaar-v2/generate-otp`, {
+      key: QUICKEKYC_API_KEY,
+      id_number: aadhaarNumber
+    });
+
+    const { data, status, request_id } = response.data;
+
+    if (status === 'success' && data.otp_sent) {
+      res.json({
+        success: true,
+        data: {
+          refId: request_id, // Map request_id to refId for frontend
+          message: "OTP sent successfully"
+        }
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: response.data.message || "Failed to send OTP"
+      });
+    }
+  } catch (error) {
+    console.error('Aadhaar OTP Error:', error.response?.data || error.message);
+    res.status(500).json({
+      success: false,
+      message: error.response?.data?.message || error.message
+    });
+  }
+};
+
+// @desc    Verify Aadhaar OTP
+// @route   POST /api/profile/verify-aadhaar-otp
+// @access  Private
+export const verifyAadhaarOtp = async (req, res) => {
+  try {
+    const { otp, refId } = req.body;
+
+    const response = await axios.post(`${QUICKEKYC_BASE_URL}/aadhaar-v2/submit-otp`, {
+      key: QUICKEKYC_API_KEY,
+      request_id: refId,
+      otp: otp
+    });
+
+    const { data, status } = response.data;
+
+    if (status === 'success') {
+      // Format address from object to string
+      const addr = data.address || {};
+      const addressString = [
+        addr.house, addr.street, addr.loc, addr.vtc,
+        addr.dist, addr.state, addr.country, addr.zip
+      ].filter(Boolean).join(', ');
+
+      // Update User
+      await User.findByIdAndUpdate(req.user.id, {
+        'kycDocuments.aadhaarNumber': data.aadhaar_number,
+        // Store verified details if needed structure exists in model
+      });
+
+      res.json({
+        success: true,
+        data: {
+          name: data.full_name,
+          dob: data.dob,
+          gender: data.gender,
+          address: addressString,
+          photo: data.profile_image, // Base64
+          status: "VERIFIED"
+        }
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: response.data.message || "OTP Verification Failed"
+      });
+    }
+  } catch (error) {
+    console.error('Aadhaar Verify Error:', error.response?.data || error.message);
+    res.status(500).json({
+      success: false,
+      message: error.response?.data?.message || error.message
+    });
+  }
+};
+
+// @desc    Verify Bank Account
+// @route   POST /api/profile/verify-bank
+// @access  Private
+export const verifyBank = async (req, res) => {
+  try {
+    const { accountNumber, ifsc } = req.body;
+
+    const response = await axios.post(`${QUICKEKYC_BASE_URL}/bank-verification/pd`, {
+      key: QUICKEKYC_API_KEY,
+      id_number: accountNumber,
+      ifsc: ifsc
+    });
+
+    const { data, status } = response.data;
+
+    if (status === 'success' && data.account_exists) {
+      // Update User
+      await User.findByIdAndUpdate(req.user.id, {
+        'bankDetails': {
+          accountNumber,
+          ifscCode: ifsc,
+          accountHolderName: data.full_name,
+          // bankName not provided directly, try ifsc_details
+          bankName: data.ifsc_details?.bank || "Verified Bank"
+        }
+      });
+
+      res.json({
+        success: true,
+        data: {
+          accountHolderName: data.full_name,
+          status: "VERIFIED",
+          bankName: data.ifsc_details?.bank || "Verified Bank"
+        }
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: "Bank Verification Failed or Invalid Account"
+      });
+    }
+  } catch (error) {
+    console.error('Bank Verification Error:', error.response?.data || error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

@@ -1,12 +1,93 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { profileAPI } from "../../services/api";
 import "./KYC.css";
 
 const KYC = () => {
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
   const [loading, setLoading] = useState(true);
+
+  // Verification States
+  const [pan, setPan] = useState("");
+  const [aadhaar, setAadhaar] = useState("");
+  const [aadhaarOtp, setAadhaarOtp] = useState("");
+  const [aadhaarStep, setAadhaarStep] = useState({ otpSent: false, refId: null });
+  const [bank, setBank] = useState({ accountNumber: "", ifsc: "" });
+
+  const [verifying, setVerifying] = useState({ pan: false, aadhaar: false, bank: false });
+  const [verificationStatus, setVerificationStatus] = useState({ pan: false, aadhaar: false, bank: false });
+  const [verifiedData, setVerifiedData] = useState({ pan: null, aadhaar: null, bank: null });
+
+  // Handlers
+  const handlePanVerify = async () => {
+    try {
+      setVerifying(prev => ({ ...prev, pan: true }));
+      const response = await profileAPI.verifyPan(pan);
+      if (response.success) {
+        setVerificationStatus(prev => ({ ...prev, pan: true }));
+        setVerifiedData(prev => ({ ...prev, pan: response.data }));
+      } else {
+        alert(response.message || "PAN Verification failed");
+      }
+    } catch (error) {
+      alert(error.message || "Error verifying PAN");
+    } finally {
+      setVerifying(prev => ({ ...prev, pan: false }));
+    }
+  };
+
+  const handleAadhaarSendOtp = async () => {
+    try {
+      setVerifying(prev => ({ ...prev, aadhaar: true }));
+      const response = await profileAPI.sendAadhaarOTP(aadhaar);
+      if (response.success) {
+        setAadhaarStep({ otpSent: true, refId: response.data.refId });
+      } else {
+        alert(response.message || "Failed to send OTP");
+      }
+    } catch (error) {
+      alert(error.message || "Error sending OTP");
+    } finally {
+      setVerifying(prev => ({ ...prev, aadhaar: false }));
+    }
+  };
+
+  const handleAadhaarVerifyOtp = async () => {
+    try {
+      setVerifying(prev => ({ ...prev, aadhaar: true }));
+      const response = await profileAPI.verifyAadhaarOTP(aadhaarOtp, aadhaarStep.refId);
+      if (response.success) {
+        setVerificationStatus(prev => ({ ...prev, aadhaar: true }));
+        setVerifiedData(prev => ({ ...prev, aadhaar: response.data }));
+      } else {
+        alert(response.message || "Invalid OTP");
+      }
+    } catch (error) {
+      alert(error.message || "Error verifying OTP");
+    } finally {
+      setVerifying(prev => ({ ...prev, aadhaar: false }));
+    }
+  };
+
+  const handleBankVerify = async () => {
+    try {
+      setVerifying(prev => ({ ...prev, bank: true }));
+      const response = await profileAPI.verifyBank(bank.accountNumber, bank.ifsc);
+      if (response.success) {
+        setVerificationStatus(prev => ({ ...prev, bank: true }));
+        setVerifiedData(prev => ({ ...prev, bank: response.data }));
+      } else {
+        alert(response.message || "Bank Verification failed");
+      }
+    } catch (error) {
+      alert(error.message || "Error verifying Bank details");
+    } finally {
+      setVerifying(prev => ({ ...prev, bank: false }));
+    }
+  };
+
 
   useEffect(() => {
     if (authUser) {
@@ -17,7 +98,7 @@ const KYC = () => {
   const getStatusBadge = () => {
     const status = authUser?.kycStatus || "pending";
     const statusConfig = {
-      pending: { text: "Under Review", color: "#f59e0b", bg: "#fef3c7" },
+      pending: { text: "Pending", color: "#f59e0b", bg: "#fef3c7" },
       approved: { text: "Approved", color: "#10b981", bg: "#d1fae5" },
       rejected: { text: "Rejected", color: "#ef4444", bg: "#fee2e2" },
     };
@@ -67,7 +148,7 @@ const KYC = () => {
             </div>
             {kycStatus === "pending" && (
               <p className="kyc-status-message">
-                Your KYC documents are under review. We'll notify you once the verification is complete.
+                Please complete the verification using the options below.
               </p>
             )}
             {kycStatus === "approved" && authUser?.kycSubmittedAt && (
@@ -85,20 +166,208 @@ const KYC = () => {
           </div>
         )}
 
-        {/* DigiLocker Section */}
-        <div className="kyc-digilocker-section">
-          <div className="kyc-digilocker-card">
-            <div className="kyc-digilocker-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                <path d="M9 12l2 2 4-4" />
-              </svg>
+        {/* Quick eKYC Verification Sections */}
+        <div className="kyc-verification-sections">
+          {/* PAN Verification */}
+          <div className="kyc-form-section">
+            <div className="kyc-form-header">
+              <div>
+                <h3 className="kyc-form-title">PAN Verification</h3>
+                <p className="kyc-form-subtitle">Verify your PAN card details instanly</p>
+              </div>
+              {verificationStatus.pan && (
+                <div className="kyc-status-badge" style={{ backgroundColor: "#d1fae5", color: "#10b981" }}>
+                  Verified
+                </div>
+              )}
             </div>
-            <h3>Verify with DigiLocker</h3>
-            <p>Quick and secure verification using DigiLocker (Coming Soon)</p>
-            <button className="kyc-digilocker-btn" disabled>
-              Coming Soon
-            </button>
+
+            {!verificationStatus.pan ? (
+              <div className="kyc-form">
+                <div className="kyc-field">
+                  <label className="kyc-label">PAN Number <span className="kyc-required">*</span></label>
+                  <input
+                    type="text"
+                    className="kyc-input"
+                    placeholder="Enter PAN Number (e.g. ABCDE1234F)"
+                    value={pan}
+                    onChange={(e) => setPan(e.target.value.toUpperCase())}
+                    maxLength={10}
+                    disabled={verifying.pan}
+                  />
+                </div>
+                <button
+                  className="kyc-submit-btn"
+                  onClick={handlePanVerify}
+                  disabled={!pan || pan.length !== 10 || verifying.pan}
+                >
+                  {verifying.pan ? "Verifying..." : "Verify PAN"}
+                </button>
+              </div>
+            ) : (
+              <div className="kyc-approved-message">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M22 4L12 14.01l-3-3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <div>
+                  <p>PAN Verified Successfully</p>
+                  <p style={{ fontSize: "0.8rem", opacity: 0.8 }}>Name: {verifiedData.pan?.fullName}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Aadhaar Verification */}
+          <div className="kyc-form-section">
+            <div className="kyc-form-header">
+              <div>
+                <h3 className="kyc-form-title">Aadhaar Verification</h3>
+                <p className="kyc-form-subtitle">Verify details via Aadhaar OTP</p>
+              </div>
+              {verificationStatus.aadhaar && (
+                <div className="kyc-status-badge" style={{ backgroundColor: "#d1fae5", color: "#10b981" }}>
+                  Verified
+                </div>
+              )}
+            </div>
+
+            {!verificationStatus.aadhaar ? (
+              <div className="kyc-form">
+                {!aadhaarStep.otpSent ? (
+                  <>
+                    <div className="kyc-field">
+                      <label className="kyc-label">Aadhaar Number <span className="kyc-required">*</span></label>
+                      <input
+                        type="text"
+                        className="kyc-input"
+                        placeholder="Enter 12-digit Aadhaar Number"
+                        value={aadhaar}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, '');
+                          if (val.length <= 12) setAadhaar(val);
+                        }}
+                        disabled={verifying.aadhaar}
+                      />
+                    </div>
+                    <button
+                      className="kyc-submit-btn"
+                      onClick={handleAadhaarSendOtp}
+                      disabled={aadhaar.length !== 12 || verifying.aadhaar}
+                    >
+                      {verifying.aadhaar ? "Sending OTP..." : "Send OTP"}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div className="kyc-field">
+                      <label className="kyc-label">Enter OTP <span className="kyc-required">*</span></label>
+                      <input
+                        type="text"
+                        className="kyc-input"
+                        placeholder="Enter 6-digit OTP"
+                        value={aadhaarOtp}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, '');
+                          if (val.length <= 6) setAadhaarOtp(val);
+                        }}
+                        disabled={verifying.aadhaar}
+                      />
+                      <p className="kyc-form-subtitle" style={{ marginTop: '0.5rem' }}>OTP sent to Aadhaar linked mobile number</p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                      <button
+                        className="kyc-submit-btn"
+                        onClick={handleAadhaarVerifyOtp}
+                        disabled={aadhaarOtp.length !== 6 || verifying.aadhaar}
+                      >
+                        {verifying.aadhaar ? "Verifying..." : "Verify OTP"}
+                      </button>
+                      <button
+                        className="kyc-fallback-btn"
+                        onClick={() => setAadhaarStep({ otpSent: false, refId: null })}
+                        disabled={verifying.aadhaar}
+                        style={{ marginTop: '0.5rem' }}
+                      >
+                        Back
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="kyc-approved-message">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M22 4L12 14.01l-3-3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <div>
+                  <p>Aadhaar Verified Successfully</p>
+                  <p style={{ fontSize: "0.8rem", opacity: 0.8 }}>Name: {verifiedData.aadhaar?.name}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Bank Verification */}
+          <div className="kyc-form-section">
+            <div className="kyc-form-header">
+              <div>
+                <h3 className="kyc-form-title">Bank Account Verification</h3>
+                <p className="kyc-form-subtitle">Verify bank account for payouts (Penny Drop)</p>
+              </div>
+              {verificationStatus.bank && (
+                <div className="kyc-status-badge" style={{ backgroundColor: "#d1fae5", color: "#10b981" }}>
+                  Verified
+                </div>
+              )}
+            </div>
+
+            {!verificationStatus.bank ? (
+              <div className="kyc-form">
+                <div className="kyc-field">
+                  <label className="kyc-label">Account Number <span className="kyc-required">*</span></label>
+                  <input
+                    type="text"
+                    className="kyc-input"
+                    placeholder="Enter Account Number"
+                    value={bank.accountNumber}
+                    onChange={(e) => setBank({ ...bank, accountNumber: e.target.value })}
+                    disabled={verifying.bank}
+                  />
+                </div>
+                <div className="kyc-field">
+                  <label className="kyc-label">IFSC Code <span className="kyc-required">*</span></label>
+                  <input
+                    type="text"
+                    className="kyc-input"
+                    placeholder="Enter IFSC Code"
+                    value={bank.ifsc}
+                    onChange={(e) => setBank({ ...bank, ifsc: e.target.value.toUpperCase() })}
+                    disabled={verifying.bank}
+                  />
+                </div>
+                <button
+                  className="kyc-submit-btn"
+                  onClick={handleBankVerify}
+                  disabled={!bank.accountNumber || !bank.ifsc || verifying.bank}
+                >
+                  {verifying.bank ? "Verifying..." : "Verify Bank Account"}
+                </button>
+              </div>
+            ) : (
+              <div className="kyc-approved-message">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M22 4L12 14.01l-3-3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <div>
+                  <p>Bank Account Verified Successfully</p>
+                  <p style={{ fontSize: "0.8rem", opacity: 0.8 }}>Holder: {verifiedData.bank?.accountHolderName}</p>
+                  <p style={{ fontSize: "0.8rem", opacity: 0.8 }}>Bank: {verifiedData.bank?.bankName}</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
