@@ -53,6 +53,11 @@ const userSchema = new mongoose.Schema({
     enum: ['pending', 'approved', 'rejected'],
     default: 'pending',
   },
+  kycVerifications: {
+    panVerified: { type: Boolean, default: false },
+    aadhaarVerified: { type: Boolean, default: false },
+    bankVerified: { type: Boolean, default: false },
+  },
   kycDocuments: {
     panCard: { type: String, default: null },
     aadhaarCard: { type: String, default: null },
@@ -108,6 +113,33 @@ userSchema.pre('save', async function(next) {
 userSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
+
+// Check and auto-approve KYC if all verifications are complete
+userSchema.methods.checkAndAutoApproveKYC = function() {
+  if (this.kycStatus === 'pending' &&
+      this.kycVerifications &&
+      this.kycVerifications.panVerified &&
+      this.kycVerifications.aadhaarVerified &&
+      this.kycVerifications.bankVerified) {
+    this.kycStatus = 'approved';
+    this.kycSubmittedAt = new Date();
+    return true; // Indicates KYC was auto-approved
+  }
+  return false; // No change
+};
+
+// Pre-save hook to ensure kycVerifications exists
+userSchema.pre('save', function(next) {
+  // Ensure kycVerifications object exists with defaults
+  if (!this.kycVerifications) {
+    this.kycVerifications = {
+      panVerified: false,
+      aadhaarVerified: false,
+      bankVerified: false
+    };
+  }
+  next();
+});
 
 // Post-save hook to process offline buyer requests when KYC is approved
 userSchema.post('save', async function(doc) {

@@ -295,7 +295,11 @@ const AdminUsers = () => {
                   <td>
                     <div className="admin-users__user-name">
                       <div className="admin-users__user-avatar">
-                        {user.name?.charAt(0) || 'U'}
+                        {user.avatarUrl ? (
+                          <img src={user.avatarUrl} alt={user.name} />
+                        ) : (
+                          <span>{user.name?.charAt(0)?.toUpperCase() || 'U'}</span>
+                        )}
                       </div>
                       <span>{user.name || 'Unknown User'}</span>
                     </div>

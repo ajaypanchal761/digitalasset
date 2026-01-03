@@ -93,55 +93,20 @@ const KYC = () => {
   };
 
 
-  // Function to fetch fresh KYC verification status from database
-  const fetchKycStatus = async () => {
-    try {
-      const response = await profileAPI.get();
-      if (response.success && response.data) {
-        const userData = response.data;
-        const verifications = userData.kycVerifications || {};
-
-        // Update verification status
-        setVerificationStatus({
-          pan: Boolean(verifications.panVerified),
-          aadhaar: Boolean(verifications.aadhaarVerified),
-          bank: Boolean(verifications.bankVerified),
-        });
-
-        // Update verified data
-        setVerifiedData({
-          pan: verifications.panData || null,
-          aadhaar: verifications.aadhaarData || null,
-          bank: verifications.bankData || null,
-        });
-
-        // Update KYC status
-        setKycStatus(userData.kycStatus || 'pending');
-      }
-    } catch (error) {
-      console.error('Error fetching KYC status:', error);
-      // Fallback to context data if API fails
-      if (authUser) {
-        const verifications = authUser.kycVerifications || {};
-        setVerificationStatus({
-          pan: Boolean(verifications.panVerified),
-          aadhaar: Boolean(verifications.aadhaarVerified),
-          bank: Boolean(verifications.bankVerified),
-        });
-        setKycStatus(authUser.kycStatus || 'pending');
-      }
-    }
-  };
-
   useEffect(() => {
     if (authUser) {
       setLoading(false);
-      // Fetch fresh verification status from database
-      fetchKycStatus();
+      // Initialize verification status from user data
+      const verifications = authUser.kycVerifications || {};
+      setVerificationStatus({
+        pan: Boolean(verifications.panVerified),
+        aadhaar: Boolean(verifications.aadhaarVerified),
+        bank: Boolean(verifications.bankVerified),
+      });
+      setKycStatus(authUser.kycStatus || 'pending');
     } else {
       // Reset to defaults if no user
       setVerificationStatus({ pan: false, aadhaar: false, bank: false });
-      setVerifiedData({ pan: null, aadhaar: null, bank: null });
       setKycStatus('pending');
     }
   }, [authUser]);
@@ -173,7 +138,7 @@ const KYC = () => {
     );
   }
 
-  
+  const kycStatus = authUser?.kycStatus || "pending";
 
   return (
     <div className="kyc-page">

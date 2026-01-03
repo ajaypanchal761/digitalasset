@@ -33,7 +33,7 @@ export const getHoldings = async (req, res) => {
         ...holding.toObject(),
         status: matured ? 'matured' : 'lock-in',
         canWithdrawInvestment: matured,
-        daysRemaining: matured ? 0 : Math.ceil((holding.maturityDate - new Date()) / (1000 * 60 * 60 * 24)),
+        daysRemaining: matured ? 0 : Math.floor((holding.maturityDate - new Date()) / (1000 * 60 * 60 * 24)),
       };
     });
 

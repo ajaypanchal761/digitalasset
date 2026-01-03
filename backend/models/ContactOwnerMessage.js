@@ -27,11 +27,6 @@ const contactOwnerMessageSchema = new mongoose.Schema({
     minlength: [20, 'Message must be at least 20 characters'],
     trim: true,
   },
-  contactPreference: {
-    type: String,
-    enum: ['email', 'phone'],
-    default: 'email',
-  },
   status: {
     type: String,
     enum: ['pending', 'read', 'replied', 'resolved', 'closed'],

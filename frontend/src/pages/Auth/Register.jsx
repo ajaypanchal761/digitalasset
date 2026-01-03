@@ -1,6 +1,7 @@
 ﻿import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { authAPI } from "../../services/api";
+import logoImage from "../../assets/logo1.png";
 import "./Register.css";
 
 const Register = () => {
@@ -141,31 +142,11 @@ const Register = () => {
       <div className="register-container">
         {/* Illustration */}
         <div className="register-illustration">
-          <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-            {/* Hand holding phone illustration */}
-            <g>
-              {/* Cloud shapes */}
-              <ellipse cx="50" cy="80" rx="30" ry="20" fill="#E5E7EB" opacity="0.5"/>
-              <ellipse cx="150" cy="100" rx="25" ry="15" fill="#E5E7EB" opacity="0.5"/>
-              <ellipse cx="80" cy="140" rx="20" ry="12" fill="#E5E7EB" opacity="0.5"/>
-              
-              {/* Stars */}
-              <circle cx="40" cy="60" r="2" fill="#FFFFFF"/>
-              <circle cx="160" cy="80" r="2" fill="#FFFFFF"/>
-              <circle cx="70" cy="120" r="2" fill="#FFFFFF"/>
-              
-              {/* Hand */}
-              <path d="M100 120 L90 140 L95 145 L105 145 L110 140 L100 120 Z" fill="#F3D2C1"/>
-              
-              {/* Phone */}
-              <rect x="95" y="60" width="30" height="50" rx="4" fill="#374151"/>
-              <rect x="98" y="63" width="24" height="35" rx="2" fill="#FFFFFF"/>
-              
-              {/* Checkmark circle on phone screen */}
-              <circle cx="110" cy="80" r="12" fill="#6366F1"/>
-              <path d="M105 80 L108 83 L115 76" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-            </g>
-          </svg>
+          <img
+            src={logoImage}
+            alt="DigitalAssets Logo"
+            style={{ width: '140px', height: 'auto' }}
+          />
         </div>
 
         {/* Content */}

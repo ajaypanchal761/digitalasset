@@ -80,15 +80,60 @@ export const getProperty = async (req, res) => {
 // @desc    Create property
 // @route   POST /api/properties
 // @access  Private/Admin
+// Global counter for property IDs (in production, use Redis or database counter)
+let propertyCounter = 0;
+
+// Initialize counter from database on startup
+const initializeCounter = async () => {
+  try {
+    const lastProperty = await Property.findOne({}, { propertyId: 1 })
+      .sort({ createdAt: -1 })
+      .limit(1);
+
+    if (lastProperty && lastProperty.propertyId) {
+      // Extract number from "Digital Assets-DA123" format
+      const match = lastProperty.propertyId.match(/Digital Assets-DA(\d+)/);
+      if (match) {
+        propertyCounter = parseInt(match[1], 10);
+      }
+    }
+  } catch (error) {
+    console.error('Error initializing property counter:', error);
+    propertyCounter = 0;
+  }
+};
+
+// Initialize counter on module load
+initializeCounter();
+
+// Generate sequential property ID
+const generatePropertyId = async () => {
+  try {
+    propertyCounter += 1;
+    return `Digital Assets-DA${propertyCounter}`;
+  } catch (error) {
+    console.error('Error generating property ID:', error);
+    // Fallback to timestamp-based ID if counter fails
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substr(2, 5);
+    return `Digital Assets-DA${timestamp}${random}`.toUpperCase();
+  }
+};
+
 export const createProperty = async (req, res) => {
   try {
+    // Generate sequential property ID
+    const propertyId = await generatePropertyId();
+
     console.log('🏗️ Backend - createProperty called:', {
       adminId: req.user?._id || req.user?.id,
       adminEmail: req.user?.email,
+      propertyId: propertyId,
       propertyData: {
         title: req.body?.title,
         propertyType: req.body?.propertyType,
         availableToInvest: req.body?.availableToInvest,
+        lockInMonths: req.body?.lockInMonths,
         hasImage: !!req.body?.image,
         documentCount: req.body?.documents?.length || 0
       },
@@ -97,12 +142,22 @@ export const createProperty = async (req, res) => {
 
     const property = await Property.create({
       ...req.body,
+      propertyId: propertyId,
       createdBy: req.user._id || req.user.id,
     });
 
     console.log('✅ Backend - Property created successfully:', {
-      propertyId: property._id,
+      mongoId: property._id,
+      customPropertyId: property.propertyId,
       propertyTitle: property.title,
+      lockInMonths: property.lockInMonths,
+      allFields: {
+        propertyId: property.propertyId,
+        title: property.title,
+        lockInMonths: property.lockInMonths,
+        minInvestment: property.minInvestment,
+        monthlyReturnRate: property.monthlyReturnRate
+      },
       timestamp: new Date().toISOString()
     });
 
@@ -115,11 +170,34 @@ export const createProperty = async (req, res) => {
       error: error.message,
       stack: error.stack,
       name: error.name,
-      validationErrors: error.errors
+      validationErrors: error.errors,
+      errorCode: error.code,
+      errorCodeName: error.codeName,
+      keyPattern: error.keyPattern,
+      keyValue: error.keyValue
     });
+
+    // Handle specific error types
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: 'Validation Error',
+        errors
+      });
+    }
+
+    if (error.name === 'MongoError' && error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Duplicate field value',
+        field: Object.keys(error.keyPattern)[0]
+      });
+    }
+
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || 'Internal server error',
     });
   }
 };

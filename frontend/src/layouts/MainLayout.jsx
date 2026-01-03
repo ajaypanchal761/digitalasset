@@ -266,12 +266,6 @@ const MainLayout = () => {
   const publicRoutes = ["/explore", "/property/"];
   const isPublicRoute = publicRoutes.some(route => location.pathname.startsWith(route));
 
-  // Redirect /home to /dashboard in mobile view
-  useEffect(() => {
-    if (isMobile && location.pathname === "/home") {
-      navigate("/dashboard", { replace: true });
-    }
-  }, [isMobile, location.pathname, navigate]);
 
   // Check authentication and redirect if needed
   useEffect(() => {
@@ -403,7 +397,6 @@ const MainLayout = () => {
   const isPropertySaleOfflinePage = location.pathname === "/property-sale/offline";
   const isTransferOwnershipPage = location.pathname === "/transfer-ownership";
   const isFindBuyerPage = location.pathname === "/find-buyer";
-  const isBuyerRequestsPage = location.pathname === "/buyer-requests";
   const isHelpPage = location.pathname === "/help" || location.pathname.startsWith("/help/");
   const isFAQPage = location.pathname === "/faq";
   const isSupportPage = location.pathname === "/support";
@@ -439,7 +432,7 @@ const MainLayout = () => {
   // Check specifically for the exact /invest path, not sub-routes like /invest/request
   const isInvestMainPage = location.pathname === "/invest";
 
-  if (isMobile && (isHomePage || isPropertyDetailPage || isHoldingDetailPage || isProfilePage || isEditProfilePage || isExplorePage || isChatPage || isHoldingsPage || isWithdrawInfoPage || isContactOwnerPage || isContactOwnerMessagesPage || isPropertySaleOfflinePage || isTransferOwnershipPage || isFindBuyerPage || isBuyerRequestsPage || isHelpPage || isFAQPage || isSupportPage)) {
+  if (isMobile && (isHomePage || isPropertyDetailPage || isHoldingDetailPage || isProfilePage || isEditProfilePage || isExplorePage || isChatPage || isHoldingsPage || isWithdrawInfoPage || isContactOwnerPage || isContactOwnerMessagesPage || isPropertySaleOfflinePage || isTransferOwnershipPage || isFindBuyerPage || isHelpPage || isFAQPage || isSupportPage)) {
     return (
       <div className="mobile-shell mobile-shell--plain">
         <main className={`mobile-content mobile-content--plain ${isExplorePage ? 'mobile-content--explore' : ''}`}>
@@ -477,6 +470,11 @@ const MainLayout = () => {
               <div className="mobile-header__user-section">
                 {isAuthenticated && authUser ? (
                   <>
+                    <div className="mobile-header__user-info">
+                      <span className="mobile-header__user-name">
+                        {authUser?.name || "Guest"}
+                      </span>
+                    </div>
                     <div className="mobile-header__avatar-wrapper" ref={mobileProfileDropdownRef}>
                       <button
                         type="button"

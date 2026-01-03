@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { adminAuthAPI } from "../../../services/api";
 import { useAuth } from "../../../context/AuthContext";
+import logoImage from "../../../assets/logo1.png";
 import "./AdminLoginOtp.css";
 
 const AdminLoginOtp = () => {
@@ -182,15 +183,11 @@ const AdminLoginOtp = () => {
       <div className="admin-verify-otp-container">
         {/* Illustration */}
         <div className="admin-verify-otp-illustration">
-          <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <g>
-              {/* Shield/Admin icon */}
-              <path d="M100 40 L120 50 L120 80 C120 100 110 115 100 120 C90 115 80 100 80 80 L80 50 Z" fill="#6366F1" opacity="0.2"/>
-              <path d="M100 50 L115 58 L115 82 C115 98 107 110 100 114 C93 110 85 98 85 82 L85 58 Z" fill="#6366F1"/>
-              <circle cx="100" cy="75" r="8" fill="#FFFFFF"/>
-              <path d="M100 70 L100 80 M95 75 L105 75" stroke="#6366F1" strokeWidth="2" strokeLinecap="round"/>
-            </g>
-          </svg>
+          <img
+            src={logoImage}
+            alt="DigitalAssets Logo"
+            style={{ width: '140px', height: 'auto' }}
+          />
         </div>
 
         {/* Content */}

@@ -110,7 +110,7 @@ export const sendOfflineBuyerEmail = async ({ buyerEmail, buyerName, sellerName,
           <p style="color: #374151; font-size: 16px; line-height: 1.6;">
             You have been invited to purchase a property holding on our Digital Asset Platform.
           </p>
-          
+
           <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="color: #1f2937; margin-top: 0; font-size: 18px;">Property Details:</h3>
             <p style="color: #374151; margin: 8px 0;"><strong>Property:</strong> ${propertyTitle}</p>
@@ -127,7 +127,7 @@ export const sendOfflineBuyerEmail = async ({ buyerEmail, buyerName, sellerName,
             To proceed with this purchase, please visit our platform and sign up for an account:
           </p>
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${platformUrl}" 
+            <a href="${platformUrl}"
                style="display: inline-block; background: #6366f1; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
               Visit Platform
             </a>
@@ -152,6 +152,71 @@ export const sendOfflineBuyerEmail = async ({ buyerEmail, buyerName, sellerName,
     return { success: true };
   } catch (error) {
     console.error('Offline buyer email sending error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+export const sendContactOwnerEmail = async ({ ownerEmail, ownerName, userName, userEmail, userPhone, propertyTitle, investmentAmount, subject, message }) => {
+  const mailOptions = {
+    from: env.EMAIL_USER,
+    to: ownerEmail,
+    subject: `Property Inquiry: ${subject}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 24px;">
+            Property Sale Inquiry
+          </h1>
+        </div>
+        <div style="background: #ffffff; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+          <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+            Dear ${ownerName},
+          </p>
+          <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+            You have received a new inquiry about selling your property on the Digital Asset Platform.
+          </p>
+
+          <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #1f2937; margin-top: 0; font-size: 18px;">Property Details:</h3>
+            <p style="color: #374151; margin: 8px 0;"><strong>Property:</strong> ${propertyTitle}</p>
+            <p style="color: #374151; margin: 8px 0;"><strong>Investment Amount:</strong> ₹${investmentAmount.toLocaleString('en-IN')}</p>
+          </div>
+
+          <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #1f2937; margin-top: 0; font-size: 18px;">Buyer Details:</h3>
+            <p style="color: #374151; margin: 8px 0;"><strong>Name:</strong> ${userName}</p>
+            <p style="color: #374151; margin: 8px 0;"><strong>Email:</strong> ${userEmail}</p>
+            <p style="color: #374151; margin: 8px 0;"><strong>Phone:</strong> ${userPhone}</p>
+          </div>
+
+          <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #1f2937; margin-top: 0; font-size: 18px;">Message:</h3>
+            <p style="color: #374151; font-style: italic; margin: 8px 0;">"${message}"</p>
+          </div>
+
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin-top: 20px;">
+            Please login to your admin panel to respond to this inquiry.
+          </p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${env.FRONTEND_URL}/admin/contact-owner"
+               style="display: inline-block; background: #6366f1; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+              View in Admin Panel
+            </a>
+          </div>
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+          <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
+            This is an automated email from Digital Asset Platform. Please do not reply to this message.
+          </p>
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return { success: true };
+  } catch (error) {
+    console.error('Contact owner email sending error:', error);
     return { success: false, error: error.message };
   }
 };

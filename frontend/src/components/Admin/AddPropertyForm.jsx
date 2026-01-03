@@ -25,6 +25,7 @@ const AddPropertyForm = ({ onClose, property = null }) => {
     propertyType: property?.propertyType || 'Digital Property',
     deadline: property?.deadline || '',
     availableToInvest: property?.availableToInvest || 1000000,
+    lockInMonths: property?.lockInMonths || 3,
     status: property?.status || 'active',
     image: property?.image || null,
     documents: property?.documents || [],
@@ -192,10 +193,10 @@ const AddPropertyForm = ({ onClose, property = null }) => {
         propertyType: formData.propertyType,
         deadline: formData.deadline,
         availableToInvest: Number(formData.availableToInvest),
+        lockInMonths: Number(formData.lockInMonths),
         status: formData.status,
         // Fixed fields
         minInvestment: 500000,
-        lockInMonths: 3,
         monthlyReturnRate: 0.5,
       };
 
@@ -434,7 +435,18 @@ const AddPropertyForm = ({ onClose, property = null }) => {
               </div>
               <div className="add-property-form__fixed-field">
                 <label className="add-property-form__label">Lock-in Period</label>
-                <div className="add-property-form__fixed-value">3 Months (Fixed)</div>
+                <Select
+                  name="lockInMonths"
+                  value={formData.lockInMonths}
+                  onChange={handleInputChange}
+                  className="add-property-form__select"
+                  options={[
+                    { value: 3, label: '3 Months' },
+                    { value: 6, label: '6 Months' },
+                    { value: 12, label: '12 Months' },
+                    { value: 24, label: '24 Months' },
+                  ]}
+                />
               </div>
               <div className="add-property-form__fixed-field">
                 <label className="add-property-form__label">Monthly Return Rate</label>

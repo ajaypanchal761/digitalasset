@@ -715,8 +715,7 @@
   .admin-payouts__table-container,
   .admin-investment-requests__table-container,
   .admin-help-articles__table-container,
-  .admin-transfer-requests__table-container,
-  .ownership-dealing__table-container {
+  .admin-transfer-requests__table-container {
     padding-left: 0.5rem !important;
     padding-right: 0.5rem !important;
     margin-left: 0 !important;
@@ -733,7 +732,6 @@
   .admin-investment-requests__table,
   .admin-help-articles__table,
   .admin-transfer-requests__table,
-  .ownership-dealing__table,
   .admin-table__table {
     width: 100% !important;
     max-width: 100% !important;

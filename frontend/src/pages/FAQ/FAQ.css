@@ -134,21 +134,12 @@
   margin-bottom: 1.5rem;
   overflow-x: auto;
   padding-bottom: 0.5rem;
-  scrollbar-width: thin;
+  scrollbar-width: none; /* Hide scrollbar visually */
+  -ms-overflow-style: none; /* IE and Edge */
 }
 
 .faq-categories::-webkit-scrollbar {
-  height: 4px;
-}
-
-.faq-categories::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 0.5rem;
-}
-
-.faq-categories::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 0.5rem;
+  display: none; /* Hide scrollbar for Webkit browsers */
 }
 
 .faq-category-tab {
@@ -162,17 +153,25 @@
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s ease;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: fit-content;
 }
 
 .faq-category-tab:hover {
   border-color: #3b82f6;
   color: #3b82f6;
+  background: #f0f9ff;
 }
 
 .faq-category-tab--active {
-  background: #3b82f6;
-  border-color: #3b82f6;
+  background: #1e40af;
+  border-color: #1e40af;
   color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(30, 64, 175, 0.2);
 }
 
 /* FAQ Items */
@@ -340,6 +339,13 @@
 @media (min-width: 768px) {
   .faq-categories {
     flex-wrap: wrap;
+    overflow-x: visible;
+  }
+
+  .faq-category-tab {
+    flex: 1 0 auto;
+    min-width: 120px;
+    justify-content: center;
   }
 }
 

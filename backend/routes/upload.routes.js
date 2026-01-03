@@ -3,13 +3,13 @@ import {
   uploadImage,
   uploadDocument,
 } from '../controllers/upload.controller.js';
-import { protect } from '../middleware/auth.middleware.js';
+import { adminProtect } from '../middleware/adminAuth.middleware.js';
 import { uploadImage as uploadImageMiddleware, uploadDocument as uploadDocumentMiddleware } from '../middleware/upload.js';
 
 const router = express.Router();
 
-router.post('/image', protect, uploadImageMiddleware, uploadImage);
-router.post('/document', protect, uploadDocumentMiddleware, uploadDocument);
+router.post('/image', adminProtect, uploadImageMiddleware, uploadImage);
+router.post('/document', adminProtect, uploadDocumentMiddleware, uploadDocument);
 
 export default router;
 

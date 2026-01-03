@@ -102,26 +102,15 @@ const Profile = () => {
       badge: user?.kycStatus === "pending" ? "Pending" : user?.kycStatus === "approved" ? "Verified" : user?.kycStatus === "rejected" ? "Rejected" : null,
     },
     {
-      id: "investments",
-      label: "My Investments",
+      id: "holdings",
+      label: "Current Holding",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
           <path d="M20 7H4C2.89543 7 2 7.89543 2 9V19C2 20.1046 2.89543 21 4 21H20C21.1046 21 22 20.1046 22 19V9C22 7.89543 21.1046 7 20 7Z" strokeLinecap="round" strokeLinejoin="round" />
           <path d="M16 21V5C16 3.89543 15.1046 3 14 3H10C8.89543 3 8 3.89543 8 5V21" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ),
-      onClick: () => navigate("/invest"),
-    },
-    {
-      id: "wallet",
-      label: "Wallet",
-      icon: (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-          <path d="M4 7.5C4 6.67157 4.67157 6 5.5 6H18.5C19.3284 6 20 6.67157 20 7.5V16.5C20 17.3284 19.3284 18 18.5 18H5.5C4.67157 18 4 17.3284 4 16.5V7.5Z" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M20 9H15C14.1716 9 13.5 9.67157 13.5 10.5C13.5 11.3284 14.1716 12 15 12H20" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      ),
-      onClick: () => navigate("/wallet"),
+      onClick: () => navigate("/holdings"),
     },
     {
       id: "help",
@@ -143,16 +132,6 @@ const Profile = () => {
         </svg>
       ),
       onClick: () => navigate("/chat"),
-    },
-    {
-      id: "sell",
-      label: "Sell Property",
-      icon: (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-          <path d="M3 10H21M7 15H12M16 19H21M3 5H21M3 15H21M3 19H12" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      ),
-      onClick: () => navigate("/withdraw-info"),
     },
     {
       id: "logout",

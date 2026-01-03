@@ -200,7 +200,7 @@
     height: 100dvh;
     min-height: 100vh;
     min-height: 100dvh;
-    padding: 1rem;
+    padding: 0;
     align-items: center;
     justify-content: center;
     overflow: hidden;
@@ -209,17 +209,17 @@
   .login-container {
     width: 100%;
     max-width: 100%;
-    height: auto;
-    min-height: auto;
-    max-height: calc(100vh - 2rem);
-    max-height: calc(100dvh - 2rem);
-    border-radius: 1rem;
-    padding: 1.25rem 1rem;
-    justify-content: flex-start;
-    overflow-y: auto;
+    height: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    border-radius: 0 0 0 0;
+    padding: 1rem 0.75rem;
+    justify-content: center;
+    overflow-y: hidden;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-    margin: auto;
   }
 
   .login-illustration {

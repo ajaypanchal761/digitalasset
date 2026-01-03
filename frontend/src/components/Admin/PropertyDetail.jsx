@@ -53,7 +53,7 @@ const PropertyDetail = ({ property, onClose }) => {
           <div>
             <p className="property-detail__tag">{property.propertyType}</p>
             <h2 className="property-detail__title">{property.title}</h2>
-            <p className="property-detail__id">ID: {property._id || property.id}</p>
+            <p className="property-detail__id">ID: {property.propertyId || property._id || property.id}</p>
           </div>
           <button className="property-detail__close" onClick={onClose} aria-label="Close">
             ✕
@@ -87,7 +87,7 @@ const PropertyDetail = ({ property, onClose }) => {
               </div>
               <div>
                 <p className="property-detail__detail-label">Lock-in Period</p>
-                <p className="property-detail__detail-value">3 Months (fixed)</p>
+                <p className="property-detail__detail-value">{property.lockInMonths || 3} Months</p>
               </div>
               <div>
                 <p className="property-detail__detail-label">Monthly Return</p>

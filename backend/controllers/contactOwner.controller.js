@@ -3,13 +3,14 @@ import User from '../models/User.js';
 import Property from '../models/Property.js';
 import Holding from '../models/Holding.js';
 import Admin from '../models/Admin.js';
+import { sendContactOwnerEmail } from '../utils/email.js';
 
 // @desc    Create a contact owner message
 // @route   POST /api/contact-owner
 // @access  Private
 export const createContactOwnerMessage = async (req, res) => {
   try {
-    const { holdingId, subject, message, contactPreference } = req.body;
+    const { holdingId, subject, message } = req.body;
     const userId = req.user.id;
 
     // Validate required fields
@@ -29,7 +30,13 @@ export const createContactOwnerMessage = async (req, res) => {
     }
 
     // Check if holding exists and belongs to user
-    const holding = await Holding.findById(holdingId).populate('propertyId');
+    const holding = await Holding.findById(holdingId).populate({
+      path: 'propertyId',
+      populate: {
+        path: 'createdBy',
+        select: 'name email'
+      }
+    });
     if (!holding) {
       return res.status(404).json({
         success: false,
@@ -54,7 +61,6 @@ export const createContactOwnerMessage = async (req, res) => {
       propertyId,
       subject: subject.trim(),
       message: message.trim(),
-      contactPreference: contactPreference || 'email',
       status: 'pending',
     });
 
@@ -64,6 +70,37 @@ export const createContactOwnerMessage = async (req, res) => {
       { path: 'propertyId', select: 'title propertyType' },
       { path: 'holdingId', select: 'amountInvested status' },
     ]);
+
+    // Send email to admin/property owner
+    try {
+      console.log('📧 Attempting to send contact owner email...');
+      console.log('Property createdBy:', property.createdBy);
+      console.log('Owner email:', property.createdBy?.email);
+
+      const emailResult = await sendContactOwnerEmail({
+        ownerEmail: property.createdBy?.email || 'admin@digitalassets.com',
+        ownerName: property.createdBy?.name || 'Admin',
+        userName: contactMessage.userId.name,
+        userEmail: contactMessage.userId.email,
+        userPhone: contactMessage.userId.phone || 'N/A',
+        propertyTitle: contactMessage.propertyId.title,
+        investmentAmount: contactMessage.holdingId.amountInvested,
+        subject: contactMessage.subject,
+        message: contactMessage.message,
+      });
+
+      console.log('📧 Email result:', emailResult);
+
+      if (!emailResult.success) {
+        console.error('❌ Failed to send contact owner email:', emailResult.error);
+        // Don't fail the request if email fails, just log it
+      } else {
+        console.log('✅ Contact owner email sent successfully');
+      }
+    } catch (emailError) {
+      console.error('❌ Error sending contact owner email:', emailError);
+      // Continue with the response even if email fails
+    }
 
     res.status(201).json({
       success: true,

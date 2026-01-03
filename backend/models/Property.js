@@ -1,6 +1,11 @@
 import mongoose from 'mongoose';
 
 const propertySchema = new mongoose.Schema({
+  propertyId: {
+    type: String,
+    unique: true,
+    required: true,
+  },
   title: {
     type: String,
     required: [true, 'Please provide a property title'],

@@ -36,7 +36,6 @@ const ContactOwnerMessages = lazy(() => import("./pages/ContactOwner/ContactOwne
 const PropertySaleOffline = lazy(() => import("./pages/PropertySaleOffline/PropertySaleOffline.jsx"));
 const TransferOwnership = lazy(() => import("./pages/TransferOwnership/TransferOwnership.jsx"));
 const FindBuyer = lazy(() => import("./pages/FindBuyer/FindBuyer.jsx"));
-const BuyerRequests = lazy(() => import("./pages/BuyerRequests/BuyerRequests.jsx"));
 const Chat = lazy(() => import("./pages/Chat/Chat.jsx"));
 const Holdings = lazy(() => import("./pages/Holdings/Holdings.jsx"));
 const Help = lazy(() => import("./pages/Help/Help.jsx"));
@@ -57,7 +56,6 @@ const AdminPayouts = lazy(() => import("./pages/Admin/Payouts/AdminPayouts.jsx")
 const AdminChat = lazy(() => import("./pages/Admin/Chat/AdminChat.jsx"));
 const AdminProfileSettings = lazy(() => import("./pages/Admin/Profile/AdminProfileSettings.jsx"));
 const AdminTransferRequests = lazy(() => import("./pages/Admin/TransferRequests/AdminTransferRequests.jsx"));
-const OwnershipDealing = lazy(() => import("./pages/Admin/OwnershipDealing/OwnershipDealing.jsx"));
 const AdminHelpArticles = lazy(() => import("./pages/Admin/HelpArticles/AdminHelpArticles.jsx"));
 const AdminContactOwner = lazy(() => import("./pages/Admin/ContactOwner/AdminContactOwner.jsx"));
 const AdminLogin = lazy(() => import("./pages/Admin/Auth/AdminLogin.jsx"));
@@ -107,7 +105,6 @@ function App() {
             <Route path="contact-owner/messages" element={<ContactOwnerMessages />} />
             <Route path="property-sale/offline" element={<PropertySaleOffline />} />
             <Route path="find-buyer" element={<FindBuyer />} />
-            <Route path="buyer-requests" element={<BuyerRequests />} />
             <Route path="transfer-ownership" element={<TransferOwnership />} />
             <Route path="profile" element={<Profile />} />
             <Route path="profile/edit" element={<EditProfile />} />
@@ -147,7 +144,6 @@ function App() {
             <Route path="withdrawals" element={<AdminWithdrawals />} />
             <Route path="investment-requests" element={<AdminInvestmentRequests />} />
             <Route path="transfer-requests" element={<AdminTransferRequests />} />
-            <Route path="ownership-dealing" element={<OwnershipDealing />} />
             <Route path="payouts" element={<AdminPayouts />} />
             <Route path="chat" element={<AdminChat />} />
             <Route path="help-articles" element={<AdminHelpArticles />} />

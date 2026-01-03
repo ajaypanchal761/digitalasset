@@ -22,6 +22,10 @@ export const getUsers = async (req, res) => {
       ];
     }
 
+    if (status && status !== 'all') {
+      query.accountStatus = status;
+    }
+
     const users = await User.find(query)
       .select('-password')
       .sort({ createdAt: -1 })
@@ -943,8 +947,11 @@ export const getPropertyInvestors = async (req, res) => {
       .populate('userId', 'name email phone')
       .sort({ purchaseDate: -1 });
 
+    // Filter out holdings where userId is null (user was deleted but holding still exists)
+    const validHoldings = holdings.filter(holding => holding.userId);
+
     // Format the response
-    const investors = holdings.map(holding => ({
+    const investors = validHoldings.map(holding => ({
       id: holding._id,
       userId: holding.userId._id,
       userName: holding.userId.name,

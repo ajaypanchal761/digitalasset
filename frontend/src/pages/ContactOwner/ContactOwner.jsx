@@ -20,7 +20,6 @@ const ContactOwner = () => {
   const [formData, setFormData] = useState({
     subject: "",
     message: "",
-    contactPreference: "email", // email or phone
     acceptTerms: false,
   });
   const [errors, setErrors] = useState({});
@@ -101,13 +100,12 @@ const ContactOwner = () => {
       const response = await contactOwnerAPI.create(
         holdingId,
         formData.subject.trim(),
-        formData.message.trim(),
-        formData.contactPreference
+        formData.message.trim()
       );
 
       if (response.success) {
         showToast(
-          `Your message has been sent to the property owner! They will contact you via ${formData.contactPreference === "email" ? "email" : "phone"} to discuss the sale options.`,
+          "Your message has been sent to the property owner! They will contact you via email to discuss the sale options.",
           "success"
         );
         navigate("/wallet");
@@ -269,25 +267,6 @@ const ContactOwner = () => {
             <span className="contact-owner-page__hint">Minimum 20 characters required</span>
           </div>
 
-          {/* Contact Preference */}
-          <div className="contact-owner-page__field">
-            <label htmlFor="contact-preference" className="contact-owner-page__label">
-              Preferred Contact Method
-            </label>
-            <Select
-              id="contact-preference"
-              name="contactPreference"
-              value={formData.contactPreference}
-              onChange={(e) => setFormData({ ...formData, contactPreference: e.target.value })}
-              options={[
-                { value: "email", label: "Email" },
-                { value: "phone", label: "Phone" }
-              ]}
-              placeholder="Select contact method"
-              className="contact-owner-page__input--select"
-            />
-            <span className="contact-owner-page__hint">How would you like the owner to respond?</span>
-          </div>
 
           {/* Terms */}
           <div className="contact-owner-page__field">

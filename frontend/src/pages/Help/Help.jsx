@@ -243,28 +243,6 @@ const Help = () => {
           </button>
         </div>
 
-        {/* Categories */}
-        {!searchQuery && !selectedCategory && (
-          <div className="help-section">
-            <h2 className="help-section__title">Browse by Category</h2>
-            <div className="help-categories">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  type="button"
-                  className="help-category-card"
-                  onClick={() => handleCategoryClick(category.id)}
-                  style={{ borderColor: category.color }}
-                >
-                  <div className="help-category-card__icon" style={{ backgroundColor: `${category.color}15`, color: category.color }}>
-                    {getCategoryIcon(category.id)}
-                  </div>
-                  <h3 className="help-category-card__title">{category.name}</h3>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Popular Articles */}
         {!searchQuery && !selectedCategory && (
@@ -273,7 +251,7 @@ const Help = () => {
             <div className="help-articles">
               {popularArticles.map((article) => (
                 <button
-                  key={article.id}
+                  key={article._id || article.id}
                   type="button"
                   className="help-article-card"
                   onClick={() => handleArticleClick(article._id || article.id)}
@@ -324,7 +302,7 @@ const Help = () => {
               <div className="help-articles">
                 {filteredArticles.map((article) => (
                   <button
-                    key={article.id}
+                    key={article._id || article.id}
                     type="button"
                     className="help-article-card"
                     onClick={() => handleArticleClick(article._id || article.id)}

@@ -246,7 +246,26 @@ const PropertyDetail = () => {
         <div className="property-detail__header-box">
           <div className="property-detail__header-content">
             <div className="property-detail__icon">
-              <svg width="48" height="48" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {property.image ? (
+                <img
+                  src={property.image}
+                  alt={property.title}
+                  className="property-detail__image"
+                  onError={(e) => {
+                    // Fallback to SVG if image fails to load
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'block';
+                  }}
+                />
+              ) : null}
+              <svg
+                width="48"
+                height="48"
+                viewBox="0 0 32 32"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                style={{ display: property.image ? 'none' : 'block' }}
+              >
                 <rect width="32" height="32" rx="8" fill="#e0e7ff" />
                 <path
                   d="M16 8L24 12V20L16 24L8 20V12L16 8Z"
@@ -260,6 +279,7 @@ const PropertyDetail = () => {
             <div className="property-detail__header-info">
               <h1 className="property-detail__title">{property.title}</h1>
               <p className="property-detail__type">Digital Property</p>
+              <p className="property-detail__id">Property ID: {property.propertyId || property._id || property.id}</p>
               <p className="property-detail__description">{property.description || "Premium digital property investment opportunity"}</p>
             </div>
           </div>

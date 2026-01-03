@@ -1,49 +1,74 @@
 import multer from 'multer';
-import cloudinary from '../config/cloudinary.js';
 import { v2 as cloudinaryV2 } from 'cloudinary';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 
-// Configure Cloudinary storage
-const storage = new CloudinaryStorage({
+// Configure Cloudinary storage for images (with transformations)
+const imageStorage = new CloudinaryStorage({
   cloudinary: cloudinaryV2,
   params: {
-    folder: 'digitalasset',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'pdf'],
+    folder: 'digitalasset/images',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif'],
     transformation: [{ width: 1000, height: 1000, crop: 'limit' }],
   },
 });
 
-// Configure multer
-const upload = multer({
-  storage: storage,
+// Configure Cloudinary storage for documents (no transformations)
+const documentStorage = new CloudinaryStorage({
+  cloudinary: cloudinaryV2,
+  params: {
+    folder: 'digitalasset/documents',
+    allowed_formats: ['pdf'],
+    // No transformation for PDFs to prevent corruption
+  },
+});
+
+// Configure multer for images
+const imageUpload = multer({
+  storage: imageStorage,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
   fileFilter: (req, file, cb) => {
-    // Accept images and PDFs
-    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
+    // Accept only images
+    if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
-      cb(new Error('Only images and PDF files are allowed'), false);
+      cb(new Error('Only image files are allowed'), false);
+    }
+  },
+});
+
+// Configure multer for documents
+const documentUpload = multer({
+  storage: documentStorage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit for documents
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept only PDFs
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF files are allowed for documents'), false);
     }
   },
 });
 
 // Upload single image
-export const uploadImage = upload.single('image');
+export const uploadImage = imageUpload.single('image');
 
 // Upload multiple images
-export const uploadImages = upload.array('images', 5);
+export const uploadImages = imageUpload.array('images', 5);
 
 // Upload document
-export const uploadDocument = upload.single('document');
+export const uploadDocument = documentUpload.single('document');
 
 // Upload multiple documents
-export const uploadDocuments = upload.array('documents', 10);
+export const uploadDocuments = documentUpload.array('documents', 10);
 
 // Upload transaction proof (images only)
 export const uploadTransactionProof = multer({
-  storage: storage,
+  storage: imageStorage,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
@@ -57,8 +82,8 @@ export const uploadTransactionProof = multer({
   },
 }).single('document');
 
-// Upload KYC documents (multiple named fields)
-export const uploadKYCDocuments = upload.fields([
+// Upload KYC documents (multiple named fields - images only)
+export const uploadKYCDocuments = imageUpload.fields([
   { name: 'panCard', maxCount: 1 },
   { name: 'aadhaarCard', maxCount: 1 },
   { name: 'photo', maxCount: 1 },

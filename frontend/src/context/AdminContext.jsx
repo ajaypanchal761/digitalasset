@@ -236,6 +236,7 @@ export const AdminProvider = ({ children }) => {
           name: user.name,
           email: user.email,
           phone: user.phone,
+          avatarUrl: user.avatarUrl,
           registrationDate: user.createdAt || user.registrationDate,
           accountStatus: user.accountStatus || 'active', // Default to active if not set
           wallet: {
@@ -817,7 +818,9 @@ export const AdminProvider = ({ children }) => {
         error: error.message,
         stack: error.stack,
         name: error.name,
-        fullError: error
+        status: error.status,
+        response: error.response?.data,
+        fullError: JSON.stringify(error, Object.getOwnPropertyNames(error))
       });
       throw error;
     }

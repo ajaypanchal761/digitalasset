@@ -18,6 +18,7 @@ export const getProfile = async (req, res) => {
         avatarUrl: user.avatarUrl,
         wallet: user.wallet,
         kycStatus: user.kycStatus,
+        kycVerifications: user.kycVerifications,
         kycDocuments: user.kycDocuments,
         kycSubmittedAt: user.kycSubmittedAt,
         kycRejectionReason: user.kycRejectionReason,
@@ -215,23 +216,31 @@ export const verifyPan = async (req, res) => {
     const response = await axios.post(`${QUICKEKYC_BASE_URL}/pan/pan`, {
       key: QUICKEKYC_API_KEY,
       id_number: panNumber
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
     });
 
     const { data, status } = response.data; // API response structure
 
     if (status === 'success') {
-      // Update user status
-      await User.findByIdAndUpdate(req.user.id, {
-        'kycDocuments.panNumber': panNumber,
-        // We might want to store the verified name as well if the model supports it
-      });
+      // Update user with PAN verification and check for auto-approval
+      const user = await User.findById(req.user.id);
+      if (user) {
+        user.kycDocuments.panNumber = panNumber;
+        user.kycVerifications.panVerified = true;
+        user.checkAndAutoApproveKYC();
+        await user.save();
+      }
 
       res.json({
         success: true,
         data: {
           fullName: data.full_name,
           status: "VALID",
-          panNumber: panNumber
+          panNumber: panNumber,
+          kycStatus: user?.kycStatus || 'pending'
         }
       });
     } else {
@@ -259,6 +268,10 @@ export const sendAadhaarOtp = async (req, res) => {
     const response = await axios.post(`${QUICKEKYC_BASE_URL}/aadhaar-v2/generate-otp`, {
       key: QUICKEKYC_API_KEY,
       id_number: aadhaarNumber
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
     });
 
     const { data, status, request_id } = response.data;
@@ -297,6 +310,10 @@ export const verifyAadhaarOtp = async (req, res) => {
       key: QUICKEKYC_API_KEY,
       request_id: refId,
       otp: otp
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
     });
 
     const { data, status } = response.data;
@@ -309,11 +326,14 @@ export const verifyAadhaarOtp = async (req, res) => {
         addr.dist, addr.state, addr.country, addr.zip
       ].filter(Boolean).join(', ');
 
-      // Update User
-      await User.findByIdAndUpdate(req.user.id, {
-        'kycDocuments.aadhaarNumber': data.aadhaar_number,
-        // Store verified details if needed structure exists in model
-      });
+      // Update User with Aadhaar verification and check for auto-approval
+      const user = await User.findById(req.user.id);
+      if (user) {
+        user.kycDocuments.aadhaarNumber = data.aadhaar_number;
+        user.kycVerifications.aadhaarVerified = true;
+        user.checkAndAutoApproveKYC();
+        await user.save();
+      }
 
       res.json({
         success: true,
@@ -323,7 +343,8 @@ export const verifyAadhaarOtp = async (req, res) => {
           gender: data.gender,
           address: addressString,
           photo: data.profile_image, // Base64
-          status: "VERIFIED"
+          status: "VERIFIED",
+          kycStatus: user?.kycStatus || 'pending'
         }
       });
     } else {
@@ -357,23 +378,27 @@ export const verifyBank = async (req, res) => {
     const { data, status } = response.data;
 
     if (status === 'success' && data.account_exists) {
-      // Update User
-      await User.findByIdAndUpdate(req.user.id, {
-        'bankDetails': {
+      // Update User with bank verification and check for auto-approval
+      const user = await User.findById(req.user.id);
+      if (user) {
+        user.bankDetails = {
           accountNumber,
           ifscCode: ifsc,
           accountHolderName: data.full_name,
-          // bankName not provided directly, try ifsc_details
           bankName: data.ifsc_details?.bank || "Verified Bank"
-        }
-      });
+        };
+        user.kycVerifications.bankVerified = true;
+        user.checkAndAutoApproveKYC();
+        await user.save();
+      }
 
       res.json({
         success: true,
         data: {
           accountHolderName: data.full_name,
           status: "VERIFIED",
-          bankName: data.ifsc_details?.bank || "Verified Bank"
+          bankName: data.ifsc_details?.bank || "Verified Bank",
+          kycStatus: user?.kycStatus || 'pending'
         }
       });
     } else {

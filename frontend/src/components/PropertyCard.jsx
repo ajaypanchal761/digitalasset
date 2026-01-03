@@ -30,7 +30,26 @@ const PropertyCard = ({ property, onInvest, onClick }) => {
         {/* First Row: Logo and Name */}
         <div className="property-card__row property-card__row--first">
           <div className="property-card__icon">
-            <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {property.image ? (
+              <img
+                src={property.image}
+                alt={property.title}
+                className="property-card__image"
+                onError={(e) => {
+                  // Fallback to SVG if image fails to load
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
+              />
+            ) : null}
+            <svg
+              width="40"
+              height="40"
+              viewBox="0 0 32 32"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{ display: property.image ? 'none' : 'block' }}
+            >
               <rect width="32" height="32" rx="6" fill="#e0e7ff" />
               <path
                 d="M16 8L24 12V20L16 24L8 20V12L16 8Z"

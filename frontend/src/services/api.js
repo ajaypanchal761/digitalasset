@@ -784,10 +784,10 @@ export const helpArticleAPI = {
 
 export const contactOwnerAPI = {
   // Create contact owner message
-  create: async (holdingId, subject, message, contactPreference) => {
+  create: async (holdingId, subject, message) => {
     return apiRequest('/contact-owner', {
       method: 'POST',
-      body: JSON.stringify({ holdingId, subject, message, contactPreference }),
+      body: JSON.stringify({ holdingId, subject, message }),
     });
   },
 
@@ -1047,10 +1047,7 @@ export const uploadAPI = {
     const data = await response.json();
 
     if (!response.ok) {
-      if (response.status === 401) {
-        removeToken();
-        window.location.href = '/auth/login';
-      }
+      // Let the AdminContext handle authentication errors
       throw new Error(data.message || 'Upload failed');
     }
 
@@ -1078,10 +1075,7 @@ export const uploadAPI = {
     const data = await response.json();
 
     if (!response.ok) {
-      if (response.status === 401) {
-        removeToken();
-        window.location.href = '/auth/login';
-      }
+      // Let the AdminContext handle authentication errors
       throw new Error(data.message || 'Upload failed');
     }
 
