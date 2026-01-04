@@ -2028,7 +2028,7 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 280px;
+  width: 240px;
   z-index: 1000;
   height: 100vh;
   overflow: hidden;
@@ -2188,7 +2188,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  margin-left: 280px;
+  margin-left: 240px;
   position: relative;
 }
 
@@ -2221,10 +2221,10 @@
   overflow: hidden;
   position: fixed;
   top: 80px;
-  left: 280px;
+  left: 240px;
   right: 0;
   bottom: 0;
-  width: calc(100% - 280px);
+  width: calc(100% - 240px);
   z-index: 1;
 }
 
@@ -2239,7 +2239,7 @@
   gap: 2rem;
   position: fixed;
   top: 0;
-  left: 280px;
+  left: 240px;
   right: 0;
   z-index: 100;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -2572,7 +2572,7 @@
   position: absolute;
   top: calc(100% + 0.5rem);
   left: 0;
-  width: 280px;
+  width: 240px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
@@ -2860,7 +2860,7 @@
     bottom: auto;
     left: auto;
     right: 0;
-    width: 280px;
+    width: 240px;
     max-width: calc(100vw - 1rem);
     z-index: 1002;
     max-height: calc(100vh - 120px);
@@ -8874,8 +8874,8 @@
 
   .admin-sidebar {
     position: fixed;
-    left: -280px;
-    width: 280px;
+    left: -240px;
+    width: 240px;
     max-width: 85vw;
     transition: left 0.3s ease;
     z-index: 1000;

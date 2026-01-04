@@ -4,9 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import AdminHeader from '../components/Admin/AdminHeader';
 
 const adminLinks = [
-  { 
-    to: '/admin/dashboard', 
-    label: 'Overview', 
+  {
+    to: '/admin/dashboard',
+    label: 'Overview',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <line x1="18" y1="20" x2="18" y2="10"></line>
@@ -15,9 +15,9 @@ const adminLinks = [
       </svg>
     )
   },
-  { 
-    to: '/admin/users', 
-    label: 'Users', 
+  {
+    to: '/admin/users',
+    label: 'Users',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -27,9 +27,9 @@ const adminLinks = [
       </svg>
     )
   },
-  { 
-    to: '/admin/properties', 
-    label: 'Properties', 
+  {
+    to: '/admin/properties',
+    label: 'Properties',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -37,9 +37,9 @@ const adminLinks = [
       </svg>
     )
   },
-  { 
-    to: '/admin/withdrawals', 
-    label: 'Withdrawals', 
+  {
+    to: '/admin/withdrawals',
+    label: 'Withdrawals',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <line x1="12" y1="1" x2="12" y2="23"></line>
@@ -47,9 +47,9 @@ const adminLinks = [
       </svg>
     )
   },
-  { 
-    to: '/admin/payouts', 
-    label: 'Payouts', 
+  {
+    to: '/admin/payouts',
+    label: 'Payouts',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <line x1="12" y1="1" x2="12" y2="23"></line>
@@ -57,18 +57,18 @@ const adminLinks = [
       </svg>
     )
   },
-  { 
-    to: '/admin/chat', 
-    label: 'Chat', 
+  {
+    to: '/admin/chat',
+    label: 'Chat',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
       </svg>
     )
   },
-  { 
-    to: '/admin/investment-requests', 
-    label: 'Request', 
+  {
+    to: '/admin/investment-requests',
+    label: 'Request',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -79,9 +79,9 @@ const adminLinks = [
       </svg>
     )
   },
-  { 
-    to: '/admin/help-articles', 
-    label: 'Help Articles', 
+  {
+    to: '/admin/help-articles',
+    label: 'Help Articles',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10"></circle>
@@ -90,9 +90,9 @@ const adminLinks = [
       </svg>
     )
   },
-  { 
-    to: '/admin/contact-owner', 
-    label: 'Contact Owner', 
+  {
+    to: '/admin/contact-owner',
+    label: 'Contact Owner',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z"></path>
@@ -110,7 +110,7 @@ const AdminLayout = () => {
   // Check if user is admin and redirect if not
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
-    
+
     if (process.env.NODE_ENV === 'development') {
       console.log('🏛️ AdminLayout - useEffect triggered:', {
         hasToken: !!token,
@@ -120,7 +120,7 @@ const AdminLayout = () => {
         isAuthenticated,
       });
     }
-    
+
     if (!token) {
       if (process.env.NODE_ENV === 'development') {
         console.log('❌ AdminLayout: No adminToken found, redirecting to login');
@@ -132,14 +132,14 @@ const AdminLayout = () => {
     // If we have a token but user is not loaded yet, wait a bit and trigger refresh
     if (token && !user && !loading) {
       setWaitingForUser(true);
-      
+
       // Trigger user refresh
       refreshUser();
-      
+
       const timeout = setTimeout(() => {
         setWaitingForUser(false);
       }, 10000);
-      
+
       return () => clearTimeout(timeout);
     }
 
@@ -158,7 +158,7 @@ const AdminLayout = () => {
 
   // Show loading while checking authentication or if we have token but user not loaded yet
   const token = localStorage.getItem('adminToken');
-  
+
   if (loading || waitingForUser || (token && !user)) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center' }}>
@@ -176,7 +176,7 @@ const AdminLayout = () => {
     <div className="admin-shell">
       {/* Mobile Menu Toggle */}
       {!sidebarOpen && (
-        <button 
+        <button
           className="admin-mobile-toggle"
           onClick={() => setSidebarOpen(!sidebarOpen)}
           aria-label="Toggle menu"
@@ -191,7 +191,7 @@ const AdminLayout = () => {
 
       {/* Sidebar Overlay for Mobile */}
       {sidebarOpen && (
-        <div 
+        <div
           className="admin-sidebar-overlay"
           onClick={() => setSidebarOpen(false)}
         />
@@ -199,7 +199,7 @@ const AdminLayout = () => {
 
       <aside className={`admin-sidebar ${sidebarOpen ? 'admin-sidebar--open' : ''}`}>
         {/* Close Button for Mobile */}
-        <button 
+        <button
           className="admin-sidebar__close-btn"
           onClick={() => setSidebarOpen(false)}
           aria-label="Close menu"
@@ -209,7 +209,7 @@ const AdminLayout = () => {
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
         </button>
-        
+
         <div className="admin-brand">
           <NavLink to="/admin/dashboard" onClick={() => setSidebarOpen(false)}>
             <span className="admin-brand-icon">
@@ -223,9 +223,9 @@ const AdminLayout = () => {
         </div>
         <nav className="admin-nav">
           {adminLinks.map(({ to, label, icon }) => (
-            <NavLink 
-              key={to} 
-              to={to} 
+            <NavLink
+              key={to}
+              to={to}
               className={({ isActive }) => `admin-link ${isActive ? 'admin-link--active' : ''}`}
               onClick={() => setSidebarOpen(false)}
             >
@@ -238,8 +238,8 @@ const AdminLayout = () => {
         </nav>
       </aside>
       <section className="admin-content">
-        <AdminHeader 
-          userName={user?.name || "Admin User"} 
+        <AdminHeader
+          userName={user?.name || "Admin User"}
           userEmail={user?.email || null}
           userAvatar={user?.avatarUrl || null}
         />

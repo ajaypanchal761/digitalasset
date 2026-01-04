@@ -4,6 +4,7 @@ import Withdrawal from '../models/Withdrawal.js';
 import Holding from '../models/Holding.js';
 import Transaction from '../models/Transaction.js';
 import PropertyTransferRequest from '../models/PropertyTransferRequest.js';
+import Payout from '../models/Payout.js';
 import { calculateMonthlyEarning, calculateMaturityDate, calculateNextPayoutDate } from '../utils/calculate.js';
 
 // @desc    Get all users
@@ -591,6 +592,122 @@ export const getDashboardStats = async (req, res) => {
       { $group: { _id: null, total: { $sum: '$totalInvested' } } },
     ]);
 
+    // Data for Revenue Line Chart (Monthly Revenue Growth - last 7 months)
+    const sevenMonthsAgo = new Date();
+    sevenMonthsAgo.setMonth(sevenMonthsAgo.getMonth() - 6);
+    sevenMonthsAgo.setDate(1);
+    sevenMonthsAgo.setHours(0, 0, 0, 0);
+
+    const revenueGrowth = await Holding.aggregate([
+      { $match: { createdAt: { $gte: sevenMonthsAgo } } },
+      {
+        $group: {
+          _id: {
+            month: { $month: '$createdAt' },
+            year: { $year: '$createdAt' }
+          },
+          revenue: { $sum: '$amountInvested' }
+        }
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1 } }
+    ]);
+
+    // Data for Bar Chart (Total Investments vs Total Payouts - last 6 months)
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+    sixMonthsAgo.setHours(0, 0, 0, 0);
+
+    const monthlyInvestments = await Holding.aggregate([
+      { $match: { createdAt: { $gte: sixMonthsAgo } } },
+      {
+        $group: {
+          _id: {
+            month: { $month: '$createdAt' },
+            year: { $year: '$createdAt' }
+          },
+          investments: { $sum: '$amountInvested' }
+        }
+      }
+    ]);
+
+    const monthlyPayouts = await Payout.aggregate([
+      { $match: { createdAt: { $gte: sixMonthsAgo } } },
+      {
+        $group: {
+          _id: {
+            month: { $month: '$createdAt' },
+            year: { $year: '$createdAt' }
+          },
+          payouts: { $sum: '$amount' }
+        }
+      }
+    ]);
+
+    // Data for Donut Chart (Property Status Distribution)
+    const propertyStatusDistribution = await Property.aggregate([
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Data for Area Chart (User Growth - last 6 months)
+    const userGrowth = await User.aggregate([
+      { $match: { createdAt: { $gte: sixMonthsAgo } } },
+      {
+        $group: {
+          _id: {
+            month: { $month: '$createdAt' },
+            year: { $year: '$createdAt' }
+          },
+          users: { $sum: 1 }
+        }
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1 } }
+    ]);
+
+    // Helper to format month names
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    // Format Revenue Growth
+    const formattedRevenueGrowth = revenueGrowth.map(item => ({
+      month: monthNames[item._id.month - 1],
+      revenue: item.revenue
+    }));
+
+    // Format Investments vs Payouts
+    const investmentsVsPayouts = [];
+    for (let i = 0; i < 6; i++) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - (5 - i));
+      const m = d.getMonth() + 1;
+      const y = d.getFullYear();
+
+      const inv = monthlyInvestments.find(item => item._id.month === m && item._id.year === y)?.investments || 0;
+      const pay = monthlyPayouts.find(item => item._id.month === m && item._id.year === y)?.payouts || 0;
+
+      investmentsVsPayouts.push({
+        name: monthNames[m - 1],
+        investments: inv,
+        payouts: pay
+      });
+    }
+
+    // Format Property Status
+    const formattedPropertyStatus = propertyStatusDistribution.map(item => ({
+      name: item._id.charAt(0).toUpperCase() + item._id.slice(1),
+      value: item.count
+    }));
+
+    // Format User Growth
+    const formattedUserGrowth = userGrowth.map(item => ({
+      name: monthNames[item._id.month - 1],
+      users: item.users
+    }));
+
     res.json({
       success: true,
       data: {
@@ -600,6 +717,12 @@ export const getDashboardStats = async (req, res) => {
         pendingWithdrawals: totalWithdrawals,
         totalInvestmentAmount: totalInvestmentAmount[0]?.total || 0,
         totalPropertiesInvested: totalPropertiesInvested[0]?.total || 0,
+        analytics: {
+          revenueGrowth: formattedRevenueGrowth,
+          investmentsVsPayouts,
+          propertyStatus: formattedPropertyStatus,
+          userGrowth: formattedUserGrowth
+        }
       },
     });
   } catch (error) {
@@ -793,7 +916,7 @@ export const approveTransferRequest = async (req, res) => {
     try {
       const { getSocketInstance } = await import('../utils/socketInstance.js');
       const io = getSocketInstance();
-      
+
       if (io) {
         // Notify seller
         io.to(transferRequest.sellerId._id.toString()).emit('notification', {
@@ -814,7 +937,7 @@ export const approveTransferRequest = async (req, res) => {
           month: 'short',
           year: 'numeric',
         });
-        
+
         io.to(transferRequest.buyerId._id.toString()).emit('notification', {
           type: 'transfer-approved',
           title: 'Property Transfer Approved',
@@ -887,7 +1010,7 @@ export const rejectTransferRequest = async (req, res) => {
     try {
       const { getSocketInstance } = await import('../utils/socketInstance.js');
       const io = getSocketInstance();
-      
+
       if (io) {
         // Notify seller
         io.to(transferRequest.sellerId._id.toString()).emit('notification', {

@@ -3,6 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { adminAPI, propertyAPI } from '../../../services/api.js';
 import { formatCurrency, formatRelativeTime } from '../../../utils/formatters.js';
 import './AdminDashboard.css';
+import RevenueLineChart from '../../../components/Admin/DashboardCharts/RevenueLineChart';
+import InvestmentsPayoutsBarChart from '../../../components/Admin/DashboardCharts/InvestmentsPayoutsBarChart';
+import PropertyStatusDonutChart from '../../../components/Admin/DashboardCharts/PropertyStatusDonutChart';
+import UserGrowthAreaChart from '../../../components/Admin/DashboardCharts/UserGrowthAreaChart';
+
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -15,6 +20,12 @@ const AdminDashboard = () => {
     pendingWithdrawals: 0,
     totalPayouts: 0,
     totalRevenue: 0,
+  });
+  const [analytics, setAnalytics] = useState({
+    revenueGrowth: [],
+    investmentsVsPayouts: [],
+    propertyStatus: [],
+    userGrowth: []
   });
   const [activities, setActivities] = useState([]);
 
@@ -38,7 +49,7 @@ const AdminDashboard = () => {
 
       // Extract data
       const dashboardData = dashboardStats.success ? dashboardStats.data : {};
-      const users = usersRes.success 
+      const users = usersRes.success
         ? (Array.isArray(usersRes.data) ? usersRes.data : (Array.isArray(usersRes) ? usersRes : []))
         : [];
       const properties = propertiesRes.success
@@ -74,6 +85,10 @@ const AdminDashboard = () => {
         totalRevenue,
       });
 
+      if (dashboardData.analytics) {
+        setAnalytics(dashboardData.analytics);
+      }
+
       // Create activity feed
       const activityFeed = createActivityFeed(users, withdrawals, properties, payouts);
       setActivities(activityFeed);
@@ -91,7 +106,7 @@ const AdminDashboard = () => {
     // Recent user registrations (last 24 hours)
     const oneDayAgo = new Date();
     oneDayAgo.setHours(oneDayAgo.getHours() - 24);
-    
+
     if (Array.isArray(users)) {
       users
         .filter(user => new Date(user.createdAt || user.registrationDate) > oneDayAgo)
@@ -188,25 +203,6 @@ const AdminDashboard = () => {
       .slice(0, 10);
   };
 
-  const handleQuickAction = (action) => {
-    switch (action) {
-      case 'add-property':
-        navigate('/admin/properties');
-        // Trigger add property form (you may need to add state management for this)
-        break;
-      case 'pending-withdrawals':
-        navigate('/admin/withdrawals');
-        break;
-      case 'pending-payouts':
-        navigate('/admin/payouts');
-        break;
-      case 'view-users':
-        navigate('/admin/users');
-        break;
-      default:
-        break;
-    }
-  };
 
   if (loading) {
     return (
@@ -326,23 +322,14 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Charts Section - Keep for future implementation */}
-      <div className="admin-dashboard__charts" style={{ display: 'none' }}>
-        <div className="admin-dashboard__charts-row">
-          <div className="admin-dashboard__chart-card">
-            {/* Chart will go here */}
-          </div>
-          <div className="admin-dashboard__chart-card">
-            {/* Chart will go here */}
-          </div>
-        </div>
-        <div className="admin-dashboard__charts-row">
-          <div className="admin-dashboard__chart-card">
-            {/* Chart will go here */}
-          </div>
-          <div className="admin-dashboard__chart-card">
-            {/* Chart will go here */}
-          </div>
+      {/* Analytics Section - Charts */}
+      <div className="admin-dashboard__analytics">
+        <h2 className="admin-dashboard__section-title">Platform Analytics</h2>
+        <div className="admin-dashboard__charts-grid">
+          <RevenueLineChart data={analytics.revenueGrowth} />
+          <InvestmentsPayoutsBarChart data={analytics.investmentsVsPayouts} />
+          <PropertyStatusDonutChart data={analytics.propertyStatus} />
+          <UserGrowthAreaChart data={analytics.userGrowth} />
         </div>
       </div>
 
@@ -382,65 +369,6 @@ const AdminDashboard = () => {
           )}
         </div>
 
-        {/* Quick Actions */}
-        <div className="admin-dashboard__quick-actions">
-          <h2 className="admin-dashboard__section-title">Quick Actions</h2>
-          <div className="admin-dashboard__quick-actions-list">
-            <button
-              className="admin-dashboard__quick-action-btn"
-              onClick={() => handleQuickAction('add-property')}
-            >
-              <span className="admin-dashboard__quick-action-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-              </span>
-              <span className="admin-dashboard__quick-action-text">Add New Property</span>
-            </button>
-            <button
-              className="admin-dashboard__quick-action-btn"
-              onClick={() => handleQuickAction('pending-withdrawals')}
-            >
-              <span className="admin-dashboard__quick-action-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="1" x2="12" y2="23"></line>
-                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                </svg>
-              </span>
-              <span className="admin-dashboard__quick-action-text">View Pending Withdrawals</span>
-            </button>
-            <button
-              className="admin-dashboard__quick-action-btn"
-              onClick={() => handleQuickAction('pending-payouts')}
-            >
-              <span className="admin-dashboard__quick-action-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                  <line x1="16" y1="13" x2="8" y2="13"></line>
-                  <line x1="16" y1="17" x2="8" y2="17"></line>
-                  <polyline points="10 9 9 9 8 9"></polyline>
-                </svg>
-              </span>
-              <span className="admin-dashboard__quick-action-text">View Pending Payouts</span>
-            </button>
-            <button
-              className="admin-dashboard__quick-action-btn"
-              onClick={() => handleQuickAction('view-users')}
-            >
-              <span className="admin-dashboard__quick-action-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-              </span>
-              <span className="admin-dashboard__quick-action-text">View All Users</span>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
