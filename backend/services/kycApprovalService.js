@@ -58,20 +58,22 @@ export const processOfflineBuyerRequests = async (userId, userEmail) => {
         // Calculate new dates and values for buyer
         const transferDate = new Date();
         const newPurchaseDate = transferDate;
-        const newMaturityDate = calculateMaturityDate(newPurchaseDate, 3);
+        // Preserve the original lock period from seller's holding
+        const originalLockMonths = holding.lockInMonths || 3;
+        const newMaturityDate = calculateMaturityDate(newPurchaseDate, originalLockMonths);
         const newNextPayoutDate = calculateNextPayoutDate(newPurchaseDate);
 
         // Calculate monthly earning based on sale price
         const monthlyReturnRate = property.monthlyReturnRate || 0.5;
         const newMonthlyEarning = calculateMonthlyEarning(request.salePrice, monthlyReturnRate);
 
-        // Update holding with new owner and reset lock period
+        // Update holding with new owner and preserve original lock period
         holding.userId = buyer._id;
         holding.purchaseDate = newPurchaseDate;
         holding.maturityDate = newMaturityDate;
         holding.status = 'lock-in';
         holding.canWithdrawInvestment = false;
-        holding.lockInMonths = 3;
+        holding.lockInMonths = originalLockMonths; // Preserve original lock period
         holding.totalEarningsReceived = 0;
         holding.payoutCount = 0;
         holding.nextPayoutDate = newNextPayoutDate;

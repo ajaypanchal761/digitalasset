@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
-import { investmentRequestAPI, transferRequestAPI, walletAPI, withdrawalAPI } from "../../services/api.js";
+import { investmentRequestAPI, transferRequestAPI, walletAPI, withdrawalAPI, profileAPI } from "../../services/api.js";
 
 const Wallet = () => {
   const { wallet, holdings, listings, loading, error } = useAppState();
@@ -26,6 +26,8 @@ const Wallet = () => {
   const [withdrawErrors, setWithdrawErrors] = useState({});
   const [isBankDropdownOpen, setIsBankDropdownOpen] = useState(false);
   const bankDropdownRef = useRef(null);
+  const [userBankDetails, setUserBankDetails] = useState(null);
+  const [loadingBankDetails, setLoadingBankDetails] = useState(false);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -76,6 +78,25 @@ const Wallet = () => {
     };
     fetchInvestmentRequests();
   }, [activeTab]);
+
+  // Fetch user bank details
+  useEffect(() => {
+    const fetchBankDetails = async () => {
+      setLoadingBankDetails(true);
+      try {
+        const response = await profileAPI.get();
+        if (response.success && response.data?.bankDetails) {
+          setUserBankDetails(response.data.bankDetails);
+        }
+      } catch (error) {
+        console.error("Error fetching bank details:", error);
+      } finally {
+        setLoadingBankDetails(false);
+      }
+    };
+
+    fetchBankDetails();
+  }, []);
 
   // Open withdraw modal when navigated from a holding (e.g. "Withdraw Earnings" button)
   useEffect(() => {
@@ -702,12 +723,14 @@ const Wallet = () => {
                     <span className="withdraw-modal__balance-label">Available Balance</span>
                     <span className="withdraw-modal__balance-value">{formatCurrency(walletData.balance, walletData.currency)}</span>
                   </div>
-                  <div className="withdraw-modal__balance-item">
-                    <span className="withdraw-modal__balance-label">Withdrawable Amount</span>
-                    <span className="withdraw-modal__balance-value withdraw-modal__balance-value--green">
-                      {formatCurrency(walletData.withdrawableBalance, walletData.currency)}
-                    </span>
-                  </div>
+                  {walletData.earningsReceived > 0 && (
+                    <div className="withdraw-modal__balance-item">
+                      <span className="withdraw-modal__balance-label">Withdrawable Earning</span>
+                      <span className="withdraw-modal__balance-value withdraw-modal__balance-value--green">
+                        {formatCurrency(walletData.earningsReceived, walletData.currency)}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Withdrawal Form */}
@@ -720,8 +743,6 @@ const Wallet = () => {
                     const errors = {};
                     if (!withdrawForm.amount || withdrawForm.amount <= 0) {
                       errors.amount = "Please enter a valid amount";
-                    } else if (withdrawForm.amount > maxEarningsWithdrawAmount) {
-                      errors.amount = `Maximum earnings you can withdraw is ${formatCurrency(maxEarningsWithdrawAmount, walletData.currency)}`;
                     }
                     if (!withdrawForm.accountNumber) {
                       errors.accountNumber = "Account number is required";
@@ -796,8 +817,6 @@ const Wallet = () => {
                       id="withdraw-amount"
                       type="number"
                       min="1"
-                      max={maxEarningsWithdrawAmount}
-                      step="100"
                       value={withdrawForm.amount}
                       onChange={(e) => {
                         const value = parseInt(e.target.value) || 0;
@@ -810,9 +829,6 @@ const Wallet = () => {
                       placeholder="Enter amount to withdraw"
                     />
                     {withdrawErrors.amount && <span className="withdraw-modal__error">{withdrawErrors.amount}</span>}
-                    <span className="withdraw-modal__hint">
-                      Maximum earnings withdrawable: {formatCurrency(maxEarningsWithdrawAmount, walletData.currency)}
-                    </span>
                   </div>
 
                   {/* Bank Account Selection */}
@@ -829,7 +845,9 @@ const Wallet = () => {
                       >
                         <span className="withdraw-modal__dropdown-value">
                           {withdrawForm.bankAccount === "saved"
-                            ? "Saved Account (HDFC Bank - ****7890)"
+                            ? userBankDetails
+                              ? `Saved Account (${userBankDetails.bankName || 'Bank'} - ****${userBankDetails.accountNumber?.slice(-4) || '0000'})`
+                              : "Saved Account (Loading...)"
                             : withdrawForm.bankAccount === "new"
                             ? "Add New Account"
                             : "Select bank account"}
@@ -867,9 +885,9 @@ const Wallet = () => {
                               setWithdrawForm({
                                 ...withdrawForm,
                                 bankAccount: "saved",
-                                accountNumber: "1234567890",
-                                ifscCode: "HDFC0001234",
-                                accountHolderName: "Yunus Ahmed",
+                                accountNumber: userBankDetails?.accountNumber || "",
+                                ifscCode: userBankDetails?.ifscCode || "",
+                                accountHolderName: userBankDetails?.accountHolderName || "",
                               });
                               setIsBankDropdownOpen(false);
                               if (withdrawErrors.bankAccount) {
@@ -877,7 +895,9 @@ const Wallet = () => {
                               }
                             }}
                           >
-                            Saved Account (HDFC Bank - ****7890)
+                            {userBankDetails
+                              ? `Saved Account (${userBankDetails.bankName || 'Bank'} - ****${userBankDetails.accountNumber?.slice(-4) || '0000'})`
+                              : "Saved Account (Loading...)"}
                           </button>
                           <button
                             type="button"

@@ -24,8 +24,13 @@ const Holdings = () => {
     if (!maturityDate) return 0;
     const maturity = new Date(maturityDate);
     const now = new Date();
+
+    // Set both dates to start of day for accurate day calculation
+    now.setHours(0, 0, 0, 0);
+    maturity.setHours(0, 0, 0, 0);
+
     const diff = maturity - now;
-    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+    return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
   };
 
   // Show loading state

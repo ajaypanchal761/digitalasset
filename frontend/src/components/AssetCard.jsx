@@ -10,8 +10,13 @@ const AssetCard = ({ holding, onViewDetail, onWithdraw }) => {
     if (!holding.maturityDate) return 0;
     const today = new Date();
     const maturity = new Date(holding.maturityDate);
+
+    // Set both dates to start of day for accurate day calculation
+    today.setHours(0, 0, 0, 0);
+    maturity.setHours(0, 0, 0, 0);
+
     const diffTime = maturity - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     return diffDays > 0 ? diffDays : 0;
   };
 

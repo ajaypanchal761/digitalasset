@@ -62,10 +62,25 @@ const HoldingDetail = () => {
 
   const calculateDaysRemaining = useMemo(() => {
     if (!holding?.maturityDate) return 0;
+
     const today = new Date();
     const maturity = new Date(holding.maturityDate);
-    const diffTime = maturity - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    // Create date-only versions (YYYY-MM-DD format) to avoid time-related issues
+    const todayStr = today.getFullYear() + '-' +
+                     String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                     String(today.getDate()).padStart(2, '0');
+
+    const maturityStr = maturity.getFullYear() + '-' +
+                        String(maturity.getMonth() + 1).padStart(2, '0') + '-' +
+                        String(maturity.getDate()).padStart(2, '0');
+
+    const todayDate = new Date(todayStr + 'T00:00:00.000Z');
+    const maturityDate = new Date(maturityStr + 'T00:00:00.000Z');
+
+    const diffTime = maturityDate - todayDate;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
     return diffDays > 0 ? diffDays : 0;
   }, [holding]);
 
@@ -241,10 +256,7 @@ const HoldingDetail = () => {
             {formatCurrency(holding.totalEarningsReceived || totalExpectedEarnings, "INR")}
           </span>
         </div>
-        <div className="holding-detail__info-item">
-          <span className="holding-detail__info-label">Days Remaining</span>
-          <span className="holding-detail__info-value">{isMatured ? "0" : calculateDaysRemaining}</span>
-        </div>
+       
       </div>
 
       {/* Download Certificate Button */}
