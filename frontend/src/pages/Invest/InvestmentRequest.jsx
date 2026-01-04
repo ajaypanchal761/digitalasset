@@ -8,13 +8,13 @@ const InvestmentRequest = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { showToast } = useToast();
-  
+
   const { propertyId, propertyTitle, property, investmentAmount, timePeriod, monthlyEarning, totalEarnings, maturityAmount } = location.state || {};
 
   const [formData, setFormData] = useState({
     notes: "",
   });
-  
+
   const [transactionProof, setTransactionProof] = useState(null);
   const [transactionProofPreview, setTransactionProofPreview] = useState(null);
   const [errors, setErrors] = useState({});
@@ -131,7 +131,7 @@ const InvestmentRequest = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -182,17 +182,18 @@ const InvestmentRequest = () => {
 
   return (
     <div className="investment-request-page">
+      {/* Header */}
+      <div className="investment-request-page__header">
+        <button onClick={() => navigate(-1)} className="investment-request-page__back-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Back
+        </button>
+        <h1 className="investment-request-page__title">Submit Investment Request</h1>
+      </div>
+
       <div className="investment-request-page__container">
-        {/* Header */}
-        <div className="investment-request-page__header">
-          <button onClick={() => navigate(-1)} className="investment-request-page__back-btn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Back
-          </button>
-          <h1 className="investment-request-page__title">Submit Investment Request</h1>
-        </div>
 
         {/* Property Info Card */}
         <div className="investment-request-page__property-card">
@@ -292,8 +293,8 @@ const InvestmentRequest = () => {
             <div className="investment-request-page__file-upload">
               {transactionProofPreview ? (
                 <div className="investment-request-page__file-preview">
-                  <img 
-                    src={transactionProofPreview} 
+                  <img
+                    src={transactionProofPreview}
                     alt="Transaction proof preview"
                     className="investment-request-page__preview-image"
                   />
@@ -366,16 +367,16 @@ const InvestmentRequest = () => {
 
           {/* Submit Button */}
           <div className="investment-request-page__actions">
-            <button 
-              type="button" 
-              onClick={() => navigate(-1)} 
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
               className="investment-request-page__btn investment-request-page__btn--cancel"
               disabled={isSubmitting}
             >
               Go Back
             </button>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="investment-request-page__btn investment-request-page__btn--primary"
               disabled={isSubmitting}
             >

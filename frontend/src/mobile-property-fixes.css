@@ -151,10 +151,10 @@
         display: none !important;
     }
 }
+
 /* Hide Desktop Back Button on Mobile */
 @media (max-width: 768px) {
     .property-detail__desktop-back {
         display: none !important;
     }
 }
-

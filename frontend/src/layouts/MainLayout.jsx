@@ -200,14 +200,14 @@ function NotificationIcon({ active }) {
 const Avatar = ({ name, avatarUrl, initials }) => {
   if (avatarUrl) {
     // Optimize Cloudinary URL for avatar (small size)
-    const optimizedUrl = avatarUrl.includes('cloudinary.com') 
+    const optimizedUrl = avatarUrl.includes('cloudinary.com')
       ? avatarUrl.replace('/upload/', '/upload/w_100,h_100,c_fill,g_face,q_auto,f_auto/')
       : avatarUrl;
-    
+
     return (
-      <img 
-        className="avatar-image" 
-        src={optimizedUrl} 
+      <img
+        className="avatar-image"
+        src={optimizedUrl}
         alt={name}
         loading="lazy"
         decoding="async"
@@ -300,11 +300,11 @@ const MainLayout = () => {
     // Don't redirect - let user login flow work normally
     // Only redirect if they're trying to access protected routes without proper user authentication
     // Exception: If they're explicitly on login/register pages, allow them to proceed
-    const isAuthRoute = location.pathname.startsWith('/auth/login') || 
-                       location.pathname.startsWith('/auth/register') ||
-                       location.pathname.startsWith('/auth/login-otp') ||
-                       location.pathname.startsWith('/auth/verify-otp');
-    
+    const isAuthRoute = location.pathname.startsWith('/auth/login') ||
+      location.pathname.startsWith('/auth/register') ||
+      location.pathname.startsWith('/auth/login-otp') ||
+      location.pathname.startsWith('/auth/verify-otp');
+
     if (adminToken && !userToken && !isAuthenticated && !isPublicRoute && !isAuthRoute) {
       // Only redirect if NOT on auth routes (login/register pages)
       // This allows users to login even if admin token exists
@@ -402,17 +402,17 @@ const MainLayout = () => {
   const isSupportPage = location.pathname === "/support";
   const isKYCPage = location.pathname === "/kyc";
   const isInvestPage = location.pathname.startsWith("/invest");
-  
+
   // Show wallet balance box only on Dashboard and Wallet pages
   const shouldShowWalletBalance = isDashboardPage || isWalletPage;
 
   // Show loading while checking authentication
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         height: '100vh',
         flexDirection: 'column',
         gap: '1rem'
@@ -432,10 +432,10 @@ const MainLayout = () => {
   // Check specifically for the exact /invest path, not sub-routes like /invest/request
   const isInvestMainPage = location.pathname === "/invest";
 
-  if (isMobile && (isHomePage || isPropertyDetailPage || isHoldingDetailPage || isProfilePage || isEditProfilePage || isExplorePage || isChatPage || isHoldingsPage || isWithdrawInfoPage || isContactOwnerPage || isContactOwnerMessagesPage || isPropertySaleOfflinePage || isTransferOwnershipPage || isFindBuyerPage || isHelpPage || isFAQPage || isSupportPage)) {
+  if (isMobile && (isHomePage || isPropertyDetailPage || isHoldingDetailPage || isProfilePage || isEditProfilePage || isExplorePage || isChatPage || isHoldingsPage || isWithdrawInfoPage || isContactOwnerPage || isContactOwnerMessagesPage || isPropertySaleOfflinePage || isTransferOwnershipPage || isFindBuyerPage || isHelpPage || isFAQPage || isSupportPage || isInvestPage || isKYCPage)) {
     return (
       <div className="mobile-shell mobile-shell--plain">
-        <main className={`mobile-content mobile-content--plain ${isExplorePage ? 'mobile-content--explore' : ''}`}>
+        <main className={`mobile-content mobile-content--plain ${isExplorePage ? 'mobile-content--explore' : ''} ${isInvestPage ? 'mobile-content--invest' : ''} ${isKYCPage ? 'mobile-content--kyc' : ''}`}>
           <Outlet />
         </main>
         {!isChatPage && (
@@ -482,10 +482,10 @@ const MainLayout = () => {
                         aria-label="User menu"
                         onClick={() => setShowMobileProfileDropdown(!showMobileProfileDropdown)}
                       >
-                        <Avatar 
-                          name={authUser?.name || "Guest"} 
-                          avatarUrl={authUser?.avatarUrl} 
-                          initials={authUser?.avatarInitials || "G"} 
+                        <Avatar
+                          name={authUser?.name || "Guest"}
+                          avatarUrl={authUser?.avatarUrl}
+                          initials={authUser?.avatarInitials || "G"}
                         />
                       </button>
                       {showMobileProfileDropdown && (
@@ -496,8 +496,8 @@ const MainLayout = () => {
                             onClick={handleMobileProfileClick}
                           >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                              <circle cx="12" cy="7" r="4"/>
+                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                              <circle cx="12" cy="7" r="4" />
                             </svg>
                             Profile
                           </button>
@@ -507,9 +507,9 @@ const MainLayout = () => {
                             onClick={handleMobileLogout}
                           >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                              <polyline points="16 17 21 12 16 7"/>
-                              <line x1="21" y1="12" x2="9" y2="12"/>
+                              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                              <polyline points="16 17 21 12 16 7" />
+                              <line x1="21" y1="12" x2="9" y2="12" />
                             </svg>
                             Logout
                           </button>
@@ -525,10 +525,10 @@ const MainLayout = () => {
                       aria-label="User profile"
                       onClick={() => navigate("/auth/login")}
                     >
-                      <Avatar 
-                        name="Guest" 
-                        avatarUrl={null} 
-                        initials="G" 
+                      <Avatar
+                        name="Guest"
+                        avatarUrl={null}
+                        initials="G"
                       />
                     </button>
                   </>
@@ -538,7 +538,7 @@ const MainLayout = () => {
             {shouldShowWalletBalance && <WalletSummaryCard wallet={wallet} />}
           </header>
         )}
-        <main className={`mobile-content ${isInvestMainPage ? 'mobile-content--invest' : ''}`}>
+        <main className={`mobile-content ${isInvestMainPage ? 'mobile-content--invest' : ''} ${isWalletPage ? 'mobile-content--wallet' : ''}`}>
           <div className="mobile-scroll-area">
             <Outlet />
           </div>
@@ -562,72 +562,72 @@ const MainLayout = () => {
   return (
     <div className="app-shell">
       <header className="app-header">
-          <div className="brand">
-            <NavLink to="/home" className="brand__link">
-              <img src={logoImage} alt="DigitalAssets" className="brand__logo" />
+        <div className="brand">
+          <NavLink to="/home" className="brand__link">
+            <img src={logoImage} alt="DigitalAssets" className="brand__logo" />
+          </NavLink>
+        </div>
+        <nav className="nav-links">
+          {desktopNavLinks.map(({ to, label }) => (
+            <NavLink key={to} to={to} className="nav-link">
+              {label}
             </NavLink>
-          </div>
-          <nav className="nav-links">
-            {desktopNavLinks.map(({ to, label }) => (
-              <NavLink key={to} to={to} className="nav-link">
-                {label}
-              </NavLink>
-            ))}
-          </nav>
-          <div className="app-header__profile">
-            {isAuthenticated && authUser ? (
-              <>
-                <span className="app-header__welcome">Welcome back, {authUser.name}</span>
-                <div className="app-header__avatar-wrapper" ref={profileDropdownRef}>
-                  <button
-                    type="button"
-                    className="app-header__avatar-button"
-                    onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                    aria-label="User menu"
-                  >
-                    <div className="app-header__avatar">
-                      <Avatar name={authUser.name} avatarUrl={authUser.avatarUrl} initials={authUser.avatarInitials} />
-                    </div>
-                  </button>
-                  {showProfileDropdown && (
-                    <div className="app-header__dropdown">
-                      <button
-                        type="button"
-                        className="app-header__dropdown-item"
-                        onClick={handleProfileClick}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                          <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                        Profile
-                      </button>
-                      <button
-                        type="button"
-                        className="app-header__dropdown-item app-header__dropdown-item--danger"
-                        onClick={handleLogout}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                          <polyline points="16 17 21 12 16 7"/>
-                          <line x1="21" y1="12" x2="9" y2="12"/>
-                        </svg>
-                        Logout
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              <>
-                <span className="app-header__welcome">Welcome</span>
-                <button type="button" className="app-header__auth-btn" onClick={handleAuthAction}>
-                  {authButtonLabel}
+          ))}
+        </nav>
+        <div className="app-header__profile">
+          {isAuthenticated && authUser ? (
+            <>
+              <span className="app-header__welcome">Welcome back, {authUser.name}</span>
+              <div className="app-header__avatar-wrapper" ref={profileDropdownRef}>
+                <button
+                  type="button"
+                  className="app-header__avatar-button"
+                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                  aria-label="User menu"
+                >
+                  <div className="app-header__avatar">
+                    <Avatar name={authUser.name} avatarUrl={authUser.avatarUrl} initials={authUser.avatarInitials} />
+                  </div>
                 </button>
-              </>
-            )}
-          </div>
-        </header>
+                {showProfileDropdown && (
+                  <div className="app-header__dropdown">
+                    <button
+                      type="button"
+                      className="app-header__dropdown-item"
+                      onClick={handleProfileClick}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                      Profile
+                    </button>
+                    <button
+                      type="button"
+                      className="app-header__dropdown-item app-header__dropdown-item--danger"
+                      onClick={handleLogout}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                      </svg>
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <span className="app-header__welcome">Welcome</span>
+              <button type="button" className="app-header__auth-btn" onClick={handleAuthAction}>
+                {authButtonLabel}
+              </button>
+            </>
+          )}
+        </div>
+      </header>
       <main className="app-content">
         {shouldShowWalletBalance && <WalletSummaryCard wallet={wallet} />}
         <div className="app-content__page">
