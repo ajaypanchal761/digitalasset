@@ -32,3 +32,5 @@ build/
 # Temporary files
 tmp/
 temp/
+
+backend/config/digital-assets-a8e89-firebase-adminsdk-fbsvc-637a601d76.json
