@@ -293,9 +293,9 @@ const AdminRegister = () => {
             <p>
               Already have an admin account? <Link to="/admin-auth/login">Sign in</Link>
             </p>
-            <p className="admin-register-switch">
+            {/* <p className="admin-register-switch">
               <Link to="/auth/register">User Registration</Link>
-            </p>
+            </p> */}
           </div>
         </div>
       </div>

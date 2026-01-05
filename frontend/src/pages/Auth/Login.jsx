@@ -187,9 +187,9 @@ const Login = () => {
             <p>
               Don't have an account? <Link to="/auth/register">Sign up</Link>
             </p>
-            <p className="login-switch">
+            {/* <p className="login-switch">
               <Link to="/admin-auth/login">Admin Login</Link>
-            </p>
+            </p> */}
           </div>
         </div>
       </div>

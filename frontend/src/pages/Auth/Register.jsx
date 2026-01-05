@@ -221,9 +221,9 @@ const Register = () => {
             <p>
               Already have an account? <Link to="/auth/login">Sign in</Link>
             </p>
-            <p className="register-switch">
+            {/* <p className="register-switch">
               <Link to="/admin-auth/register">Admin Registration</Link>
-            </p>
+            </p> */}
           </div>
         </div>
       </div>

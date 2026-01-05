@@ -218,9 +218,9 @@ const AdminResetPassword = () => {
             <p>
               Remember your password? <Link to="/admin-auth/login">Sign In</Link>
             </p>
-            <p className="admin-reset-password-switch">
+            {/* <p className="admin-reset-password-switch">
               <Link to="/auth/login">User Login</Link>
-            </p>
+            </p> */}
           </div>
         </div>
       </div>

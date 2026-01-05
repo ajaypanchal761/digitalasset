@@ -307,9 +307,9 @@ const AdminLogin = () => {
             <p>
               Don't have an admin account? <Link to="/admin-auth/register">Sign up</Link>
             </p>
-            <p className="admin-login-switch">
+            {/* <p className="admin-login-switch">
               <Link to="/auth/login">User Login</Link>
-            </p>
+            </p> */}
           </div>
         </div>
       </div>
