@@ -32,11 +32,10 @@ const Payment = () => {
     <div className="payment-page">
       <div className="payment-page__container">
         <div className="payment-page__header">
-          <button onClick={() => navigate(-1)} className="payment-page__back-btn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <button onClick={() => navigate(-1)} className="btn-back">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            Back
           </button>
           <h1 className="payment-page__title">Payment</h1>
         </div>

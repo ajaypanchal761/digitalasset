@@ -21,7 +21,7 @@ const AdminRegister = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name === "phone") {
       const phoneValue = value.replace(/\D/g, "");
       if (phoneValue.length <= 10) {
@@ -98,7 +98,7 @@ const AdminRegister = () => {
     try {
       setIsSubmitting(true);
       setErrors("");
-      
+
       // Register admin directly with password
       const response = await adminAuthAPI.register({
         name: formData.name.trim(),
@@ -110,7 +110,7 @@ const AdminRegister = () => {
       if (response.success && response.token) {
         // Refresh user data in AuthContext (it will use admin API since we're on admin-auth route)
         await refreshUser();
-        
+
         // Wait a moment for state to update, then navigate
         // The AdminLayout will handle loading state while user data is fetched
         setTimeout(() => {
@@ -142,15 +142,11 @@ const AdminRegister = () => {
       <div className="admin-register-container">
         {/* Illustration */}
         <div className="admin-register-illustration">
-          <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <g>
-              {/* Shield/Admin icon */}
-              <path d="M100 40 L120 50 L120 80 C120 100 110 115 100 120 C90 115 80 100 80 80 L80 50 Z" fill="#6366F1" opacity="0.2"/>
-              <path d="M100 50 L115 58 L115 82 C115 98 107 110 100 114 C93 110 85 98 85 82 L85 58 Z" fill="#6366F1"/>
-              <circle cx="100" cy="75" r="8" fill="#FFFFFF"/>
-              <path d="M100 70 L100 80 M95 75 L105 75" stroke="#6366F1" strokeWidth="2" strokeLinecap="round"/>
-            </g>
-          </svg>
+          <img
+            src="/logo1.png"
+            alt="Logo"
+            style={{ width: '80px', height: 'auto' }}
+          />
         </div>
 
         {/* Content */}
@@ -231,14 +227,14 @@ const AdminRegister = () => {
                 >
                   {showPassword ? (
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                      <path d="M10 12.5C11.3807 12.5 12.5 11.3807 12.5 10C12.5 8.61929 11.3807 7.5 10 7.5C8.61929 7.5 7.5 8.61929 7.5 10C7.5 11.3807 8.61929 12.5 10 12.5Z" stroke="#6b7280" strokeWidth="1.5"/>
-                      <path d="M2.01675 10C3.22575 6.25 6.29925 3.75 10 3.75C13.7008 3.75 16.7742 6.25 17.9832 10C16.7742 13.75 13.7008 16.25 10 16.25C6.29925 16.25 3.22575 13.75 2.01675 10Z" stroke="#6b7280" strokeWidth="1.5"/>
-                      <path d="M2.5 2.5L17.5 17.5" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round"/>
+                      <path d="M10 12.5C11.3807 12.5 12.5 11.3807 12.5 10C12.5 8.61929 11.3807 7.5 10 7.5C8.61929 7.5 7.5 8.61929 7.5 10C7.5 11.3807 8.61929 12.5 10 12.5Z" stroke="#6b7280" strokeWidth="1.5" />
+                      <path d="M2.01675 10C3.22575 6.25 6.29925 3.75 10 3.75C13.7008 3.75 16.7742 6.25 17.9832 10C16.7742 13.75 13.7008 16.25 10 16.25C6.29925 16.25 3.22575 13.75 2.01675 10Z" stroke="#6b7280" strokeWidth="1.5" />
+                      <path d="M2.5 2.5L17.5 17.5" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" />
                     </svg>
                   ) : (
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                      <path d="M10 12.5C11.3807 12.5 12.5 11.3807 12.5 10C12.5 8.61929 11.3807 7.5 10 7.5C8.61929 7.5 7.5 8.61929 7.5 10C7.5 11.3807 8.61929 12.5 10 12.5Z" stroke="#6b7280" strokeWidth="1.5"/>
-                      <path d="M2.01675 10C3.22575 6.25 6.29925 3.75 10 3.75C13.7008 3.75 16.7742 6.25 17.9832 10C16.7742 13.75 13.7008 16.25 10 16.25C6.29925 16.25 3.22575 13.75 2.01675 10Z" stroke="#6b7280" strokeWidth="1.5"/>
+                      <path d="M10 12.5C11.3807 12.5 12.5 11.3807 12.5 10C12.5 8.61929 11.3807 7.5 10 7.5C8.61929 7.5 7.5 8.61929 7.5 10C7.5 11.3807 8.61929 12.5 10 12.5Z" stroke="#6b7280" strokeWidth="1.5" />
+                      <path d="M2.01675 10C3.22575 6.25 6.29925 3.75 10 3.75C13.7008 3.75 16.7742 6.25 17.9832 10C16.7742 13.75 13.7008 16.25 10 16.25C6.29925 16.25 3.22575 13.75 2.01675 10Z" stroke="#6b7280" strokeWidth="1.5" />
                     </svg>
                   )}
                 </button>
@@ -266,22 +262,22 @@ const AdminRegister = () => {
                 >
                   {showConfirmPassword ? (
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                      <path d="M10 12.5C11.3807 12.5 12.5 11.3807 12.5 10C12.5 8.61929 11.3807 7.5 10 7.5C8.61929 7.5 7.5 8.61929 7.5 10C7.5 11.3807 8.61929 12.5 10 12.5Z" stroke="#6b7280" strokeWidth="1.5"/>
-                      <path d="M2.01675 10C3.22575 6.25 6.29925 3.75 10 3.75C13.7008 3.75 16.7742 6.25 17.9832 10C16.7742 13.75 13.7008 16.25 10 16.25C6.29925 16.25 3.22575 13.75 2.01675 10Z" stroke="#6b7280" strokeWidth="1.5"/>
-                      <path d="M2.5 2.5L17.5 17.5" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round"/>
+                      <path d="M10 12.5C11.3807 12.5 12.5 11.3807 12.5 10C12.5 8.61929 11.3807 7.5 10 7.5C8.61929 7.5 7.5 8.61929 7.5 10C7.5 11.3807 8.61929 12.5 10 12.5Z" stroke="#6b7280" strokeWidth="1.5" />
+                      <path d="M2.01675 10C3.22575 6.25 6.29925 3.75 10 3.75C13.7008 3.75 16.7742 6.25 17.9832 10C16.7742 13.75 13.7008 16.25 10 16.25C6.29925 16.25 3.22575 13.75 2.01675 10Z" stroke="#6b7280" strokeWidth="1.5" />
+                      <path d="M2.5 2.5L17.5 17.5" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" />
                     </svg>
                   ) : (
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                      <path d="M10 12.5C11.3807 12.5 12.5 11.3807 12.5 10C12.5 8.61929 11.3807 7.5 10 7.5C8.61929 7.5 7.5 8.61929 7.5 10C7.5 11.3807 8.61929 12.5 10 12.5Z" stroke="#6b7280" strokeWidth="1.5"/>
-                      <path d="M2.01675 10C3.22575 6.25 6.29925 3.75 10 3.75C13.7008 3.75 16.7742 6.25 17.9832 10C16.7742 13.75 13.7008 16.25 10 16.25C6.29925 16.25 3.22575 13.75 2.01675 10Z" stroke="#6b7280" strokeWidth="1.5"/>
+                      <path d="M10 12.5C11.3807 12.5 12.5 11.3807 12.5 10C12.5 8.61929 11.3807 7.5 10 7.5C8.61929 7.5 7.5 8.61929 7.5 10C7.5 11.3807 8.61929 12.5 10 12.5Z" stroke="#6b7280" strokeWidth="1.5" />
+                      <path d="M2.01675 10C3.22575 6.25 6.29925 3.75 10 3.75C13.7008 3.75 16.7742 6.25 17.9832 10C16.7742 13.75 13.7008 16.25 10 16.25C6.29925 16.25 3.22575 13.75 2.01675 10Z" stroke="#6b7280" strokeWidth="1.5" />
                     </svg>
                   )}
                 </button>
               </div>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="admin-register-continue-btn"
               disabled={isSubmitting}
             >

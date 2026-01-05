@@ -97,7 +97,7 @@ const ContactOwnerMessages = () => {
         {/* Header */}
         <div className="contact-owner-messages__header">
           <button
-            className="contact-owner-messages__back"
+            className="btn-back"
             onClick={() => navigate(-1)}
           >
             <svg

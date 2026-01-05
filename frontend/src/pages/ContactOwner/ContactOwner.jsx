@@ -36,7 +36,7 @@ const ContactOwner = () => {
       navigate("/wallet");
       return;
     }
-    
+
     // Pre-fill subject with property name
     if (holding && !formData.subject) {
       setFormData((prev) => ({
@@ -48,7 +48,7 @@ const ContactOwner = () => {
     // Fetch owner contact info
     const fetchOwnerInfo = async () => {
       if (!property) return;
-      
+
       try {
         setLoadingOwner(true);
         const propertyId = property._id || property.id;
@@ -129,7 +129,7 @@ const ContactOwner = () => {
       <div className="contact-owner-page__container">
         {/* Header */}
         <div className="contact-owner-page__header">
-          <button className="contact-owner-page__back" onClick={() => navigate(-1)}>
+          <button className="btn-back" onClick={() => navigate(-1)}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -292,8 +292,8 @@ const ContactOwner = () => {
             <button type="button" className="contact-owner-page__btn contact-owner-page__btn--cancel" onClick={() => navigate(-1)}>
               Cancel
             </button>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="contact-owner-page__btn contact-owner-page__btn--submit"
               disabled={loading}
             >

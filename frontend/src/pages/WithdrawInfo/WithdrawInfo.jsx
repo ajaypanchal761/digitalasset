@@ -6,7 +6,7 @@ const WithdrawInfo = () => {
   const location = useLocation();
   const { holdings } = useAppState();
   const holdingId = location.state?.holdingId; // If coming from specific holding
-  
+
   // More robust holding lookup - convert both to strings for comparison
   const holding = holdingId ? holdings.find((h) => {
     const hId = (h._id || h.id)?.toString();
@@ -26,7 +26,7 @@ const WithdrawInfo = () => {
       <div className="withdraw-info-page__container">
         {/* Header */}
         <div className="withdraw-info-page__header">
-          <button className="withdraw-info-page__back" onClick={() => navigate(-1)}>
+          <button className="btn-back" onClick={() => navigate(-1)}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -59,13 +59,13 @@ const WithdrawInfo = () => {
         <div className="withdraw-info-page__process">
           <h3 className="withdraw-info-page__process-title">How It Works</h3>
           <div className="withdraw-info-page__steps">
-          <div className="withdraw-info-page__step">
-            <div className="withdraw-info-page__step-number">1</div>
-            <div className="withdraw-info-page__step-content">
-              <h4 className="withdraw-info-page__step-title">Contact Owner or Find Offline Buyer</h4>
-              <p className="withdraw-info-page__step-text">Contact the property owner for sale options or find an external buyer (not registered on the platform)</p>
+            <div className="withdraw-info-page__step">
+              <div className="withdraw-info-page__step-number">1</div>
+              <div className="withdraw-info-page__step-content">
+                <h4 className="withdraw-info-page__step-title">Contact Owner or Find Offline Buyer</h4>
+                <p className="withdraw-info-page__step-text">Contact the property owner for sale options or find an external buyer (not registered on the platform)</p>
+              </div>
             </div>
-          </div>
 
             <div className="withdraw-info-page__step">
               <div className="withdraw-info-page__step-number">2</div>

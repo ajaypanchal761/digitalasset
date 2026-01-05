@@ -11,7 +11,7 @@ const FindBuyer = () => {
   const { holdings, listings, loading: holdingsLoading } = useAppState();
   const { showToast } = useToast();
   const holdingId = location.state?.holdingId;
-  
+
   // More robust holding lookup - convert both to strings for comparison
   const holding = holdings.find((h) => {
     const hId = (h._id || h.id)?.toString();
@@ -155,7 +155,7 @@ const FindBuyer = () => {
       <div className="find-buyer-page__container">
         {/* Header */}
         <div className="find-buyer-page__header">
-          <button className="find-buyer-page__back" onClick={() => navigate(-1)}>
+          <button className="btn-back" onClick={() => navigate(-1)}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -180,16 +180,16 @@ const FindBuyer = () => {
         </div>
 
         {/* Info Card */}
-        <div className="find-buyer-page__info-card" style={{ 
-          background: "#f0f9ff", 
-          padding: "1rem", 
-          borderRadius: "8px", 
+        <div className="find-buyer-page__info-card" style={{
+          background: "#f0f9ff",
+          padding: "1rem",
+          borderRadius: "8px",
           marginBottom: "1.5rem",
           border: "1px solid #bae6fd"
         }}>
           <p style={{ margin: 0, color: "#0369a1", fontSize: "0.875rem" }}>
-            <strong>Note:</strong> Enter the details of an external buyer (not registered on the platform). 
-            An email will be sent to them with property details and instructions to sign up. 
+            <strong>Note:</strong> Enter the details of an external buyer (not registered on the platform).
+            An email will be sent to them with property details and instructions to sign up.
             The property will be automatically transferred once they complete KYC verification.
           </p>
         </div>
@@ -295,11 +295,10 @@ const FindBuyer = () => {
                       <p className="find-buyer-page__request-buyer-email">{request.buyerEmail}</p>
                       <p className="find-buyer-page__request-buyer-phone">{request.buyerPhone}</p>
                     </div>
-                    <span className={`find-buyer-page__status-badge ${
-                      request.status === "completed" 
-                        ? "find-buyer-page__status-badge--completed" 
+                    <span className={`find-buyer-page__status-badge ${request.status === "completed"
+                        ? "find-buyer-page__status-badge--completed"
                         : "find-buyer-page__status-badge--pending"
-                    }`}>
+                      }`}>
                       {request.status === "completed" ? "Completed" : "Pending"}
                     </span>
                   </div>

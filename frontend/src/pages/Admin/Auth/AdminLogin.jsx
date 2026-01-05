@@ -38,7 +38,7 @@ const AdminLogin = () => {
       navigate("/admin/dashboard", { replace: true });
       return;
     }
-    
+
     // If we have a token but user is not loaded yet, try to fetch user
     if (!loading && !user && adminToken) {
       console.log('🔄 AdminLogin - Token exists but no user, fetching user data...');
@@ -125,7 +125,7 @@ const AdminLogin = () => {
 
       if (response && response.success && token) {
         console.log('✅ AdminLogin - Login successful, verifying adminToken...');
-        
+
         // Verify adminToken was saved
         const savedToken = localStorage.getItem('adminToken');
         console.log('🔍 AdminLogin - Token verification:', {
@@ -136,7 +136,7 @@ const AdminLogin = () => {
           savedTokenPreview: savedToken ? savedToken.substring(0, 50) + '...' : 'null',
           responseTokenPreview: token ? token.substring(0, 50) + '...' : 'null'
         });
-        
+
         if (!savedToken || savedToken !== token) {
           console.error('❌ AdminLogin - CRITICAL: Token mismatch or not saved!');
           console.error('Expected token:', token ? token.substring(0, 50) + '...' : 'null');
@@ -145,7 +145,7 @@ const AdminLogin = () => {
           setIsSubmitting(false);
           return;
         }
-        
+
         console.log('✅ AdminLogin - Token verified, refreshing user then navigating...');
         // Refresh user data first, then navigate
         try {
@@ -177,7 +177,7 @@ const AdminLogin = () => {
         stack: err?.stack,
         name: err?.name
       });
-      
+
       let errorMessage = "Failed to login. Please try again.";
       if (err instanceof Error) {
         const msg = err.message;
@@ -200,15 +200,11 @@ const AdminLogin = () => {
       <div className="admin-login-container">
         {/* Illustration */}
         <div className="admin-login-illustration">
-          <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <g>
-              {/* Shield/Admin icon */}
-              <path d="M100 40 L120 50 L120 80 C120 100 110 115 100 120 C90 115 80 100 80 80 L80 50 Z" fill="#6366F1" opacity="0.2"/>
-              <path d="M100 50 L115 58 L115 82 C115 98 107 110 100 114 C93 110 85 98 85 82 L85 58 Z" fill="#6366F1"/>
-              <circle cx="100" cy="75" r="8" fill="#FFFFFF"/>
-              <path d="M100 70 L100 80 M95 75 L105 75" stroke="#6366F1" strokeWidth="2" strokeLinecap="round"/>
-            </g>
-          </svg>
+          <img
+            src="/logo1.png"
+            alt="Logo"
+            style={{ width: '80px', height: 'auto' }}
+          />
         </div>
 
         {/* Content */}
@@ -216,8 +212,8 @@ const AdminLogin = () => {
           <h1 className="admin-login-title">Admin Sign In</h1>
           <p className="admin-login-subtitle">Enter your email and password to access the admin panel</p>
 
-          <form 
-            className="admin-login-form" 
+          <form
+            className="admin-login-form"
             onSubmit={handleSubmit}
             noValidate
           >
@@ -242,11 +238,11 @@ const AdminLogin = () => {
             <div className="admin-login-field">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <label htmlFor="password" style={{ marginBottom: 0 }}>Password</label>
-                <Link 
-                  to="/admin-auth/forgot-password" 
-                  style={{ 
-                    fontSize: '0.875rem', 
-                    color: '#6366f1', 
+                <Link
+                  to="/admin-auth/forgot-password"
+                  style={{
+                    fontSize: '0.875rem',
+                    color: '#6366f1',
                     textDecoration: 'none',
                     fontWeight: 500
                   }}
@@ -274,22 +270,22 @@ const AdminLogin = () => {
                 >
                   {showPassword ? (
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                      <path d="M10 12.5C11.3807 12.5 12.5 11.3807 12.5 10C12.5 8.61929 11.3807 7.5 10 7.5C8.61929 7.5 7.5 8.61929 7.5 10C7.5 11.3807 8.61929 12.5 10 12.5Z" stroke="#6b7280" strokeWidth="1.5"/>
-                      <path d="M2.01675 10C3.22575 6.25 6.29925 3.75 10 3.75C13.7008 3.75 16.7742 6.25 17.9832 10C16.7742 13.75 13.7008 16.25 10 16.25C6.29925 16.25 3.22575 13.75 2.01675 10Z" stroke="#6b7280" strokeWidth="1.5"/>
-                      <path d="M2.5 2.5L17.5 17.5" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round"/>
+                      <path d="M10 12.5C11.3807 12.5 12.5 11.3807 12.5 10C12.5 8.61929 11.3807 7.5 10 7.5C8.61929 7.5 7.5 8.61929 7.5 10C7.5 11.3807 8.61929 12.5 10 12.5Z" stroke="#6b7280" strokeWidth="1.5" />
+                      <path d="M2.01675 10C3.22575 6.25 6.29925 3.75 10 3.75C13.7008 3.75 16.7742 6.25 17.9832 10C16.7742 13.75 13.7008 16.25 10 16.25C6.29925 16.25 3.22575 13.75 2.01675 10Z" stroke="#6b7280" strokeWidth="1.5" />
+                      <path d="M2.5 2.5L17.5 17.5" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" />
                     </svg>
                   ) : (
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                      <path d="M10 12.5C11.3807 12.5 12.5 11.3807 12.5 10C12.5 8.61929 11.3807 7.5 10 7.5C8.61929 7.5 7.5 8.61929 7.5 10C7.5 11.3807 8.61929 12.5 10 12.5Z" stroke="#6b7280" strokeWidth="1.5"/>
-                      <path d="M2.01675 10C3.22575 6.25 6.29925 3.75 10 3.75C13.7008 3.75 16.7742 6.25 17.9832 10C16.7742 13.75 13.7008 16.25 10 16.25C6.29925 16.25 3.22575 13.75 2.01675 10Z" stroke="#6b7280" strokeWidth="1.5"/>
+                      <path d="M10 12.5C11.3807 12.5 12.5 11.3807 12.5 10C12.5 8.61929 11.3807 7.5 10 7.5C8.61929 7.5 7.5 8.61929 7.5 10C7.5 11.3807 8.61929 12.5 10 12.5Z" stroke="#6b7280" strokeWidth="1.5" />
+                      <path d="M2.01675 10C3.22575 6.25 6.29925 3.75 10 3.75C13.7008 3.75 16.7742 6.25 17.9832 10C16.7742 13.75 13.7008 16.25 10 16.25C6.29925 16.25 3.22575 13.75 2.01675 10Z" stroke="#6b7280" strokeWidth="1.5" />
                     </svg>
                   )}
                 </button>
               </div>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="admin-login-continue-btn"
               disabled={isSubmitting || !isValid}
               onClick={(e) => {

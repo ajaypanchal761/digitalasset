@@ -101,3 +101,31 @@ textarea,
   user-select: text;
   touch-action: auto;
 }
+
+/* Common Back Button Style - Based on Image 4 */
+.btn-back {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 40px !important;
+  background: #ffffff !important;
+  border: none !important;
+  border-radius: 0.5rem !important;
+  color: #0f172a !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+.btn-back:hover {
+  background: #f8fafc !important;
+  transform: translateY(-1px) !important;
+}
+
+.btn-back svg {
+  width: 20px !important;
+  height: 20px !important;
+}

@@ -78,21 +78,21 @@ const Invest = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Check KYC status
     if (!user || user.kycStatus !== 'approved') {
       showToast('Please complete KYC verification before investing', 'error');
       navigate('/kyc');
       return;
     }
-    
+
     // Check if property is active
     if (property && property.status !== 'active') {
       showToast(`This property is ${property.status}. Only active properties are available for investment.`, 'error');
       navigate('/explore');
       return;
     }
-    
+
     if (validateForm()) {
       // Navigate to investment request form with investment data
       navigate("/invest/request", {
@@ -130,10 +130,9 @@ const Invest = () => {
       <div className="invest-page">
         <div className="invest-page__container">
           <div className="invest-page__header">
-            <button onClick={() => navigate(-1)} className="invest-page__back-btn" aria-label="Go back">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M19 12H5" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M12 19L5 12L12 5" strokeLinecap="round" strokeLinejoin="round" />
+            <button onClick={() => navigate(-1)} className="btn-back" aria-label="Go back">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
             <h1 className="invest-page__title">My Investments</h1>
@@ -156,11 +155,10 @@ const Invest = () => {
       <div className="invest-page__container">
         {/* Header */}
         <div className="invest-page__header">
-          <button onClick={() => navigate(-1)} className="invest-page__back-btn">
+          <button onClick={() => navigate(-1)} className="btn-back">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            Back
           </button>
           <h1 className="invest-page__title">Invest in {property.title}</h1>
           <div className="invest-page__header-spacer"></div>
@@ -226,7 +224,7 @@ const Invest = () => {
             </label>
             {/* Custom Dropdown Implementation */}
             <div className="invest-page__custom-select-wrapper" style={{ position: 'relative' }}>
-              <button 
+              <button
                 type="button"
                 className={`invest-page__input invest-page__input--select ${errors.timePeriod ? "invest-page__input--error" : ""}`}
                 onClick={() => setFormData(prev => ({ ...prev, isDropdownOpen: !prev.isDropdownOpen }))}
@@ -234,15 +232,15 @@ const Invest = () => {
               >
                 <span>
                   {formData.timePeriod === 3 ? "3 Months (Lock-in Period)" :
-                   formData.timePeriod === 6 ? "6 Months" :
-                   formData.timePeriod === 12 ? "12 Months (1 Year)" :
-                   "24 Months (2 Years)"}
+                    formData.timePeriod === 6 ? "6 Months" :
+                      formData.timePeriod === 12 ? "12 Months (1 Year)" :
+                        "24 Months (2 Years)"}
                 </span>
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ transform: formData.isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
-                  <path d="M2 4L6 8L10 4" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M2 4L6 8L10 4" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
-              
+
               {formData.isDropdownOpen && (
                 <div className="invest-page__dropdown-menu" style={{
                   position: 'absolute',

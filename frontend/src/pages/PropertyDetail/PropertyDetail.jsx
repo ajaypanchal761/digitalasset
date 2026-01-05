@@ -24,7 +24,7 @@ const PropertyDetail = () => {
         setPropertyError(null);
         console.log('📡 PropertyDetail - Fetching property:', id);
         const response = await propertyAPI.getById(id);
-        
+
         if (response.success && response.data) {
           console.log('✅ PropertyDetail - Property fetched:', {
             propertyId: response.data._id,
@@ -64,7 +64,7 @@ const PropertyDetail = () => {
       try {
         console.log('📡 PropertyDetail - Fetching user holdings for property:', id);
         const response = await holdingAPI.getAll();
-        
+
         if (response.success && response.data) {
           // Filter holdings for this property
           const propertyHoldings = response.data.filter((h) => {
@@ -116,7 +116,7 @@ const PropertyDetail = () => {
       try {
         setRoiLoading(true);
         const response = await propertyAPI.calculateROI(id, calculatorAmount);
-        
+
         if (response.success && response.data) {
           setRoiData(response.data);
         } else {
@@ -226,20 +226,17 @@ const PropertyDetail = () => {
     <div className="property-detail">
       {/* Mobile Header */}
       <div className="property-detail__mobile-header">
-        <button onClick={() => navigate(-1)} className="property-detail__mobile-back-btn">
+        <button onClick={() => navigate(-1)} className="btn-back">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
       </div>
       {/* Header Section */}
-      <button onClick={() => navigate(-1)} className="property-detail__back-btn-wrapper">
-        <div className="property-detail__back-btn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Back
-        </div>
+      <button onClick={() => navigate(-1)} className="btn-back" style={{ position: 'absolute', left: '1rem', top: '1rem', zIndex: 10 }}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       </button>
 
       <div className="property-detail__header">
@@ -365,11 +362,11 @@ const PropertyDetail = () => {
               const investmentId = investment._id || investment.id;
               const purchaseDate = investment.purchaseDate || investment.createdAt;
               const maturityDate = investment.maturityDate;
-              
+
               // Calculate if matured: check if maturity date has passed
-              const isMatured = investment.status === "matured" || 
-                                (maturityDate && new Date(maturityDate) <= new Date());
-              
+              const isMatured = investment.status === "matured" ||
+                (maturityDate && new Date(maturityDate) <= new Date());
+
               return (
                 <div key={investmentId} className="property-detail__table-row">
                   <span>{formatDate(purchaseDate)}</span>
@@ -461,41 +458,41 @@ const PropertyDetail = () => {
 
       {/* Documents Section */}
       {property.documents && property.documents.length > 0 && (
-      <div className="property-detail__documents">
-        <h2 className="property-detail__section-title">Legal Documents</h2>
-        <div className="property-detail__documents-list">
+        <div className="property-detail__documents">
+          <h2 className="property-detail__section-title">Legal Documents</h2>
+          <div className="property-detail__documents-list">
             {property.documents.map((docUrl, index) => {
               const docName = docUrl.split('/').pop() || `Document ${index + 1}`;
               return (
-                <a 
+                <a
                   key={index}
-                  href={docUrl} 
-                  target="_blank" 
+                  href={docUrl}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="property-detail__document-item"
                 >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <div>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <div>
                     <span className="property-detail__document-name">{docName}</span>
-              <span className="property-detail__document-size">PDF Document</span>
-            </div>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </a>
+                    <span className="property-detail__document-size">PDF Document</span>
+                  </div>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </a>
               );
             })}
+          </div>
         </div>
-      </div>
       )}
 
       {/* FAQ Section */}
@@ -528,7 +525,7 @@ const PropertyDetail = () => {
 
       {/* Bottom Invest Now Button */}
       <div className="property-detail__bottom-action">
-        <button 
+        <button
           onClick={() => {
             if (!calculateROI || !property) return;
             // Check if property is active before allowing investment
@@ -536,8 +533,8 @@ const PropertyDetail = () => {
               alert(`This property is ${property.status}. Only active properties are available for investment.`);
               return;
             }
-            navigate("/invest", { 
-              state: { 
+            navigate("/invest", {
+              state: {
                 propertyId: property._id || property.id,
                 propertyTitle: property.title,
                 investmentAmount: calculateROI.investmentAmount,
@@ -546,9 +543,9 @@ const PropertyDetail = () => {
                 lockInMonths: calculateROI.lockInMonths,
                 maturityDate: calculateROI.maturityDate,
                 monthlyReturnRate: property.monthlyReturnRate || 0.5,
-              } 
+              }
             });
-          }} 
+          }}
           className="property-detail__invest-btn property-detail__invest-btn--large"
           disabled={property.status !== 'active'}
           title={property.status !== 'active' ? `This property is ${property.status}. Only active properties are available for investment.` : 'Invest in this property'}
