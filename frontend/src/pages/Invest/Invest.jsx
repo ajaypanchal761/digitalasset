@@ -64,8 +64,8 @@ const Invest = () => {
       newErrors.amount = `Minimum investment is ${formatCurrency(minInvestment, "INR")}`;
     }
 
-    if (!formData.timePeriod || formData.timePeriod < 3) {
-      newErrors.timePeriod = "Minimum time period is 3 months";
+    if (formData.timePeriod !== 3) {
+      newErrors.timePeriod = "Investment period must be 3 months";
     }
 
     if (!formData.acceptTerms) {
@@ -103,21 +103,24 @@ const Invest = () => {
           investmentAmount: formData.amount,
           timePeriod: formData.timePeriod,
           monthlyEarning: formData.amount * 0.005,
-          totalEarnings: formData.amount * 0.005 * formData.timePeriod,
-          maturityAmount: formData.amount + formData.amount * 0.005 * formData.timePeriod,
+          totalEarnings: formData.timePeriod <= 3 ? 0 : formData.amount * 0.005 * (formData.timePeriod - 3),
+          maturityAmount: formData.amount + (formData.timePeriod <= 3 ? 0 : formData.amount * 0.005 * (formData.timePeriod - 3)),
         },
       });
     }
   };
 
   const monthlyEarning = formData.amount * 0.005;
-  const totalEarnings = monthlyEarning * formData.timePeriod;
+  // During 3-month lock period, payout earnings are 0
+  // After 3 months, 0.5% monthly payout is generated if property is not sold
+  const totalEarnings = formData.timePeriod <= 3 ? 0 : monthlyEarning * (formData.timePeriod - 3);
+  // Total amount after maturity is the investment amount (principal returned after lock-in) plus earnings generated after lock-in
   const maturityAmount = formData.amount + totalEarnings;
 
-  // Calculate maturity date
+  // Calculate withdrawal availability date (3-month lock-in period)
   const calculateMaturityDate = () => {
     const date = new Date();
-    date.setMonth(date.getMonth() + formData.timePeriod);
+    date.setMonth(date.getMonth() + 3); // Always 3 months lock-in period
     return date.toLocaleDateString("en-IN", {
       day: "numeric",
       month: "short",
@@ -190,7 +193,7 @@ const Invest = () => {
               <span className="invest-page__stat-value">{formatCurrency(property.minInvestment || 500000, "INR")}</span>
             </div>
             <div className="invest-page__stat-item">
-              <span className="invest-page__stat-label">Monthly Return</span>
+              <span className="invest-page__stat-label">Monthly return after 3 month of lock</span>
               <span className="invest-page__stat-value invest-page__stat-value--green">0.5%</span>
             </div>
           </div>
@@ -222,74 +225,10 @@ const Invest = () => {
             <label htmlFor="timePeriod" className="invest-page__label">
               Investment Period (Months) <span className="invest-page__required">*</span>
             </label>
-            {/* Custom Dropdown Implementation */}
-            <div className="invest-page__custom-select-wrapper" style={{ position: 'relative' }}>
-              <button
-                type="button"
-                className={`invest-page__input invest-page__input--select ${errors.timePeriod ? "invest-page__input--error" : ""}`}
-                onClick={() => setFormData(prev => ({ ...prev, isDropdownOpen: !prev.isDropdownOpen }))}
-                style={{ textAlign: 'left', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
-              >
-                <span>
-                  {formData.timePeriod === 3 ? "3 Months (Lock-in Period)" :
-                    formData.timePeriod === 6 ? "6 Months" :
-                      formData.timePeriod === 12 ? "12 Months (1 Year)" :
-                        "24 Months (2 Years)"}
-                </span>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ transform: formData.isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
-                  <path d="M2 4L6 8L10 4" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-
-              {formData.isDropdownOpen && (
-                <div className="invest-page__dropdown-menu" style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
-                  background: '#fff',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '0.75rem',
-                  marginTop: '4px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                  zIndex: 50,
-                  overflow: 'hidden'
-                }}>
-                  {[
-                    { val: 3, label: "3 Months (Lock-in Period)" },
-                    { val: 6, label: "6 Months" },
-                    { val: 12, label: "12 Months (1 Year)" },
-                    { val: 24, label: "24 Months (2 Years)" }
-                  ].map((opt) => (
-                    <button
-                      key={opt.val}
-                      type="button"
-                      onClick={() => {
-                        handleInputChange("timePeriod", opt.val);
-                        setFormData(prev => ({ ...prev, isDropdownOpen: false }));
-                      }}
-                      className="invest-page__dropdown-item"
-                      style={{
-                        width: '100%',
-                        textAlign: 'left',
-                        padding: '0.75rem 1rem',
-                        background: formData.timePeriod === opt.val ? '#eff6ff' : '#fff',
-                        border: 'none',
-                        borderBottom: '1px solid #f1f5f9',
-                        color: formData.timePeriod === opt.val ? '#2563eb' : '#0f172a',
-                        fontWeight: formData.timePeriod === opt.val ? 600 : 400,
-                        cursor: 'pointer',
-                        display: 'block'
-                      }}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              )}
+            <div className="invest-page__input invest-page__input--readonly">
+              <span>3 Months (Lock-in Period)</span>
             </div>
-            {errors.timePeriod && <span className="invest-page__error">{errors.timePeriod}</span>}
-            <span className="invest-page__hint">Minimum lock-in period is 3 months</span>
+            <span className="invest-page__hint">Fixed lock-in period of 3 months</span>
           </div>
 
           {/* Investment Summary */}
@@ -301,7 +240,7 @@ const Invest = () => {
                 <span className="invest-page__summary-value">{formatCurrency(formData.amount, "INR")}</span>
               </div>
               <div className="invest-page__summary-item">
-                <span className="invest-page__summary-label">Monthly Return</span>
+                <span className="invest-page__summary-label">Monthly return after 3 month of lock</span>
                 <span className="invest-page__summary-value invest-page__summary-value--green">0.5%</span>
               </div>
               <div className="invest-page__summary-item">
@@ -309,13 +248,20 @@ const Invest = () => {
                 <span className="invest-page__summary-value invest-page__summary-value--green">
                   {formatCurrency(monthlyEarning, "INR")}/month
                 </span>
+                <span className="invest-page__summary-subtext">
+                  (starts after 3-month lock-in)
+                </span>
               </div>
               <div className="invest-page__summary-item">
                 <span className="invest-page__summary-label">Investment Period</span>
                 <span className="invest-page__summary-value">{formData.timePeriod} months</span>
               </div>
               <div className="invest-page__summary-item">
-                <span className="invest-page__summary-label">Maturity Date</span>
+                <span className="invest-page__summary-label">Lock-in Period</span>
+                <span className="invest-page__summary-value">3 months (required)</span>
+              </div>
+              <div className="invest-page__summary-item">
+                <span className="invest-page__summary-label">Withdrawal Available</span>
                 <span className="invest-page__summary-value">{calculateMaturityDate()}</span>
               </div>
               <div className="invest-page__summary-item">

@@ -90,7 +90,7 @@ const PropertyDetail = ({ property, onClose }) => {
                 <p className="property-detail__detail-value">{property.lockInMonths || 3} Months</p>
               </div>
               <div>
-                <p className="property-detail__detail-label">Monthly Return</p>
+                <p className="property-detail__detail-label">Monthly return after 3 month of lock</p>
                 <p className="property-detail__detail-value">0.5% (fixed)</p>
               </div>
               <div>

@@ -55,13 +55,14 @@ export const calculateDaysRemaining = (maturityDate) => {
 };
 
 /**
- * Calculate next payout date (1st of next month from purchase date)
+ * Calculate next payout date (1st of the month, 3 months after purchase date due to lock-in period)
  * @param {Date} purchaseDate - Purchase date
- * @returns {Date} Next payout date
+ * @returns {Date} Next payout date (after 3-month lock-in period)
  */
 export const calculateNextPayoutDate = (purchaseDate) => {
   const nextPayout = new Date(purchaseDate);
-  nextPayout.setMonth(nextPayout.getMonth() + 1);
+  // Add 3 months for lock-in period, then set to 1st of that month
+  nextPayout.setMonth(nextPayout.getMonth() + 3);
   nextPayout.setDate(1);
   return nextPayout;
 };

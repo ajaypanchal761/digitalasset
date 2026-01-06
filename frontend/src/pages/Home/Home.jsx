@@ -202,7 +202,7 @@ const Home = () => {
                 </div>
                 <h3 className="home-feature-card__title">Monthly Returns</h3>
                 <p className="home-feature-card__description">
-                  Earn consistent monthly returns of 0.5% on your investments. Receive regular payouts directly to your wallet.
+                  Earn 0.5% monthly returns on your investments after the 3-month lock-in period. Receive regular payouts directly to your wallet.
                 </p>
               </div>
               <div className="home-feature-card">
@@ -216,7 +216,7 @@ const Home = () => {
                 </div>
                 <h3 className="home-feature-card__title">Flexible Terms</h3>
                 <p className="home-feature-card__description">
-                  Choose investment periods from 3 months to 24 months. After 3 months, you can sell your holdings to other investors.
+                  Investors can only sell property after 3 months and 0.5% payout will be generated only after 3 months.
                 </p>
               </div>
               <div className="home-feature-card">
@@ -296,7 +296,7 @@ const Home = () => {
                 <div className="home-criteria-item__content">
                   <h3 className="home-criteria-item__title">Investment Period</h3>
                   <p className="home-criteria-item__description">
-                    Choose from flexible investment periods: 3 months (minimum lock-in), 6 months, 12 months, or 24 months.
+                    There will be a 3-month lock period, after which the investor can withdraw the amount.
                   </p>
                 </div>
               </div>
@@ -305,7 +305,7 @@ const Home = () => {
                 <div className="home-criteria-item__content">
                   <h3 className="home-criteria-item__title">Monthly Returns</h3>
                   <p className="home-criteria-item__description">
-                    Earn 0.5% monthly returns on your investment. Returns are calculated and paid monthly to your wallet.
+                    Earn 0.5% monthly returns on your investment, starting after the 3-month lock-in period. Returns are calculated and paid monthly to your wallet.
                   </p>
                 </div>
               </div>
@@ -414,33 +414,20 @@ const Home = () => {
                 <h3 className="home-policy-card__title">Buying Policy</h3>
                 <ul className="home-policy-card__list">
                   <li>Minimum investment: ₹5,00,000 per property</li>
-                  <li>Investment periods: 3, 6, 12, or 24 months</li>
                   <li>3-month lock-in period applies to all investments</li>
+                  <li>Investors can only sell property after 3 months</li>
+                  <li>0.5% monthly returns start after 3-month lock-in period</li>
                   <li>KYC verification required before first investment</li>
                   <li>All investments are subject to property availability</li>
-                  <li>Returns are calculated monthly at 0.5% rate</li>
                 </ul>
               </div>
               <div className="home-policy-card">
                 <h3 className="home-policy-card__title">Selling Policy</h3>
                 <ul className="home-policy-card__list">
                   <li>Holdings can be sold after 3-month lock-in period</li>
-                  <li>Minimum sale price: 80% of original investment</li>
-                  <li>Find buyers through the platform or contact property owner</li>
+                  <li>Find buyer offline which is not using this platform</li>
                   <li>Transfer requests require buyer acceptance</li>
-                  <li>Admin approval required for ownership transfer</li>
                   <li>Sale proceeds are credited to your wallet</li>
-                </ul>
-              </div>
-              <div className="home-policy-card">
-                <h3 className="home-policy-card__title">Withdrawal Policy</h3>
-                <ul className="home-policy-card__list">
-                  <li>Investment withdrawal available after 3 months</li>
-                  <li>Earnings can be withdrawn at any time</li>
-                  <li>Withdrawal requests processed within 3-5 business days</li>
-                  <li>Bank account verification required for withdrawals</li>
-                  <li>Minimum withdrawal amount: ₹1,000</li>
-                  <li>Processing fees may apply as per terms</li>
                 </ul>
               </div>
               <div className="home-policy-card">

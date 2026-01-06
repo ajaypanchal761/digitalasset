@@ -148,13 +148,13 @@ const Holdings = () => {
                   // Get property name from holding or property reference
                   const propertyName = holding.name || holding.propertyId?.title || "Property";
                   
-                  // Calculate next payout date (1st of next month from purchase date)
+                  // Calculate next payout date (1st of the month, 3 months after purchase due to lock-in period)
                   const calculateNextPayoutDate = (purchaseDate) => {
                     if (!purchaseDate) return null;
                     const purchase = new Date(purchaseDate);
                     const nextPayout = new Date(purchase);
-                    nextPayout.setMonth(nextPayout.getMonth() + 1);
-                    nextPayout.setDate(1); // Set to 1st of next month
+                    nextPayout.setMonth(nextPayout.getMonth() + 3); // Add 3 months for lock-in period
+                    nextPayout.setDate(1); // Set to 1st of that month
                     return nextPayout;
                   };
 

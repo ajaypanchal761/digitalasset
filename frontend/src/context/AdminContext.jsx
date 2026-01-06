@@ -677,6 +677,13 @@ export const AdminProvider = ({ children }) => {
         logger.log('✅ AdminContext - Properties fetched successfully:', {
           count: properties.length,
           propertyIds: properties.slice(0, 5).map(p => p._id || p.id),
+          sampleProperty: properties[0] ? {
+            id: properties[0]._id || properties[0].id,
+            title: properties[0].title,
+            totalStocks: properties[0].totalStocks,
+            investorCount: properties[0].investorCount,
+            availableToInvest: properties[0].availableToInvest
+          } : null,
           statuses: properties.reduce((acc, p) => {
             acc[p.status] = (acc[p.status] || 0) + 1;
             return acc;
@@ -785,6 +792,7 @@ export const AdminProvider = ({ children }) => {
 
       logger.log('📦 AdminContext - Final property payload for API:', {
         ...propertyPayload,
+        totalStocks: propertyPayload.totalStocks,
         description: propertyPayload.description?.substring(0, 50) + '...',
         image: propertyPayload.image ? (typeof propertyPayload.image === 'string' ? propertyPayload.image.substring(0, 50) + '...' : 'File object') : 'none',
         documents: propertyPayload.documents.length > 0 ? `${propertyPayload.documents.length} URL(s)` : 'none'

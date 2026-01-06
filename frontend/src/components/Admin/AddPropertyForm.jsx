@@ -18,14 +18,25 @@ const dataURLtoFile = (dataurl, filename) => {
 const AddPropertyForm = ({ onClose, property = null }) => {
   const { addProperty, updateProperty } = useAdmin();
   const isEditMode = !!property;
+  const isShaanEstate = property?.title === 'Shaan Estate';
+
+  // Get stored totalStocks for Shaan Estate from localStorage
+  const getStoredTotalStocks = () => {
+    if (property?.title === 'Shaan Estate') {
+      const stored = localStorage.getItem('shaanEstate_totalStocks');
+      return stored ? parseInt(stored, 10) : null;
+    }
+    return null;
+  };
 
   const [formData, setFormData] = useState({
-    title: property?.title || '',
+    title: property?.title || 'Shaan Estate', // Fixed title for Shaan Estate
     description: property?.description || '',
     propertyType: property?.propertyType || 'Digital Property',
     deadline: property?.deadline || '',
-    availableToInvest: property?.availableToInvest || 1000000,
-    lockInMonths: property?.lockInMonths || 3,
+    availableToInvest: property?.availableToInvest || 500000, // Minimum investment amount
+    lockInMonths: 3, // Fixed 3-month lock period
+    totalStocks: property?.totalStocks || getStoredTotalStocks() || 100, // Number of stocks available
     status: property?.status || 'active',
     image: property?.image || null,
     documents: property?.documents || [],
@@ -123,12 +134,15 @@ const AddPropertyForm = ({ onClose, property = null }) => {
 
   const validateForm = () => {
     console.log('🔍 AddPropertyForm - Validating form:', {
+      isEditMode,
+      isShaanEstate,
       formData: {
         title: formData.title,
         description: formData.description?.substring(0, 50) + '...',
         propertyType: formData.propertyType,
         deadline: formData.deadline,
         availableToInvest: formData.availableToInvest,
+        totalStocks: formData.totalStocks,
         status: formData.status,
         hasImage: !!imageFile || !!imagePreview,
         documentCount: uploadedDocuments.length
@@ -136,30 +150,46 @@ const AddPropertyForm = ({ onClose, property = null }) => {
       timestamp: new Date().toISOString()
     });
     const newErrors = {};
-    
-    if (!formData.title.trim()) {
-      newErrors.title = 'Property title is required';
-    }
-    
-    if (!formData.description.trim()) {
-      newErrors.description = 'Description is required';
-    }
-    
-    if (!formData.deadline) {
-      newErrors.deadline = 'Deadline is required';
+
+    // For Shaan Estate editing, only validate the editable fields
+    if (isEditMode && isShaanEstate) {
+      if (!formData.availableToInvest || formData.availableToInvest < 500000) {
+        newErrors.availableToInvest = 'Investment amount must be at least ₹5,00,000';
+      }
+
+      if (!formData.totalStocks || formData.totalStocks < 1) {
+        newErrors.totalStocks = 'Total stocks must be at least 1';
+      }
     } else {
-      const deadlineDate = new Date(formData.deadline);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (deadlineDate <= today) {
-        newErrors.deadline = 'Deadline must be in the future';
+      // Full validation for new property creation
+      if (formData.title !== 'Shaan Estate') {
+        newErrors.title = 'Only "Shaan Estate" property can be created';
+      }
+
+      if (!formData.description.trim()) {
+        newErrors.description = 'Description is required';
+      }
+
+      if (!formData.deadline) {
+        newErrors.deadline = 'Deadline is required';
+      } else {
+        const deadlineDate = new Date(formData.deadline);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (deadlineDate <= today) {
+          newErrors.deadline = 'Deadline must be in the future';
+        }
+      }
+
+      if (!formData.availableToInvest || formData.availableToInvest < 500000) {
+        newErrors.availableToInvest = 'Investment amount must be at least ₹5,00,000';
+      }
+
+      if (!formData.totalStocks || formData.totalStocks < 1) {
+        newErrors.totalStocks = 'Total stocks must be at least 1';
       }
     }
-    
-    if (!formData.availableToInvest || formData.availableToInvest < 100000) {
-      newErrors.availableToInvest = 'Available amount must be at least ₹1,00,000';
-    }
-    
+
     setErrors(newErrors);
     const isValid = Object.keys(newErrors).length === 0;
     console.log(isValid ? '✅ AddPropertyForm - Form validation passed' : '❌ AddPropertyForm - Form validation failed:', {
@@ -188,14 +218,15 @@ const AddPropertyForm = ({ onClose, property = null }) => {
     try {
       // Prepare property data
       const propertyData = {
-        title: formData.title,
+        title: formData.title, // Always "Shaan Estate"
         description: formData.description,
         propertyType: formData.propertyType,
         deadline: formData.deadline,
-        availableToInvest: Number(formData.availableToInvest),
-        lockInMonths: Number(formData.lockInMonths),
+        availableToInvest: Number(formData.availableToInvest), // Must be >= 500000
+        totalStocks: Number(formData.totalStocks), // Number of stocks available
+        lockInMonths: 3, // Fixed 3-month lock period
         status: formData.status,
-        // Fixed fields
+        // Fixed fields for Shaan Estate
         minInvestment: 500000,
         monthlyReturnRate: 0.5,
       };
@@ -271,6 +302,10 @@ const AddPropertyForm = ({ onClose, property = null }) => {
         await updateProperty(propertyId, propertyData);
         console.log('✅ AddPropertyForm - Property updated successfully');
         setSuccessMessage('Property updated successfully!');
+        // Store totalStocks in localStorage for Shaan Estate
+        if (formData.title === 'Shaan Estate') {
+          localStorage.setItem('shaanEstate_totalStocks', formData.totalStocks.toString());
+        }
       } else {
         console.log('➕ AddPropertyForm - Creating new property');
         const result = await addProperty(propertyData);
@@ -279,6 +314,10 @@ const AddPropertyForm = ({ onClose, property = null }) => {
           propertyTitle: result?.title
         });
         setSuccessMessage('Property created successfully!');
+        // Store totalStocks in localStorage for Shaan Estate
+        if (formData.title === 'Shaan Estate') {
+          localStorage.setItem('shaanEstate_totalStocks', formData.totalStocks.toString());
+        }
       }
       
       // Close form after successful submission
@@ -305,9 +344,9 @@ const AddPropertyForm = ({ onClose, property = null }) => {
       <div className="add-property-form__modal" onClick={(e) => e.stopPropagation()}>
         <div className="add-property-form__header">
           <h2 className="add-property-form__title">
-            {isEditMode ? 'Edit Property' : 'Add New Property'}
+            {isEditMode ? 'Edit Shaan Estate Property' : 'Add Shaan Estate Property'}
           </h2>
-          <button 
+          <button
             className="add-property-form__close"
             onClick={onClose}
             aria-label="Close"
@@ -320,160 +359,177 @@ const AddPropertyForm = ({ onClose, property = null }) => {
         </div>
 
         <form className="add-property-form" onSubmit={handleSubmit}>
-          {/* Basic Information Section */}
-          <div className="add-property-form__section">
-            <h3 className="add-property-form__section-title">Basic Information</h3>
-            
-            <div className="add-property-form__field">
-              <label className="add-property-form__label">
-                Property Title <span className="add-property-form__required">*</span>
-              </label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                className={`add-property-form__input ${errors.title ? 'add-property-form__input--error' : ''}`}
-                placeholder="e.g., Tech Park Alpha"
-              />
-              {errors.title && (
-                <span className="add-property-form__error">{errors.title}</span>
-              )}
-            </div>
+          {/* Basic Information Section - Only shown for new creation, not for Shaan Estate editing */}
+          {!isEditMode || !isShaanEstate ? (
+            <div className="add-property-form__section">
+              <h3 className="add-property-form__section-title">Basic Information</h3>
 
-            <div className="add-property-form__field">
-              <label className="add-property-form__label">
-                Description <span className="add-property-form__required">*</span>
-              </label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                className={`add-property-form__textarea ${errors.description ? 'add-property-form__input--error' : ''}`}
-                placeholder="Describe the property..."
-                rows="4"
-              />
-              {errors.description && (
-                <span className="add-property-form__error">{errors.description}</span>
-              )}
-            </div>
-
-            <div className="add-property-form__field">
-              <label className="add-property-form__label">Property Type</label>
-              <Select
-                name="propertyType"
-                value={formData.propertyType}
-                onChange={handleInputChange}
-                className="add-property-form__select"
-                options={[
-                  { value: 'Digital Property', label: 'Digital Property' },
-                  { value: 'Tech Infrastructure', label: 'Tech Infrastructure' },
-                  { value: 'Data Center', label: 'Data Center' },
-                  { value: 'Co-working Space', label: 'Co-working Space' },
-                  { value: 'Commercial Property', label: 'Commercial Property' },
-                ]}
-              />
-            </div>
-
-            <div className="add-property-form__field">
-              <label className="add-property-form__label">Property Image</label>
-              <div className="add-property-form__image-upload">
-                {imagePreview ? (
-                  <div className="add-property-form__image-preview">
-                    <img 
-                      src={imagePreview} 
-                      alt="Preview"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <button
-                      type="button"
-                      className="add-property-form__remove-image"
-                      onClick={() => {
-                        setImagePreview(null);
-                        setImageFile(null);
-                        setFormData(prev => ({ ...prev, image: null }));
-                      }}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ) : (
-                  <label className="add-property-form__image-upload-label">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="add-property-form__file-input"
-                    />
-                    <div className="add-property-form__image-upload-content">
-                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="17 8 12 3 7 8"/>
-                        <line x1="12" y1="3" x2="12" y2="15"/>
-                      </svg>
-                      <span>Click to upload image</span>
-                      <span className="add-property-form__image-upload-hint">Max 5MB</span>
-                    </div>
-                  </label>
+              <div className="add-property-form__field">
+                <label className="add-property-form__label">
+                  Property Title <span className="add-property-form__required">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  className={`add-property-form__input ${errors.title ? 'add-property-form__input--error' : ''}`}
+                  placeholder="Shaan Estate"
+                  readOnly
+                />
+                <span className="add-property-form__hint">Only "Shaan Estate" property can be created</span>
+                {errors.title && (
+                  <span className="add-property-form__error">{errors.title}</span>
                 )}
               </div>
-              {errors.image && (
-                <span className="add-property-form__error">{errors.image}</span>
-              )}
-            </div>
-          </div>
 
-          {/* Investment Details Section */}
-          <div className="add-property-form__section">
-            <h3 className="add-property-form__section-title">Investment Details</h3>
-            
-            <div className="add-property-form__fixed-fields">
-              <div className="add-property-form__fixed-field">
-                <label className="add-property-form__label">Minimum Investment</label>
-                <div className="add-property-form__fixed-value">₹5,00,000 (Fixed)</div>
+              <div className="add-property-form__field">
+                <label className="add-property-form__label">
+                  Description <span className="add-property-form__required">*</span>
+                </label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  className={`add-property-form__textarea ${errors.description ? 'add-property-form__input--error' : ''}`}
+                  placeholder="Describe the property..."
+                  rows="4"
+                />
+                {errors.description && (
+                  <span className="add-property-form__error">{errors.description}</span>
+                )}
               </div>
-              <div className="add-property-form__fixed-field">
-                <label className="add-property-form__label">Lock-in Period</label>
+
+              <div className="add-property-form__field">
+                <label className="add-property-form__label">Property Type</label>
                 <Select
-                  name="lockInMonths"
-                  value={formData.lockInMonths}
+                  name="propertyType"
+                  value={formData.propertyType}
                   onChange={handleInputChange}
                   className="add-property-form__select"
                   options={[
-                    { value: 3, label: '3 Months' },
-                    { value: 6, label: '6 Months' },
-                    { value: 12, label: '12 Months' },
-                    { value: 24, label: '24 Months' },
+                    { value: 'Digital Property', label: 'Digital Property' },
+                    { value: 'Tech Infrastructure', label: 'Tech Infrastructure' },
+                    { value: 'Data Center', label: 'Data Center' },
+                    { value: 'Co-working Space', label: 'Co-working Space' },
+                    { value: 'Commercial Property', label: 'Commercial Property' },
                   ]}
                 />
               </div>
-              <div className="add-property-form__fixed-field">
-                <label className="add-property-form__label">Monthly Return Rate</label>
-                <div className="add-property-form__fixed-value">0.5% (Fixed)</div>
+
+              <div className="add-property-form__field">
+                <label className="add-property-form__label">Property Image</label>
+                <div className="add-property-form__image-upload">
+                  {imagePreview ? (
+                    <div className="add-property-form__image-preview">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <button
+                        type="button"
+                        className="add-property-form__remove-image"
+                        onClick={() => {
+                          setImagePreview(null);
+                          setImageFile(null);
+                          setFormData(prev => ({ ...prev, image: null }));
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="add-property-form__image-upload-label">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="add-property-form__file-input"
+                      />
+                      <div className="add-property-form__image-upload-content">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                          <polyline points="17 8 12 3 7 8"/>
+                          <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <span>Click to upload image</span>
+                        <span className="add-property-form__image-upload-hint">Max 5MB</span>
+                      </div>
+                    </label>
+                  )}
+                </div>
+                {errors.image && (
+                  <span className="add-property-form__error">{errors.image}</span>
+                )}
               </div>
             </div>
-
-            <div className="add-property-form__field">
-              <label className="add-property-form__label">
-                Investment Deadline <span className="add-property-form__required">*</span>
-              </label>
-              <input
-                type="date"
-                name="deadline"
-                value={formData.deadline}
-                onChange={handleInputChange}
-                className={`add-property-form__input ${errors.deadline ? 'add-property-form__input--error' : ''}`}
-                min={new Date().toISOString().split('T')[0]}
-              />
-              {errors.deadline && (
-                <span className="add-property-form__error">{errors.deadline}</span>
-              )}
+          ) : (
+            /* Shaan Estate Edit Mode - Only show editable fields */
+            <div className="add-property-form__section">
+              <h3 className="add-property-form__section-title">Update Shaan Estate</h3>
+              <div className="add-property-form__info-box">
+                <p><strong>Property:</strong> {property.title}</p>
+                <p><strong>Status:</strong> {property.status}</p>
+                <p><strong>Current Stocks:</strong> {(() => {
+                  const storedStocks = localStorage.getItem('shaanEstate_totalStocks');
+                  const totalStocks = property.totalStocks || (storedStocks ? parseInt(storedStocks, 10) : 0);
+                  const remainingStocks = Math.max(0, totalStocks - (property.investorCount || 0));
+                  return totalStocks > 0 ? `${remainingStocks} / ${totalStocks}` : '0 / 0';
+                })()}</p>
+                <p><strong>Current Investment Amount:</strong> ₹{formData.availableToInvest?.toLocaleString('en-IN')}</p>
+              </div>
             </div>
+          )}
 
+          {/* Investment Details Section */}
+          <div className="add-property-form__section">
+            <h3 className="add-property-form__section-title">
+              {isEditMode && isShaanEstate ? 'Update Investment Settings' : 'Investment Details'}
+            </h3>
+
+            {(!isEditMode || !isShaanEstate) && (
+              <div className="add-property-form__fixed-fields">
+                <div className="add-property-form__fixed-field">
+                  <label className="add-property-form__label">Minimum Investment</label>
+                  <div className="add-property-form__fixed-value">₹5,00,000 (Fixed)</div>
+                </div>
+                <div className="add-property-form__fixed-field">
+                  <label className="add-property-form__label">Lock-in Period</label>
+                  <div className="add-property-form__fixed-value">3 Months (Fixed)</div>
+                </div>
+                <div className="add-property-form__fixed-field">
+                  <label className="add-property-form__label">Monthly Return Rate</label>
+                  <div className="add-property-form__fixed-value">0.5% (Fixed)</div>
+                </div>
+              </div>
+            )}
+
+            {/* Show deadline field only for new creation, not for Shaan Estate editing */}
+            {(!isEditMode || !isShaanEstate) && (
+              <div className="add-property-form__field">
+                <label className="add-property-form__label">
+                  Investment Deadline <span className="add-property-form__required">*</span>
+                </label>
+                <input
+                  type="date"
+                  name="deadline"
+                  value={formData.deadline}
+                  onChange={handleInputChange}
+                  className={`add-property-form__input ${errors.deadline ? 'add-property-form__input--error' : ''}`}
+                  min={new Date().toISOString().split('T')[0]}
+                />
+                {errors.deadline && (
+                  <span className="add-property-form__error">{errors.deadline}</span>
+                )}
+              </div>
+            )}
+
+            {/* Investment Amount per Stock - Always editable */}
             <div className="add-property-form__field">
               <label className="add-property-form__label">
-                Available to Invest (₹) <span className="add-property-form__required">*</span>
+                Investment Amount per Stock (₹) <span className="add-property-form__required">*</span>
               </label>
               <input
                 type="number"
@@ -481,85 +537,128 @@ const AddPropertyForm = ({ onClose, property = null }) => {
                 value={formData.availableToInvest}
                 onChange={handleInputChange}
                 className={`add-property-form__input ${errors.availableToInvest ? 'add-property-form__input--error' : ''}`}
-                placeholder="1000000"
-                min="100000"
+                placeholder="500000"
+                min="500000"
                 step="10000"
               />
               {errors.availableToInvest && (
                 <span className="add-property-form__error">{errors.availableToInvest}</span>
               )}
-              <span className="add-property-form__hint">Minimum ₹1,00,000</span>
+              <span className="add-property-form__hint">Minimum ₹5,00,000 per stock</span>
             </div>
-          </div>
 
-          {/* Documents Section */}
-          <div className="add-property-form__section">
-            <h3 className="add-property-form__section-title">Legal Documents</h3>
-            
+            {/* Total Number of Stocks - Always editable */}
             <div className="add-property-form__field">
-              <label className="add-property-form__label">Upload Documents</label>
-              <label className="add-property-form__file-upload-label">
-                <input
-                  type="file"
-                  multiple
-                  accept=".pdf,.doc,.docx"
-                  onChange={handleDocumentUpload}
-                  className="add-property-form__file-input"
-                />
-                <div className="add-property-form__file-upload-content">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="17 8 12 3 7 8"/>
-                    <line x1="12" y1="3" x2="12" y2="15"/>
-                  </svg>
-                  <span>Click to upload documents</span>
-                </div>
+              <label className="add-property-form__label">
+                Total Number of Stocks <span className="add-property-form__required">*</span>
               </label>
+              <input
+                type="number"
+                name="totalStocks"
+                value={formData.totalStocks}
+                onChange={handleInputChange}
+                className={`add-property-form__input ${errors.totalStocks ? 'add-property-form__input--error' : ''}`}
+                placeholder="100"
+                min="1"
+                step="1"
+              />
+              {errors.totalStocks && (
+                <span className="add-property-form__error">{errors.totalStocks}</span>
+              )}
+              <span className="add-property-form__hint">Number of stocks available for investment</span>
             </div>
 
-            {uploadedDocuments.length > 0 && (
-              <div className="add-property-form__documents-list">
-                {uploadedDocuments.map((doc) => (
-                  <div key={doc.id} className="add-property-form__document-item">
-                    <div className="add-property-form__document-info">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14 2 14 8 20 8"/>
-                      </svg>
-                      <span>{doc.name}</span>
-                    </div>
-                    <button
-                      type="button"
-                      className="add-property-form__remove-document"
-                      onClick={() => handleRemoveDocument(doc.id)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
+            {/* Show fixed fields info for Shaan Estate editing */}
+            {isEditMode && isShaanEstate && (
+              <div className="add-property-form__fixed-fields">
+                <div className="add-property-form__fixed-field">
+                  <label className="add-property-form__label">Minimum Investment</label>
+                  <div className="add-property-form__fixed-value">₹5,00,000 (Fixed)</div>
+                </div>
+                <div className="add-property-form__fixed-field">
+                  <label className="add-property-form__label">Lock-in Period</label>
+                  <div className="add-property-form__fixed-value">3 Months (Fixed)</div>
+                </div>
+                <div className="add-property-form__fixed-field">
+                  <label className="add-property-form__label">Monthly Return Rate</label>
+                  <div className="add-property-form__fixed-value">0.5% (Fixed)</div>
+                </div>
               </div>
             )}
           </div>
 
-          {/* Status Section */}
-          <div className="add-property-form__section">
-            <h3 className="add-property-form__section-title">Status</h3>
-            
-            <div className="add-property-form__field">
-              <label className="add-property-form__label">Property Status</label>
-              <Select
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
-                className="add-property-form__select"
-                options={[
-                  { value: 'active', label: 'Active' },
-                  { value: 'inactive', label: 'Inactive' },
-                  { value: 'closed', label: 'Closed' },
-                ]}
-              />
+          {/* Documents Section - Only shown for new creation, not for Shaan Estate editing */}
+          {(!isEditMode || !isShaanEstate) && (
+            <div className="add-property-form__section">
+              <h3 className="add-property-form__section-title">Legal Documents</h3>
+
+              <div className="add-property-form__field">
+                <label className="add-property-form__label">Upload Documents</label>
+                <label className="add-property-form__file-upload-label">
+                  <input
+                    type="file"
+                    multiple
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleDocumentUpload}
+                    className="add-property-form__file-input"
+                  />
+                  <div className="add-property-form__file-upload-content">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="17 8 12 3 7 8"/>
+                      <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <span>Click to upload documents</span>
+                  </div>
+                </label>
+              </div>
+
+              {uploadedDocuments.length > 0 && (
+                <div className="add-property-form__documents-list">
+                  {uploadedDocuments.map((doc) => (
+                    <div key={doc.id} className="add-property-form__document-item">
+                      <div className="add-property-form__document-info">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                          <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        <span>{doc.name}</span>
+                      </div>
+                      <button
+                        type="button"
+                        className="add-property-form__remove-document"
+                        onClick={() => handleRemoveDocument(doc.id)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
+          )}
+
+          {/* Status Section - Only shown for new creation, not for Shaan Estate editing */}
+          {(!isEditMode || !isShaanEstate) && (
+            <div className="add-property-form__section">
+              <h3 className="add-property-form__section-title">Status</h3>
+
+              <div className="add-property-form__field">
+                <label className="add-property-form__label">Property Status</label>
+                <Select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  className="add-property-form__select"
+                  options={[
+                    { value: 'active', label: 'Active' },
+                    { value: 'inactive', label: 'Inactive' },
+                    { value: 'closed', label: 'Closed' },
+                  ]}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Form Actions */}
           <div className="add-property-form__actions">
@@ -576,7 +675,7 @@ const AddPropertyForm = ({ onClose, property = null }) => {
               className="add-property-form__submit-btn"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Saving...' : isEditMode ? 'Update Property' : 'Create Property'}
+              {isSubmitting ? 'Saving...' : isEditMode && isShaanEstate ? 'Update Shaan Estate' : isEditMode ? 'Update Property' : 'Create Property'}
             </button>
           </div>
 

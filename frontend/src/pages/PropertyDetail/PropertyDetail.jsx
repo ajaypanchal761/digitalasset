@@ -182,12 +182,12 @@ const PropertyDetail = () => {
     {
       id: 4,
       question: "When can I withdraw earnings?",
-      answer: "Earnings can be withdrawn monthly. Every month, you receive 0.5% of your invested amount as earnings, which can be withdrawn at any time (subject to manual processing).",
+      answer: "Earnings start generating after the 3-month lock-in period. Every month after the lock-in period, you receive 0.5% of your invested amount as earnings, which can be withdrawn at any time (subject to manual processing).",
     },
     {
       id: 5,
       question: "How are monthly earnings calculated?",
-      answer: "Monthly earnings are calculated as 0.5% of your total invested amount. For example, if you invest ₹10,00,000, you will earn ₹5,000 per month.",
+      answer: "Monthly earnings are calculated as 0.5% of your total invested amount, starting from the 4th month after investment. For example, if you invest ₹10,00,000, you will start earning ₹5,000 per month from the 4th month onwards.",
     },
     {
       id: 6,
@@ -290,7 +290,7 @@ const PropertyDetail = () => {
           <span className="property-detail__info-value">{formatCurrency(property.minInvestment, "INR")}</span>
         </div>
         <div className="property-detail__info-item">
-          <span className="property-detail__info-label">Monthly Return</span>
+          <span className="property-detail__info-label">Monthly return after 3 month of lock</span>
           <span className="property-detail__info-value property-detail__info-value--green">
             {property.monthlyReturnRate || 0.5}%
           </span>
@@ -301,6 +301,19 @@ const PropertyDetail = () => {
             {property.lockInMonths || 3} months
           </span>
         </div>
+        {property.title === 'Shaan Estate' && (
+          <div className="property-detail__info-item">
+            <span className="property-detail__info-label">Available Stocks</span>
+            <span className="property-detail__info-value">
+              {(() => {
+                const storedStocks = localStorage.getItem('shaanEstate_totalStocks');
+                const totalStocks = property.totalStocks || (storedStocks ? parseInt(storedStocks, 10) : 0);
+                const remainingStocks = Math.max(0, totalStocks - (property.investorCount || 0));
+                return totalStocks > 0 ? `${remainingStocks} / ${totalStocks}` : '0 / 0';
+              })()}
+            </span>
+          </div>
+        )}
         <div className="property-detail__info-item">
           <span className="property-detail__info-label">Deadline</span>
           <span className="property-detail__info-value">{formatDate(property.deadline)}</span>
@@ -323,6 +336,19 @@ const PropertyDetail = () => {
               {property.availableToInvest ? formatCurrency(property.availableToInvest) : 'No limit'}
             </span>
           </div>
+          {property.title === 'Shaan Estate' && (
+            <div className="property-detail__term-item">
+              <span className="property-detail__term-label">Available Stocks</span>
+              <span className="property-detail__term-value">
+                {(() => {
+                  const storedStocks = localStorage.getItem('shaanEstate_totalStocks');
+                  const totalStocks = property.totalStocks || (storedStocks ? parseInt(storedStocks, 10) : 0);
+                  const remainingStocks = Math.max(0, totalStocks - (property.investorCount || 0));
+                  return totalStocks > 0 ? `${remainingStocks} of ${totalStocks} remaining` : '0 of 0 remaining';
+                })()}
+              </span>
+            </div>
+          )}
           <div className="property-detail__term-item">
             <span className="property-detail__term-label">Lock-in Period</span>
             <span className="property-detail__term-value">
@@ -330,9 +356,9 @@ const PropertyDetail = () => {
             </span>
           </div>
           <div className="property-detail__term-item">
-            <span className="property-detail__term-label">Monthly Return</span>
+            <span className="property-detail__term-label">Monthly return after 3 month of lock</span>
             <span className="property-detail__term-value">
-              {property.monthlyReturnRate || 0.5}% of invested amount
+              {property.monthlyReturnRate || 0.5}% of invested amount (after 3-month lock-in)
             </span>
           </div>
           <div className="property-detail__term-item">
@@ -421,22 +447,13 @@ const PropertyDetail = () => {
                 {formatCurrency(calculateROI.monthlyEarning, "INR")}
               </span>
               <span className="property-detail__calc-subtext">
-                {property.monthlyReturnRate || 0.5}% per month
+                {property.monthlyReturnRate || 0.5}% per month (after 3-month lock-in)
               </span>
             </div>
             <div className="property-detail__calc-card">
               <span className="property-detail__calc-label">Lock-in Period</span>
               <span className="property-detail__calc-value">
                 {calculateROI.lockInMonths || property.lockInMonths || 3} months
-              </span>
-            </div>
-            <div className="property-detail__calc-card property-detail__calc-card--earning">
-              <span className="property-detail__calc-label">Total Earnings</span>
-              <span className="property-detail__calc-value property-detail__calc-value--green">
-                {formatCurrency(calculateROI.totalEarnings, "INR")}
-              </span>
-              <span className="property-detail__calc-subtext">
-                In {calculateROI.lockInMonths || property.lockInMonths || 3} months
               </span>
             </div>
             <div className="property-detail__calc-card">

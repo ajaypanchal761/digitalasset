@@ -74,7 +74,7 @@ const PropertyCard = ({ property, onInvest, onClick }) => {
         {/* Third Row: Return */}
         <div className="property-card__row property-card__row--third">
           <div className="property-card__return-section">
-            <span className="property-card__return-label">Return</span>
+            <span className="property-card__return-label">Monthly return after 3 month of lock</span>
             <div className={`property-card__return ${isPositive ? "property-card__return--profit" : "property-card__return--loss"}`}>
               <span className="property-card__return-value">
                 {isPositive ? "+" : "-"}

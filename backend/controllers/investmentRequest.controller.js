@@ -274,9 +274,9 @@ export const approveInvestmentRequest = async (req, res) => {
     const purchaseDate = new Date();
     const maturityDate = calculateMaturityDate(purchaseDate, lockInMonths);
     
-    // Calculate next payout date (1st of next month)
+    // Calculate next payout date (1st of the month, 3 months after purchase due to lock-in period)
     const nextPayoutDate = new Date(purchaseDate);
-    nextPayoutDate.setMonth(nextPayoutDate.getMonth() + 1);
+    nextPayoutDate.setMonth(nextPayoutDate.getMonth() + 3);
     nextPayoutDate.setDate(1);
 
     // Create holding

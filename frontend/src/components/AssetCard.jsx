@@ -50,6 +50,7 @@ const AssetCard = ({ holding, onViewDetail, onWithdraw }) => {
         <div className="asset-card__earning-section">
           <span className="asset-card__earning-label">Monthly Earning</span>
           <span className="asset-card__earning">{formatCurrency(holding.monthlyEarning || holding.amountInvested * 0.005, "INR")}</span>
+          <span className="asset-card__earning-note">(after 3-month lock-in)</span>
         </div>
         <div className="asset-card__days-section">
           <span className="asset-card__days-label">Days Remaining</span>

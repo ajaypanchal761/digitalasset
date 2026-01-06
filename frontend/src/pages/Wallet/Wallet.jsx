@@ -339,13 +339,13 @@ const Wallet = () => {
                       const property = listings.find((p) => (p._id || p.id) === propertyId);
                       const propertyName = property?.title || holding.name || 'Property';
                       
-                      // Calculate next payout date (1st of next month from purchase date)
+                      // Calculate next payout date (1st of the month, 3 months after purchase due to lock-in period)
                       const calculateNextPayoutDate = (purchaseDate) => {
                         if (!purchaseDate) return null;
                         const purchase = new Date(purchaseDate);
                         const nextPayout = new Date(purchase);
-                        nextPayout.setMonth(nextPayout.getMonth() + 1);
-                        nextPayout.setDate(1); // Set to 1st of next month
+                        nextPayout.setMonth(nextPayout.getMonth() + 3); // Add 3 months for lock-in period
+                        nextPayout.setDate(1); // Set to 1st of that month
                         return nextPayout;
                       };
 
@@ -373,6 +373,7 @@ const Wallet = () => {
                               <span className="wallet-page__payout-value wallet-page__payout-value--green">
                                 {formatCurrency(monthlyEarning, walletData.currency)}
                               </span>
+                              <span className="wallet-page__payout-note">(after 3-month lock-in)</span>
                             </div>
                             <div className="wallet-page__payout-detail-item">
                               <span className="wallet-page__payout-label">Investment:</span>

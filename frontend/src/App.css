@@ -1197,6 +1197,21 @@
   gap: 0.75rem;
 }
 
+/* Desktop vertical centering for explore property cards */
+@media (min-width: 1024px) {
+  .explore-properties-section__container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 200px);
+  }
+
+  .explore-properties-section__cards {
+    width: 100%;
+    max-width: 480px;
+  }
+}
+
 .property-card {
   background: #ffffff;
   border-radius: 0.75rem;
@@ -11351,6 +11366,15 @@ section p {
 
 .invest-page__input--select {
   cursor: pointer;
+}
+
+.invest-page__input--readonly {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #64748b;
+  cursor: not-allowed;
+  display: flex;
+  align-items: center;
 }
 
 .invest-page__hint {

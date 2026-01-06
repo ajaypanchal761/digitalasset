@@ -165,10 +165,10 @@ const InvestmentRequest = () => {
     }
   };
 
-  // Calculate maturity date
+  // Calculate withdrawal availability date (3-month lock-in period)
   const calculateMaturityDate = () => {
     const date = new Date();
-    date.setMonth(date.getMonth() + timePeriod);
+    date.setMonth(date.getMonth() + 3); // Always 3 months lock-in period
     return date.toLocaleDateString("en-IN", {
       day: "numeric",
       month: "short",
@@ -225,7 +225,7 @@ const InvestmentRequest = () => {
               <span className="investment-request-page__summary-value">{formatCurrency(investmentAmount, "INR")}</span>
             </div>
             <div className="investment-request-page__summary-item">
-              <span className="investment-request-page__summary-label">Monthly Return</span>
+              <span className="investment-request-page__summary-label">Monthly return after 3 month of lock</span>
               <span className="investment-request-page__summary-value investment-request-page__summary-value--green">0.5%</span>
             </div>
             <div className="investment-request-page__summary-item">
@@ -233,13 +233,20 @@ const InvestmentRequest = () => {
               <span className="investment-request-page__summary-value investment-request-page__summary-value--green">
                 {formatCurrency(monthlyEarning, "INR")}/month
               </span>
+              <span className="investment-request-page__summary-subtext">
+                (starts after 3-month lock-in)
+              </span>
             </div>
             <div className="investment-request-page__summary-item">
               <span className="investment-request-page__summary-label">Investment Period</span>
               <span className="investment-request-page__summary-value">{timePeriod} months</span>
             </div>
             <div className="investment-request-page__summary-item">
-              <span className="investment-request-page__summary-label">Maturity Date</span>
+              <span className="investment-request-page__summary-label">Lock-in Period</span>
+              <span className="investment-request-page__summary-value">3 months (required)</span>
+            </div>
+            <div className="investment-request-page__summary-item">
+              <span className="investment-request-page__summary-label">Withdrawal Available</span>
               <span className="investment-request-page__summary-value">{calculateMaturityDate()}</span>
             </div>
             <div className="investment-request-page__summary-item">

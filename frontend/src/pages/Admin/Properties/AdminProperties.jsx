@@ -59,17 +59,26 @@ const AdminProperties = () => {
     };
   }, []);
 
+  // Check if Shaan Estate exists
+  const shaanEstateExists = useMemo(() => {
+    return properties.some(property => property.title === 'Shaan Estate');
+  }, [properties]);
+
+  const shaanEstateProperty = useMemo(() => {
+    return properties.find(property => property.title === 'Shaan Estate');
+  }, [properties]);
+
   // Filter properties (client-side filtering for now, can be moved to backend later)
   const filteredProperties = useMemo(() => {
     if (!properties || properties.length === 0) return [];
-    
+
     return properties.filter(property => {
-      const matchesSearch = 
+      const matchesSearch =
         property.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         property.description?.toLowerCase().includes(searchQuery.toLowerCase());
-      
+
       const matchesStatus = statusFilter === 'all' || property.status === statusFilter;
-      
+
       return matchesSearch && matchesStatus;
     });
   }, [properties, searchQuery, statusFilter]);
@@ -92,9 +101,18 @@ const AdminProperties = () => {
   };
 
   const handleAddProperty = () => {
-    console.log('➕ AdminProperties - Add Property button clicked:', {
+    console.log('➕ AdminProperties - Add/Manage Property button clicked:', {
+      shaanEstateExists,
       timestamp: new Date().toISOString()
     });
+
+    if (shaanEstateExists) {
+      // Edit existing Shaan Estate
+      setEditingProperty(shaanEstateProperty);
+    } else {
+      // Create new Shaan Estate (should not happen with our constraints, but kept for safety)
+      setEditingProperty(null);
+    }
     setShowAddForm(true);
   };
 
@@ -157,268 +175,203 @@ const AdminProperties = () => {
       {/* Page Header */}
       <div className="admin-properties__header">
         <div>
-          <h1 className="admin-properties__title">Property Management</h1>
+          <h1 className="admin-properties__title">Shaan Estate Management</h1>
           <p className="admin-properties__subtitle">
-            Create, edit, and manage digital property listings
+            Manage your primary property asset - update stock count and investment parameters
           </p>
         </div>
-        <div className="admin-properties__header-actions">
-          <button 
-            className="admin-properties__add-btn"
-            onClick={handleAddProperty}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            Add Property
-          </button>
-        </div>
       </div>
 
-      {/* Stats */}
-      <div className="admin-properties__stats">
-        <div className="admin-properties__stat">
-          <div className="admin-properties__stat-icon" style={{ backgroundColor: '#eff6ff', color: '#2563eb' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-              <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
-          </div>
-          <div className="admin-properties__stat-content">
-            <span className="admin-properties__stat-label">Total Properties</span>
-            <span className="admin-properties__stat-value">{properties.length}</span>
-          </div>
-        </div>
-        <div className="admin-properties__stat">
-          <div className="admin-properties__stat-icon" style={{ backgroundColor: '#d1fae5', color: '#059669' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-              <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
-          </div>
-          <div className="admin-properties__stat-content">
-            <span className="admin-properties__stat-label">Active</span>
-            <span className="admin-properties__stat-value">
-              {properties.filter(p => p.status === 'active').length}
-            </span>
-          </div>
-        </div>
-        <div className="admin-properties__stat">
-          <div className="admin-properties__stat-icon" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="1" x2="12" y2="23"></line>
-              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-            </svg>
-          </div>
-          <div className="admin-properties__stat-content">
-            <span className="admin-properties__stat-label">Total Invested</span>
-            <span className="admin-properties__stat-value">
-              {formatCurrency(properties.reduce((sum, p) => sum + p.totalInvested, 0))}
-            </span>
-          </div>
-        </div>
-        <div className="admin-properties__stat">
-          <div className="admin-properties__stat-icon" style={{ backgroundColor: '#f0f9ff', color: '#0284c7' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-          </div>
-          <div className="admin-properties__stat-content">
-            <span className="admin-properties__stat-label">Total Investors</span>
-            <span className="admin-properties__stat-value">
-              {properties.reduce((sum, p) => sum + p.investorCount, 0)}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Search, Filters and Table Container */}
-      <div className="admin-properties__data-container">
-        {/* Search and Filters */}
-        <div className="admin-properties__filters">
-          <div className="admin-properties__search">
-            <input
-              type="text"
-              placeholder="Search by property name or description..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="admin-properties__search-input"
-            />
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="admin-properties__search-icon">
-              <circle cx="11" cy="11" r="8"/>
-              <path d="m21 21-4.35-4.35"/>
-            </svg>
-          </div>
-
-          <div className="admin-properties__filter-group">
-            <label className="admin-properties__filter-label">Status</label>
-            <Select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              options={[
-                { value: 'all', label: 'All' },
-                { value: 'active', label: 'Active' },
-                { value: 'inactive', label: 'Inactive' },
-                { value: 'closed', label: 'Closed' },
-              ]}
-              className="admin-properties__filter-select"
-            />
-          </div>
-
-          <button
-            onClick={handleClearFilters}
-            className="admin-properties__clear-filters"
-          >
-            Clear Filters
-          </button>
+      {/* Shaan Estate Management Card */}
+      <div className="admin-properties__management-card">
+        {/* Primary Asset Badge */}
+        <div className="admin-properties__badge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+          Primary Asset
         </div>
 
-        {/* Properties Table */}
-        <div className="admin-properties__table-container">
-        <table className="admin-properties__table">
-          <thead>
-            <tr>
-              <th>Property</th>
-              <th>Total Invested</th>
-              <th>Available</th>
-              <th>Investors</th>
-              <th>Status</th>
-              <th>Deadline</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedProperties.length === 0 ? (
-              <tr>
-                <td colSpan="7" className="admin-properties__empty">
-                  No properties found matching your criteria.
-                </td>
-              </tr>
-            ) : (
-              paginatedProperties.map((property) => (
-                <tr key={property._id || property.id}>
-                  <td>
-                    <div className="admin-properties__property-info">
-                      <div className="admin-properties__property-image">
-                        {property.image ? (
-                          <img 
-                            src={property.image} 
-                            alt={property.title}
-                            loading="lazy"
-                            decoding="async"
-                          />
-                        ) : (
-                          <div className="admin-properties__property-placeholder">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <rect x="3" y="3" width="18" height="18" rx="2"/>
-                              <path d="M3 9h18M9 3v18"/>
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                      <div className="admin-properties__property-details">
-                        <div className="admin-properties__property-title">{property.title}</div>
-                        <div className="admin-properties__property-type">{property.propertyType}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>{formatCurrency(property.totalInvested)}</td>
-                  <td>{formatCurrency(property.availableToInvest)}</td>
-                  <td>{property.investorCount}</td>
-                  <td>
-                    <StatusBadge status={property.status} />
-                  </td>
-                  <td>{formatDate(property.deadline)}</td>
-                  <td>
-                    <div className="admin-properties__actions">
-                      <button 
-                        className="admin-properties__action-btn admin-properties__action-btn--view"
-                        onClick={() => handleViewProperty(property)}
-                        title="View Details"
-                        disabled={propertiesLoading}
-                      >
-                        View
-                      </button>
-                      <button 
-                        className="admin-properties__action-btn admin-properties__action-btn--edit"
-                        title="Edit Property"
-                        onClick={() => {
-                          setEditingProperty(property);
-                          setShowAddForm(true);
-                        }}
-                        disabled={propertiesLoading}
-                      >
-                        Edit
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-        </div>
-      </div>
-
-      {/* Pagination */}
-      {filteredProperties.length > 0 && (
-        <div className="admin-properties__pagination">
-          <div className="admin-properties__pagination-info">
-            Showing {startIndex + 1} to {Math.min(endIndex, filteredProperties.length)} of {filteredProperties.length} properties
+        {propertiesLoading ? (
+          <div className="admin-properties__loading">
+            <div className="admin-properties__loading-spinner"></div>
+            <p>Loading Shaan Estate data...</p>
           </div>
-          <div className="admin-properties__pagination-controls">
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="admin-properties__page-size"
-            >
-              <option value="10">10 per page</option>
-              <option value="20">20 per page</option>
-              <option value="50">50 per page</option>
-              <option value="100">100 per page</option>
-            </select>
+        ) : shaanEstateProperty ? (
+          <div className="admin-properties__card-content">
+            {/* Property Header */}
+            <div className="admin-properties__property-header">
+              <div className="admin-properties__property-image">
+                {shaanEstateProperty.image ? (
+                  <img
+                    src={shaanEstateProperty.image}
+                    alt="Shaan Estate"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <div className="admin-properties__property-placeholder">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/>
+                      <path d="M3 9h18M9 3v18"/>
+                    </svg>
+                  </div>
+                )}
+              </div>
+              <div className="admin-properties__property-info">
+                <h2 className="admin-properties__property-title">{shaanEstateProperty.title}</h2>
+                <p className="admin-properties__property-description">{shaanEstateProperty.description || 'Premium digital property investment'}</p>
+                <div className="admin-properties__property-meta">
+                  <span className="admin-properties__property-type">{shaanEstateProperty.propertyType}</span>
+                  <span className="admin-properties__property-id">ID: {shaanEstateProperty._id || shaanEstateProperty.id}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="admin-properties__stats-grid">
+              <div className="admin-properties__stat-item">
+                <div className="admin-properties__stat-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                  </svg>
+                </div>
+                <div className="admin-properties__stat-content">
+                  <span className="admin-properties__stat-value">{formatCurrency(shaanEstateProperty.totalInvested || 0)}</span>
+                  <span className="admin-properties__stat-label">Total Invested</span>
+                </div>
+              </div>
+
+              <div className="admin-properties__stat-item">
+                <div className="admin-properties__stat-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                </div>
+                <div className="admin-properties__stat-content">
+                  <span className="admin-properties__stat-value">{shaanEstateProperty.investorCount || 0}</span>
+                  <span className="admin-properties__stat-label">Investors</span>
+                </div>
+              </div>
+
+              <div className="admin-properties__stat-item">
+                <div className="admin-properties__stat-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <path d="M3 9h18M9 3v18"/>
+                  </svg>
+                </div>
+                <div className="admin-properties__stat-content">
+                  <span className="admin-properties__stat-value">
+                    {(() => {
+                      const storedStocks = localStorage.getItem('shaanEstate_totalStocks');
+                      const totalStocks = shaanEstateProperty.totalStocks || (storedStocks ? parseInt(storedStocks, 10) : 0);
+                      const remainingStocks = Math.max(0, totalStocks - (shaanEstateProperty.investorCount || 0));
+                      return totalStocks > 0 ? `${remainingStocks} / ${totalStocks}` : '0 / 0';
+                    })()}
+                  </span>
+                  <span className="admin-properties__stat-label">Available Stocks</span>
+                </div>
+              </div>
+
+              <div className="admin-properties__stat-item">
+                <div className="admin-properties__stat-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                </div>
+                <div className="admin-properties__stat-content">
+                  <span className="admin-properties__stat-value">{formatDate(shaanEstateProperty.deadline)}</span>
+                  <span className="admin-properties__stat-label">Deadline</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Status and Investment Amount */}
+            <div className="admin-properties__status-section">
+              <div className="admin-properties__status-item">
+                <span className="admin-properties__status-label">Status</span>
+                <span className={`admin-properties__status-badge ${shaanEstateProperty.status === 'active' ? 'admin-properties__status-badge--active' : ''}`}>
+                  {shaanEstateProperty.status?.toUpperCase() || 'UNKNOWN'}
+                </span>
+              </div>
+              <div className="admin-properties__status-item">
+                <span className="admin-properties__status-label">Investment Amount</span>
+                <span className="admin-properties__status-value">
+                  {formatCurrency(shaanEstateProperty.availableToInvest || 500000)}
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="admin-properties__actions">
+              <button
+                className="admin-properties__action-btn admin-properties__action-btn--view"
+                onClick={() => handleViewProperty(shaanEstateProperty)}
+                disabled={propertiesLoading}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                View Details
+              </button>
+              <button
+                className="admin-properties__action-btn admin-properties__action-btn--edit"
+                onClick={() => {
+                  setEditingProperty(shaanEstateProperty);
+                  setShowAddForm(true);
+                }}
+                disabled={propertiesLoading}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                Manage Property
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="admin-properties__empty-state">
+            <div className="admin-properties__empty-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <path d="M3 9h18M9 3v18"/>
+              </svg>
+            </div>
+            <h3 className="admin-properties__empty-title">Shaan Estate Not Found</h3>
+            <p className="admin-properties__empty-description">
+              The Shaan Estate property has not been created yet. Click below to create it.
+            </p>
             <button
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className="admin-properties__pagination-btn"
+              className="admin-properties__create-btn"
+              onClick={handleAddProperty}
+              disabled={propertiesLoading}
             >
-              Previous
-            </button>
-            <span className="admin-properties__pagination-page">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className="admin-properties__pagination-btn"
-            >
-              Next
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Create Shaan Estate
             </button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Add/Edit Property Form Modal */}
       {showAddForm && (
-        <AddPropertyForm 
+        <AddPropertyForm
           property={editingProperty}
           onClose={() => {
             setShowAddForm(false);
             setEditingProperty(null);
-          }} 
+          }}
         />
       )}
 
