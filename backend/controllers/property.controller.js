@@ -318,8 +318,8 @@ export const calculateROI = async (req, res) => {
     const monthlyReturnRate = property.monthlyReturnRate || 0.5;
     const lockInMonths = property.lockInMonths || 3;
 
-    // Calculate ROI using utility functions
-    const monthlyEarning = calculateMonthlyEarning(amount, monthlyReturnRate);
+    // Calculate ROI using utility functions (Year 1 earnings)
+    const monthlyEarning = calculateMonthlyEarning(amount, new Date()); // Year 1 calculation
     const totalEarnings = calculateTotalEarnings(amount, lockInMonths, monthlyReturnRate);
     const maturityDate = calculateMaturityDate(new Date(), lockInMonths);
 

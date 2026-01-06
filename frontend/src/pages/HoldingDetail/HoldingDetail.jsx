@@ -317,7 +317,7 @@ const HoldingDetail = () => {
             </div>
             <div className="holding-detail__detail-item">
               <span className="holding-detail__detail-label">Monthly return after 3 month of lock</span>
-              <span className="holding-detail__detail-value holding-detail__detail-value--green">0.5%</span>
+              <span className="holding-detail__detail-value holding-detail__detail-value--green">0.5% + 5% yearly</span>
             </div>
             <div className="holding-detail__detail-item">
               <span className="holding-detail__detail-label">Months Since Purchase</span>
@@ -341,7 +341,7 @@ const HoldingDetail = () => {
               <span className="holding-detail__earnings-value">
                 {formatCurrency(holding.monthlyEarning || holding.amountInvested * 0.005, "INR")}
               </span>
-              <span className="holding-detail__earnings-subtext">0.5% of investment amount (after 3-month lock-in)</span>
+              <span className="holding-detail__earnings-subtext">Starting at 0.5% with 5% yearly increments (after 3-month lock-in)</span>
             </div>
             <div className="holding-detail__earnings-item">
               <span className="holding-detail__earnings-label">Total Earnings Received</span>

@@ -211,7 +211,7 @@ const AdminTransferRequests = () => {
                       </div>
                     </div>
                   </td>
-                  <td>{request.propertyId?.title || 'N/A'}</td>
+                  <td>{request.propertyId?.title || 'Shaan Estate'}</td>
                   <td className="admin-transfer-requests__price">{formatCurrency(request.salePrice)}</td>
                   <td>{getStatusBadge(request.status)}</td>
                   <td>{formatDate(request.createdAt)}</td>

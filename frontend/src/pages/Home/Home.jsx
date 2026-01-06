@@ -202,7 +202,7 @@ const Home = () => {
                 </div>
                 <h3 className="home-feature-card__title">Monthly Returns</h3>
                 <p className="home-feature-card__description">
-                  Earn 0.5% monthly returns on your investments after the 3-month lock-in period. Receive regular payouts directly to your wallet.
+                  Earn monthly returns starting at 0.5% after the 3-month lock-in period, with 5% yearly increments. Receive regular payouts directly to your wallet.
                 </p>
               </div>
               <div className="home-feature-card">
@@ -305,7 +305,7 @@ const Home = () => {
                 <div className="home-criteria-item__content">
                   <h3 className="home-criteria-item__title">Monthly Returns</h3>
                   <p className="home-criteria-item__description">
-                    Earn 0.5% monthly returns on your investment, starting after the 3-month lock-in period. Returns are calculated and paid monthly to your wallet.
+                    Earn monthly returns starting at 0.5% after the 3-month lock-in period, with 5% yearly increments on yearly payouts. Returns are calculated and paid monthly to your wallet.
                   </p>
                 </div>
               </div>
@@ -416,7 +416,7 @@ const Home = () => {
                   <li>Minimum investment: ₹5,00,000 per property</li>
                   <li>3-month lock-in period applies to all investments</li>
                   <li>Investors can only sell property after 3 months</li>
-                  <li>0.5% monthly returns start after 3-month lock-in period</li>
+                  <li>Monthly returns start at 0.5% after 3-month lock-in period, with 5% yearly increments</li>
                   <li>KYC verification required before first investment</li>
                   <li>All investments are subject to property availability</li>
                 </ul>

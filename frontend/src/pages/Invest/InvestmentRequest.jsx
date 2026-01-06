@@ -226,7 +226,7 @@ const InvestmentRequest = () => {
             </div>
             <div className="investment-request-page__summary-item">
               <span className="investment-request-page__summary-label">Monthly return after 3 month of lock</span>
-              <span className="investment-request-page__summary-value investment-request-page__summary-value--green">0.5%</span>
+              <span className="investment-request-page__summary-value investment-request-page__summary-value--green">0.5% + 5% yearly</span>
             </div>
             <div className="investment-request-page__summary-item">
               <span className="investment-request-page__summary-label">Monthly Earning</span>

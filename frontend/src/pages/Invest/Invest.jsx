@@ -112,7 +112,7 @@ const Invest = () => {
 
   const monthlyEarning = formData.amount * 0.005;
   // During 3-month lock period, payout earnings are 0
-  // After 3 months, 0.5% monthly payout is generated if property is not sold
+  // After 3 months, monthly payout starts at 0.5% with 5% yearly increments if property is not sold
   const totalEarnings = formData.timePeriod <= 3 ? 0 : monthlyEarning * (formData.timePeriod - 3);
   // Total amount after maturity is the investment amount (principal returned after lock-in) plus earnings generated after lock-in
   const maturityAmount = formData.amount + totalEarnings;
@@ -194,7 +194,7 @@ const Invest = () => {
             </div>
             <div className="invest-page__stat-item">
               <span className="invest-page__stat-label">Monthly return after 3 month of lock</span>
-              <span className="invest-page__stat-value invest-page__stat-value--green">0.5%</span>
+              <span className="invest-page__stat-value invest-page__stat-value--green">0.5% + 5% yearly</span>
             </div>
           </div>
         </div>
@@ -241,7 +241,7 @@ const Invest = () => {
               </div>
               <div className="invest-page__summary-item">
                 <span className="invest-page__summary-label">Monthly return after 3 month of lock</span>
-                <span className="invest-page__summary-value invest-page__summary-value--green">0.5%</span>
+                <span className="invest-page__summary-value invest-page__summary-value--green">0.5% + 5% yearly</span>
               </div>
               <div className="invest-page__summary-item">
                 <span className="invest-page__summary-label">Monthly Earning</span>

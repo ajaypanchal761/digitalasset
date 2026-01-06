@@ -5,17 +5,19 @@ import StatusBadge from '../../../components/Admin/common/StatusBadge';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
 import AddPropertyForm from '../../../components/Admin/AddPropertyForm';
 import PropertyDetail from '../../../components/Admin/PropertyDetail';
+import ConfirmDialog from '../../../components/Admin/common/ConfirmDialog';
 import Select from '../../../components/common/Select';
 
 const AdminProperties = () => {
   const location = useLocation();
-  const { 
-    properties, 
-    propertiesLoading, 
+  const {
+    properties,
+    propertiesLoading,
     propertiesError,
-    selectedProperty, 
+    selectedProperty,
     setSelectedProperty,
-    refreshProperties 
+    refreshProperties,
+    deleteProperty
   } = useAdmin();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -24,6 +26,8 @@ const AdminProperties = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProperty, setEditingProperty] = useState(null);
   const [showPropertyDetail, setShowPropertyDetail] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [propertyToDelete, setPropertyToDelete] = useState(null);
 
   // Check for search query from navigation state (from header search)
   useEffect(() => {
@@ -114,6 +118,32 @@ const AdminProperties = () => {
       setEditingProperty(null);
     }
     setShowAddForm(true);
+  };
+
+  const handleDeleteProperty = (property) => {
+    setPropertyToDelete(property);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDeleteProperty = async () => {
+    if (!propertyToDelete) return;
+
+    try {
+      console.log('🗑️ AdminProperties - Deleting property:', {
+        propertyId: propertyToDelete._id,
+        propertyTitle: propertyToDelete.title,
+        timestamp: new Date().toISOString()
+      });
+
+      await deleteProperty(propertyToDelete._id);
+      setShowDeleteDialog(false);
+      setPropertyToDelete(null);
+
+      console.log('✅ AdminProperties - Property deleted successfully');
+    } catch (error) {
+      console.error('❌ AdminProperties - Error deleting property:', error);
+      // Error handling is done in the AdminContext
+    }
   };
 
   // Log component state changes
@@ -335,6 +365,16 @@ const AdminProperties = () => {
                 </svg>
                 Manage Property
               </button>
+              <button
+                className="admin-properties__action-btn admin-properties__action-btn--delete"
+                onClick={() => handleDeleteProperty(shaanEstateProperty)}
+                disabled={propertiesLoading}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/>
+                </svg>
+                Delete Property
+              </button>
             </div>
           </div>
         ) : (
@@ -383,6 +423,22 @@ const AdminProperties = () => {
             setShowPropertyDetail(false);
             setSelectedProperty(null);
           }}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteDialog && propertyToDelete && (
+        <ConfirmDialog
+          isOpen={showDeleteDialog}
+          onClose={() => {
+            setShowDeleteDialog(false);
+            setPropertyToDelete(null);
+          }}
+          onConfirm={confirmDeleteProperty}
+          title="Delete Property"
+          message={`Are you sure you want to delete "${propertyToDelete.title}"? This action cannot be undone and will remove all associated data.`}
+          confirmLabel="Delete Property"
+          variant="danger"
         />
       )}
     </div>

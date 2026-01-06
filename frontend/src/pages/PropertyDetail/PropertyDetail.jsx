@@ -182,12 +182,12 @@ const PropertyDetail = () => {
     {
       id: 4,
       question: "When can I withdraw earnings?",
-      answer: "Earnings start generating after the 3-month lock-in period. Every month after the lock-in period, you receive 0.5% of your invested amount as earnings, which can be withdrawn at any time (subject to manual processing).",
+      answer: "Earnings start generating after the 3-month lock-in period. Monthly payouts begin at 0.5% of your invested amount and increase by 5% every year. Earnings can be withdrawn at any time (subject to manual processing).",
     },
     {
       id: 5,
       question: "How are monthly earnings calculated?",
-      answer: "Monthly earnings are calculated as 0.5% of your total invested amount, starting from the 4th month after investment. For example, if you invest ₹10,00,000, you will start earning ₹5,000 per month from the 4th month onwards.",
+      answer: "Monthly earnings start at 0.5% of your total invested amount from the 4th month after investment, with 5% yearly increments. For example, if you invest ₹10,00,000, you will start earning ₹5,000 per month in year 1, ₹5,250 in year 2, and so on.",
     },
     {
       id: 6,

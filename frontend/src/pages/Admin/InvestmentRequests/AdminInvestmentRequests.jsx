@@ -315,7 +315,7 @@ const AdminInvestmentRequests = () => {
                   </td>
                   <td>
                     <div className="admin-investment-requests__property-name">
-                      {request.propertyId?.title || 'Unknown Property'}
+                      {request.propertyId?.title || 'Shaan Estate'}
                     </div>
                   </td>
                   <td>

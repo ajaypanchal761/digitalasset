@@ -1,10 +1,74 @@
 /**
- * Calculate monthly earning based on investment amount
+ * Calculate which year of investment it is
+ * @param {Date} purchaseDate - Purchase date
+ * @returns {number} Investment year (1, 2, 3, etc.)
+ */
+export const calculateInvestmentYear = (purchaseDate) => {
+  const now = new Date();
+  const purchase = new Date(purchaseDate);
+
+  const yearsDiff = now.getFullYear() - purchase.getFullYear();
+
+  // If same year, it's year 1
+  if (yearsDiff === 0) {
+    return 1;
+  }
+
+  // If next year but before anniversary, still year 1
+  if (yearsDiff === 1) {
+    if (now.getMonth() < purchase.getMonth() ||
+        (now.getMonth() === purchase.getMonth() && now.getDate() < purchase.getDate())) {
+      return 1;
+    }
+  }
+
+  // Otherwise, it's yearsDiff + 1
+  return yearsDiff + 1;
+};
+
+/**
+ * Calculate yearly payout with 5% increment after Year 1
+ * @param {number} amountInvested - Investment amount
+ * @param {Date} purchaseDate - Purchase date
+ * @returns {number} Yearly payout amount
+ */
+export const calculateYearlyPayout = (amountInvested, purchaseDate) => {
+  const investmentYear = calculateInvestmentYear(purchaseDate);
+
+  if (investmentYear === 1) {
+    // Year 1: Fixed 0.5% monthly = 6% yearly
+    return Math.floor(amountInvested * 0.06);
+  } else {
+    // Year 2+: 5% increment on previous year's payout
+    const year1Payout = Math.floor(amountInvested * 0.06);
+    let currentPayout = year1Payout;
+
+    for (let year = 2; year <= investmentYear; year++) {
+      currentPayout = Math.floor(currentPayout * 1.05);
+    }
+
+    return currentPayout;
+  }
+};
+
+/**
+ * Calculate monthly earning based on investment amount with year-based increment
+ * @param {number} amountInvested - Investment amount
+ * @param {Date} purchaseDate - Purchase date
+ * @returns {number} Monthly earning amount
+ */
+export const calculateMonthlyEarning = (amountInvested, purchaseDate) => {
+  const yearlyPayout = calculateYearlyPayout(amountInvested, purchaseDate);
+  return Math.floor(yearlyPayout / 12);
+};
+
+/**
+ * Legacy function for backward compatibility (deprecated)
  * @param {number} amountInvested - Investment amount
  * @param {number} monthlyReturnRate - Monthly return rate (default 0.5%)
  * @returns {number} Monthly earning amount
  */
-export const calculateMonthlyEarning = (amountInvested, monthlyReturnRate = 0.5) => {
+export const calculateMonthlyEarningLegacy = (amountInvested, monthlyReturnRate = 0.5) => {
   return Math.floor(amountInvested * (monthlyReturnRate / 100));
 };
 

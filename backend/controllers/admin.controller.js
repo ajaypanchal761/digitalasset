@@ -852,9 +852,8 @@ export const approveTransferRequest = async (req, res) => {
     const newMaturityDate = calculateMaturityDate(newPurchaseDate, originalLockMonths);
     const newNextPayoutDate = calculateNextPayoutDate(newPurchaseDate);
 
-    // Calculate monthly earning based on sale price (not original investment)
-    const monthlyReturnRate = property.monthlyReturnRate || 0.5;
-    const newMonthlyEarning = calculateMonthlyEarning(transferRequest.salePrice, monthlyReturnRate);
+    // Calculate monthly earning based on sale price (Year 1 for new buyer)
+    const newMonthlyEarning = calculateMonthlyEarning(transferRequest.salePrice, newPurchaseDate);
 
     // Update holding with new owner and preserve original lock period
     const oldUserId = holding.userId;

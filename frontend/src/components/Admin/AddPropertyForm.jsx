@@ -501,7 +501,7 @@ const AddPropertyForm = ({ onClose, property = null }) => {
                 </div>
                 <div className="add-property-form__fixed-field">
                   <label className="add-property-form__label">Monthly Return Rate</label>
-                  <div className="add-property-form__fixed-value">0.5% (Fixed)</div>
+                  <div className="add-property-form__fixed-value">0.5% + 5% yearly increment</div>
                 </div>
               </div>
             )}
@@ -581,7 +581,7 @@ const AddPropertyForm = ({ onClose, property = null }) => {
                 </div>
                 <div className="add-property-form__fixed-field">
                   <label className="add-property-form__label">Monthly Return Rate</label>
-                  <div className="add-property-form__fixed-value">0.5% (Fixed)</div>
+                  <div className="add-property-form__fixed-value">0.5% + 5% yearly increment</div>
                 </div>
               </div>
             )}

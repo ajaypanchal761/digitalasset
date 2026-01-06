@@ -90,7 +90,7 @@ const CertificateViewer = ({ holding, user, onClose }) => {
               </div>
               <div className="certificate__detail-row">
                 <span className="certificate__detail-label">Monthly return after 3 month of lock:</span>
-                <span className="certificate__detail-value certificate__detail-value--green">0.5%</span>
+                <span className="certificate__detail-value certificate__detail-value--green">0.5% + 5% yearly</span>
               </div>
             </div>
 

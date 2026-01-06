@@ -80,7 +80,7 @@ export const verifyPayment = async (req, res) => {
     const user = await User.findById(req.user.id);
 
     // Calculate values
-    const monthlyEarning = calculateMonthlyEarning(amountInvested, property.monthlyReturnRate);
+    const monthlyEarning = calculateMonthlyEarning(amountInvested, new Date()); // Year 1 calculation
     const lockInMonths = timePeriod || property.lockInMonths;
     const purchaseDate = new Date();
     const maturityDate = calculateMaturityDate(purchaseDate, lockInMonths);

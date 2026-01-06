@@ -51,7 +51,7 @@ const generateDummyUsers = () => {
         purchaseDate: purchaseDate.toISOString().split('T')[0],
         maturityDate: maturityDate.toISOString().split('T')[0],
         status: isMatured ? 'matured' : 'lock-in',
-        monthlyEarning: Math.floor(amountInvested * 0.005), // 0.5%
+        monthlyEarning: Math.floor(amountInvested * 0.005), // 0.5% starting rate
         totalEarningsReceived: isMatured ? Math.floor(amountInvested * 0.015) : Math.floor(amountInvested * 0.005),
         daysRemaining: isMatured ? 0 : Math.ceil((maturityDate - new Date()) / (1000 * 60 * 60 * 24)),
         lockInMonths: 3,

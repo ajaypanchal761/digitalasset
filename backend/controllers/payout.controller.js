@@ -358,12 +358,20 @@ export const generateMonthlyPayouts = async (req, res) => {
     const currentMonth = today.getMonth() + 1; // 1-12
     const currentYear = today.getFullYear();
 
-    // Find all active holdings that need payouts
+    // Find all holdings that need payouts (both lock-in and matured)
     const holdings = await Holding.find({
-      status: 'lock-in',
-      $or: [
-        { nextPayoutDate: { $lte: today } },
-        { nextPayoutDate: { $exists: false } },
+      $and: [
+        // Include holdings that have nextPayoutDate <= today OR no nextPayoutDate
+        {
+          $or: [
+            { nextPayoutDate: { $lte: today } },
+            { nextPayoutDate: { $exists: false } },
+          ],
+        },
+        // Include both lock-in and matured holdings
+        {
+          status: { $in: ['lock-in', 'matured'] },
+        },
       ],
     })
       .populate('propertyId')
@@ -388,16 +396,19 @@ export const generateMonthlyPayouts = async (req, res) => {
         // Calculate next payout date
         const payoutDate = new Date();
         payoutDate.setDate(1); // 1st of current month
-        
+
         const nextPayoutDate = new Date(payoutDate);
         nextPayoutDate.setMonth(nextPayoutDate.getMonth() + 1);
+
+        // Calculate monthly earning dynamically based on investment year
+        const monthlyEarning = calculateMonthlyEarning(holding.amountInvested, holding.purchaseDate);
 
         // Create payout
         const payout = await Payout.create({
           userId: holding.userId,
           holdingId: holding._id,
           propertyId: holding.propertyId._id,
-          amount: holding.monthlyEarning,
+          amount: monthlyEarning,
           payoutDate: payoutDate,
           nextPayoutDate: nextPayoutDate,
           status: 'pending',

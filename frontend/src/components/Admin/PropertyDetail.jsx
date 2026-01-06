@@ -91,7 +91,7 @@ const PropertyDetail = ({ property, onClose }) => {
               </div>
               <div>
                 <p className="property-detail__detail-label">Monthly return after 3 month of lock</p>
-                <p className="property-detail__detail-value">0.5% (fixed)</p>
+                <p className="property-detail__detail-value">0.5% + 5% yearly increment</p>
               </div>
               <div>
                 <p className="property-detail__detail-label">Created Date</p>

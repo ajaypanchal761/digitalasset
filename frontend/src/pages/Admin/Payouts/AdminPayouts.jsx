@@ -496,7 +496,7 @@ const AdminPayouts = () => {
                       </div>
                     </td>
                     <td className="admin-payouts__property">
-                      {payout.propertyName || 'N/A'}
+                      {payout.propertyName || 'Shaan Estate'}
                     </td>
                     <td className="admin-payouts__amount">
                       {formatCurrency(payout.amount || 0)}

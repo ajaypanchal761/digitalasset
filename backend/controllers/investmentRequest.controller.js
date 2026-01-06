@@ -265,13 +265,13 @@ export const approveInvestmentRequest = async (req, res) => {
     const property = investmentRequest.propertyId;
     const user = investmentRequest.userId;
 
-    // Calculate values
-    const monthlyEarning = calculateMonthlyEarning(
-      investmentRequest.amountInvested,
-      property.monthlyReturnRate || 0.5
-    );
+    // Calculate values (Year 1 monthly earning)
     const lockInMonths = investmentRequest.timePeriod;
     const purchaseDate = new Date();
+    const monthlyEarning = calculateMonthlyEarning(
+      investmentRequest.amountInvested,
+      purchaseDate // Pass purchase date for Year 1 calculation
+    );
     const maturityDate = calculateMaturityDate(purchaseDate, lockInMonths);
     
     // Calculate next payout date (1st of the month, 3 months after purchase due to lock-in period)
