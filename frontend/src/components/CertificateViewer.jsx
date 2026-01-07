@@ -40,79 +40,117 @@ const CertificateViewer = ({ holding, user, onClose }) => {
 
         <div className="certificate__wrapper">
           <div className="certificate">
-          <div className="certificate__header">
-            <div className="certificate__logo">
-              <svg width="60" height="60" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="32" height="32" rx="8" fill="#6366f1" />
-                <path
-                  d="M16 8L24 12V20L16 24L8 20V12L16 8Z"
-                  stroke="#ffffff"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+            {/* Watermark Logo */}
+            <div className="certificate__watermark">
+              <img src="/logo1.png" alt="" />
             </div>
-            <h1 className="certificate__title">Investment Certificate</h1>
-            <p className="certificate__subtitle">Digital Assets Platform</p>
+
+            <div className="certificate__header">
+              <div className="certificate__logo">
+                <img src="/logo1.png" alt="Shaan Estate Logo" />
+              </div>
+              <p className="certificate__company-subtitle">Digital Property Division</p>
+              <div className="certificate__header-line"></div>
+              <h2 className="certificate__main-title">CERTIFICATE OF DIGITAL PROPERTY OWNERSHIP</h2>
+            </div>
+
+            <div className="certificate__body">
+              <div className="certificate__intro">
+                <p>This is to certify that:</p>
+
+              </div>
+
+              <div className="certificate__details-grid">
+                <div className="certificate__field">
+                  <span className="certificate__label">Owner Name:</span>
+                  <span className="certificate__value certificate__value--bold">{user.name}</span>
+                </div>
+                <div className="certificate__field">
+                  <span className="certificate__label">Mobile Number:</span>
+                  <span className="certificate__value">{user.phone || "N/A"}</span>
+                </div>
+                <div className="certificate__field">
+                  <span className="certificate__label">Email:</span>
+                  <span className="certificate__value">{user.email}</span>
+                </div>
+              </div>
+
+              <div className="certificate__message">
+                <p>has successfully purchased the Shaan Estate Digital Property</p>
+                <p className="certificate__message--highlight">under the official digital assets program of Shaan Estate Pvt. Ltd.</p>
+              </div>
+
+              <div className="certificate__section-title">Certificate Details</div>
+
+              <div className="certificate__details-grid">
+                <div className="certificate__field">
+                  <span className="certificate__label">Digital Property ID:</span>
+                  <span className="certificate__value">{holding.propertyId?._id || holding.propertyId || holding.id}</span>
+                </div>
+                <div className="certificate__field">
+                  <span className="certificate__label">Plan/Category:</span>
+                  <span className="certificate__value">{holding.name}</span>
+                </div>
+                <div className="certificate__field">
+                  <span className="certificate__label">Purchase Amount:</span>
+                  <span className="certificate__value certificate__value--bold">
+                    Rs. {holding.amountInvested?.toLocaleString('en-IN')}
+                  </span>
+                </div>
+                <div className="certificate__field">
+                  <span className="certificate__label">Date of Purchase:</span>
+                  <span className="certificate__value">{issueDate}</span>
+                </div>
+              </div>
+
+              <div className="certificate__section-title">Privileges / Benefits</div>
+              <div className="certificate__benefits-list">
+                <div className="certificate__benefit-item">
+                  <span className="certificate__benefit-bullet"></span>
+                  <p>Verified digital property ownership</p>
+                </div>
+                <div className="certificate__benefit-item">
+                  <span className="certificate__benefit-bullet"></span>
+                  <p>Exclusive updates and early access to new digital assets</p>
+                </div>
+                <div className="certificate__benefit-item">
+                  <span className="certificate__benefit-bullet"></span>
+                  <p>Priority support from the Shaan Estate customer care team</p>
+                </div>
+                <div className="certificate__benefit-item">
+                  <span className="certificate__benefit-bullet"></span>
+                  <p>Eligibility for partner-level privileges (if applicable)</p>
+                </div>
+              </div>
+
+              <div className="certificate__footer-section">
+                <div className="certificate__signatory">
+                  <h3 className="certificate__section-title--small">Authorized Signatory</h3>
+                  <div className="certificate__signature-space"></div>
+                  <p className="certificate__signatory-name">Director – Shaan Estate Pvt. Ltd.</p>
+                </div>
+
+                <div className="certificate__seal">
+                  <div className="certificate__seal-outer">
+                    <div className="certificate__seal-inner">
+                      <span>SHAAN ESTATE</span>
+                      <div className="certificate__seal-line"></div>
+                      <span>OFFICIAL SEAL</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="certificate__border-decoration">
+              <div className="certificate__border-outer"></div>
+              <div className="certificate__border-inner"></div>
+              <div className="certificate__corner certificate__corner--tl"></div>
+              <div className="certificate__corner certificate__corner--tr"></div>
+              <div className="certificate__corner certificate__corner--bl"></div>
+              <div className="certificate__corner certificate__corner--br"></div>
+            </div>
           </div>
-
-          <div className="certificate__body">
-            <div className="certificate__intro">
-              <p className="certificate__text">
-                This is to certify that <strong className="certificate__highlight">{user.name}</strong> has successfully
-                invested in the following digital property:
-              </p>
-            </div>
-
-            <div className="certificate__details">
-              <div className="certificate__detail-row">
-                <span className="certificate__detail-label">Property Name:</span>
-                <span className="certificate__detail-value">{holding.name}</span>
-              </div>
-              <div className="certificate__detail-row">
-                <span className="certificate__detail-label">Investment Amount:</span>
-                <span className="certificate__detail-value certificate__detail-value--highlight">
-                  {formatCurrency(holding.amountInvested, "INR")}
-                </span>
-              </div>
-              <div className="certificate__detail-row">
-                <span className="certificate__detail-label">Purchase Date:</span>
-                <span className="certificate__detail-value">{issueDate}</span>
-              </div>
-              <div className="certificate__detail-row">
-                <span className="certificate__detail-label">Maturity Date:</span>
-                <span className="certificate__detail-value">{maturityDate}</span>
-              </div>
-              <div className="certificate__detail-row">
-                <span className="certificate__detail-label">Lock-in Period:</span>
-                <span className="certificate__detail-value">{holding.lockInMonths || 3} months</span>
-              </div>
-              <div className="certificate__detail-row">
-                <span className="certificate__detail-label">Monthly return after 3 month of lock:</span>
-                <span className="certificate__detail-value certificate__detail-value--green">0.5% + 5% yearly</span>
-              </div>
-            </div>
-
-            <div className="certificate__footer">
-              <div className="certificate__cert-number">
-                <span className="certificate__cert-label">Certificate Number:</span>
-                <span className="certificate__cert-value">{certificateNumber}</span>
-              </div>
-              <div className="certificate__signature">
-                <div className="certificate__signature-line"></div>
-                <p className="certificate__signature-label">Authorized Signature</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="certificate__border-decoration">
-            <div className="certificate__corner certificate__corner--top-left"></div>
-            <div className="certificate__corner certificate__corner--top-right"></div>
-            <div className="certificate__corner certificate__corner--bottom-left"></div>
-            <div className="certificate__corner certificate__corner--bottom-right"></div>
-          </div>
-        </div>
         </div>
 
         <div className="certificate-modal__actions">

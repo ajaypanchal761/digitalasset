@@ -56,8 +56,6 @@ export const generateCertificate = async (req, res) => {
     const pageWidth = 595.28;
     const pageHeight = 841.89;
     const margin = 40; // Outer margin for border
-    const borderWidth = 3; // Border line width
-    const borderGap = 8; // Gap between double borders
     const cornerRadius = 15; // Rounded corner radius
 
     // Helper function to format currency in Indian format (₹5,00,000)
@@ -78,352 +76,175 @@ export const generateCertificate = async (req, res) => {
 
     // Draw cream background
     doc.rect(0, 0, pageWidth, pageHeight)
-      .fillColor('#F8F1E4')
+      .fillColor('#FCFBF7')
       .fill();
 
-    // Draw double-line gold border with rounded corners
-    const goldColor = '#D4AF37';
+    // Draw modern geometric triple-layer border
+    const goldColor = '#B8860B';
+    const accentGold = '#DAA520';
+    const borderColor = goldColor;
     const innerRect = {
-      x: margin,
-      y: margin,
-      width: pageWidth - (margin * 2),
-      height: pageHeight - (margin * 2),
+      x: margin - 10,
+      y: margin - 10,
+      width: pageWidth - ((margin - 10) * 2),
+      height: pageHeight - ((margin - 10) * 2),
     };
 
-    // Outer border
-    doc.roundedRect(
-      innerRect.x,
-      innerRect.y,
-      innerRect.width,
-      innerRect.height,
-      cornerRadius
-    )
-      .lineWidth(borderWidth)
-      .strokeColor(goldColor)
+    // 1. Layer 1: Outer thin border
+    doc.rect(innerRect.x, innerRect.y, innerRect.width, innerRect.height)
+      .lineWidth(1)
+      .strokeColor(borderColor)
       .stroke();
 
-    // Inner border
-    doc.roundedRect(
-      innerRect.x + borderGap,
-      innerRect.y + borderGap,
-      innerRect.width - (borderGap * 2),
-      innerRect.height - (borderGap * 2),
-      cornerRadius - 2
-    )
-      .lineWidth(borderWidth)
-      .strokeColor(goldColor)
+    // 2. Layer 2: Middle gap and main frame
+    const midGap = 8;
+    doc.rect(innerRect.x + midGap, innerRect.y + midGap, innerRect.width - (midGap * 2), innerRect.height - (midGap * 2))
+      .lineWidth(2.5)
+      .strokeColor(borderColor)
       .stroke();
 
-    // Content area (inside borders) - Reduced top padding
-    const contentX = margin + borderGap + 20;
-    const contentY = margin + borderGap + 15; // Reduced from 30 to 15
+    // 3. Layer 3: Inner delicate line
+    const innerGap = 16;
+    doc.rect(innerRect.x + innerGap, innerRect.y + innerGap, innerRect.width - (innerGap * 2), innerRect.height - (innerGap * 2))
+      .lineWidth(0.5)
+      .strokeColor(accentGold)
+      .stroke();
+
+    // 4. Modern Geometric Corners (L-Brackets)
+    const cornerSize = 40;
+    const drawModernCorner = (x, y, scaleX, scaleY) => {
+      doc.save()
+        .translate(x, y)
+        .scale(scaleX, scaleY)
+        .lineWidth(3)
+        .strokeColor(borderColor)
+        .moveTo(0, cornerSize)
+        .lineTo(0, 0)
+        .lineTo(cornerSize, 0)
+        .stroke()
+        .restore();
+    };
+
+    // Top-Left
+    drawModernCorner(innerRect.x - 5, innerRect.y - 5, 1, 1);
+    // Top-Right
+    drawModernCorner(innerRect.x + innerRect.width + 5, innerRect.y - 5, -1, 1);
+    // Bottom-Left
+    drawModernCorner(innerRect.x - 5, innerRect.y + innerRect.height + 5, 1, -1);
+    // Bottom-Right
+    drawModernCorner(innerRect.x + innerRect.width + 5, innerRect.y + innerRect.height + 5, -1, -1);
+
+    // Content settings
+    const contentX = margin + 35;
     const contentWidth = pageWidth - (contentX * 2);
-    // Calculate bottom boundary of inner border
-    const innerBorderBottom = pageHeight - margin - borderGap;
+    const primaryTextColor = '#1A1A1A';
+    doc.fillColor(primaryTextColor);
 
-    // Set text color to dark brown/black
-    doc.fillColor('#2c1810');
-
-    // Logo area - Load logo image from assets folder
-    const logoY = contentY + 10; // Reduced from 20 to 10
+    // 1. Logo Section (Even larger logo, position strictly preserved)
+    const logoY = margin + 5; // Minimal top gap
     const logoCenterX = pageWidth / 2;
-    const logoImagePath = path.join(__dirname, '..', 'assets', 'image.png');
-    const logoSize = 50; // Height of logo
-    
-    // Function to draw the exact logo matching the reference image
-    const drawLogoFallback = () => {
-      doc.fillColor(goldColor);
-      
-      // Building dimensions - all have flat bases aligned at bottom
-      const buildingWidth = 18; // Consistent width for all buildings
-      const gap = 6; // Equal gap between buildings
-      const baseY = logoY + logoSize - 5; // Bottom alignment point
-      const slantOffset = 4; // Amount of slant for the top edge
-      
-      // Left building - medium height
-      const leftBuildingX = logoCenterX - buildingWidth - gap / 2;
-      const leftBuildingHeight = 22; // Medium height
-      const leftTopY = baseY - leftBuildingHeight;
-      doc.moveTo(leftBuildingX, baseY) // Bottom left
-        .lineTo(leftBuildingX + buildingWidth, baseY) // Bottom right
-        .lineTo(leftBuildingX + buildingWidth - slantOffset, leftTopY) // Top right (slanted)
-        .lineTo(leftBuildingX + slantOffset, leftTopY) // Top left (slanted)
-        .closePath()
-        .fill();
-      
-      // Center building - tallest
-      const centerBuildingX = logoCenterX - buildingWidth / 2;
-      const centerBuildingHeight = 30; // Tallest
-      const centerTopY = baseY - centerBuildingHeight;
-      doc.moveTo(centerBuildingX, baseY) // Bottom left
-        .lineTo(centerBuildingX + buildingWidth, baseY) // Bottom right
-        .lineTo(centerBuildingX + buildingWidth - slantOffset, centerTopY) // Top right (slanted)
-        .lineTo(centerBuildingX + slantOffset, centerTopY) // Top left (slanted)
-        .closePath()
-        .fill();
-      
-      // Right building - shortest
-      const rightBuildingX = logoCenterX + gap / 2;
-      const rightBuildingHeight = 18; // Shortest
-      const rightTopY = baseY - rightBuildingHeight;
-      doc.moveTo(rightBuildingX, baseY) // Bottom left
-        .lineTo(rightBuildingX + buildingWidth, baseY) // Bottom right
-        .lineTo(rightBuildingX + buildingWidth - slantOffset, rightTopY) // Top right (slanted)
-        .lineTo(rightBuildingX + slantOffset, rightTopY) // Top left (slanted)
-        .closePath()
-        .fill();
-      
-      doc.fillColor('#2c1810');
-    };
-    
-    // Check if logo image exists, if not, draw the exact logo
+    const logoImagePath = path.join(__dirname, '..', 'assets', 'logo.png');
+
     if (fs.existsSync(logoImagePath)) {
-      try {
-        doc.image(logoImagePath, logoCenterX - logoSize / 2, logoY, {
-          width: logoSize,
-          height: logoSize,
-          fit: [logoSize, logoSize],
-          align: 'center'
-        });
-      } catch (error) {
-        console.warn('Error loading logo image, using fallback:', error);
-        drawLogoFallback();
-      }
-    } else {
-      console.warn(`Logo image not found at ${logoImagePath}. Please add image.png to backend/assets/`);
-      drawLogoFallback();
+      // Significantly larger logo
+      doc.image(logoImagePath, logoCenterX - 225, logoY, {
+        fit: [450, 135],
+        align: 'center'
+      });
     }
 
-    // Company Name
-    doc.fontSize(20)
-      .font('Times-Bold')
-      .text('SHAAN ESTATE PRIVATE LIMITED', contentX, logoY + 50, {
+    // currentY must not change to keep other elements undisturbed
+    let currentY = margin + 115;
+
+    // 2. Subtitle Section
+    doc.fontSize(11)
+      .font('Helvetica')
+      .fillColor('#2C2C2C')
+      .text('Digital Property Division', contentX, currentY, {
         width: contentWidth,
-        align: 'center'
-      });
-
-    // Subtitle
-    doc.fontSize(14)
-      .font('Times-Roman')
-      .text('Digital Property Division', contentX, logoY + 75, {
-        width: contentWidth,
-        align: 'center'
-      });
-
-    // Main Title
-    doc.fontSize(22)
-      .font('Times-Bold')
-      .text('CERTIFICATE OF DIGITAL PROPERTY OWNERSHIP', contentX, logoY + 110, {
-        width: contentWidth,
-        align: 'center'
-      });
-
-    let currentY = logoY + 160;
-
-    // "This is to certify that:" section
-    doc.fontSize(12)
-      .font('Times-Roman')
-      .text('This is to certify that:', contentX, currentY, {
-        width: contentWidth,
-        align: 'left'
-      });
-
-    currentY += 30;
-
-    // Owner Name field
-    const fieldLabelX = contentX;
-    const fieldValueX = contentX + 140;
-    // Calculate max underline width to stay within boundaries
-    const maxUnderlineWidth = (contentX + contentWidth) - fieldValueX - 20; // 20px margin from right
-    const underlineLength = Math.min(280, maxUnderlineWidth);
-    const underlineYOffset = 3; // Position text slightly above underline
-
-    doc.fontSize(12)
-      .font('Times-Roman')
-      .text('Owner Name:', fieldLabelX, currentY);
-    
-    // Draw underline
-    doc.moveTo(fieldValueX, currentY + 12)
-      .lineTo(fieldValueX + underlineLength, currentY + 12)
-      .lineWidth(0.5)
-      .strokeColor('#2c1810')
-      .stroke();
-    
-    // Place dynamic data on underline (with width constraint to prevent overflow)
-    doc.fontSize(12)
-      .font('Times-Bold')
-      .text(holding.userId.name || 'N/A', fieldValueX, currentY - underlineYOffset, {
-        width: underlineLength,
-        ellipsis: true
-      });
-
-    currentY += 30;
-
-    // Mobile Number field
-    doc.fontSize(12)
-      .font('Times-Roman')
-      .text('Mobile Number:', fieldLabelX, currentY);
-    
-    doc.moveTo(fieldValueX, currentY + 12)
-      .lineTo(fieldValueX + underlineLength, currentY + 12)
-      .lineWidth(0.5)
-      .strokeColor('#2c1810')
-      .stroke();
-    
-    doc.fontSize(12)
-      .font('Times-Roman')
-      .text(holding.userId.phone || 'N/A', fieldValueX, currentY - underlineYOffset, {
-        width: underlineLength,
-        ellipsis: true
-      });
-
-    currentY += 30;
-
-    // Email field
-    doc.fontSize(12)
-      .font('Times-Roman')
-      .text('Email:', fieldLabelX, currentY);
-    
-    doc.moveTo(fieldValueX, currentY + 12)
-      .lineTo(fieldValueX + underlineLength, currentY + 12)
-      .lineWidth(0.5)
-      .strokeColor('#2c1810')
-      .stroke();
-    
-    doc.fontSize(12)
-      .font('Times-Roman')
-      .text(holding.userId.email || 'N/A', fieldValueX, currentY - underlineYOffset, {
-        width: underlineLength,
-        ellipsis: true
-      });
-
-    currentY += 35;
-
-    // Static paragraph
-    doc.fontSize(12)
-      .font('Times-Roman')
-      .text('has successfully purchased the Shaan Estate Digital Property', contentX, currentY, {
-        width: contentWidth,
-        align: 'center'
+        align: 'center',
+        characterSpacing: 1
       });
 
     currentY += 20;
 
-    doc.fontSize(12)
-      .font('Times-Roman')
-      .text('under the official digital assets program of Shaan Estate Pvt. Ltd.', contentX, currentY, {
-        width: contentWidth,
-        align: 'center'
-      });
+    // 3. Delicate separator line
+    doc.moveTo(logoCenterX - 100, currentY)
+      .lineTo(logoCenterX + 100, currentY)
+      .lineWidth(0.5)
+      .strokeColor(accentGold)
+      .stroke();
 
-    currentY += 40;
+    currentY += 25;
 
-    // Certificate Details Section
-    doc.fontSize(14)
+    // 4. Main Title Section (Premium Symmetrical Layout)
+    doc.fontSize(22)
       .font('Times-Bold')
-      .text('Certificate Details', contentX, currentY, {
+      .fillColor(goldColor)
+      .text('CERTIFICATE OF DIGITAL PROPERTY OWNERSHIP', contentX, currentY, {
         width: contentWidth,
-        align: 'left'
+        align: 'center',
+        lineGap: 4
       });
 
-    currentY += 30;
+    currentY += 75;
 
-    // Digital Property ID field
+    // 4. "This is to certify that"
     doc.fontSize(12)
-      .font('Times-Roman')
-      .text('Digital Property ID:', fieldLabelX, currentY);
-    
-    doc.moveTo(fieldValueX, currentY + 12)
-      .lineTo(fieldValueX + underlineLength, currentY + 12)
-      .lineWidth(0.5)
-      .strokeColor('#2c1810')
-      .stroke();
-    
-    doc.fontSize(12)
-      .font('Times-Roman')
-      .text(holding._id.toString() || 'N/A', fieldValueX, currentY - underlineYOffset, {
-        width: underlineLength,
-        ellipsis: true
-      });
+      .font('Helvetica')
+      .fillColor('#1A1A1A')
+      .text('This is to certify that:', contentX, currentY);
 
-    currentY += 30;
+    currentY += 25;
 
-    // Plan/Category field
-    doc.fontSize(12)
-      .font('Times-Roman')
-      .text('Plan/Category:', fieldLabelX, currentY);
-    
-    doc.moveTo(fieldValueX, currentY + 12)
-      .lineTo(fieldValueX + underlineLength, currentY + 12)
-      .lineWidth(0.5)
-      .strokeColor('#2c1810')
-      .stroke();
-    
-    doc.fontSize(12)
-      .font('Times-Roman')
-      .text(holding.propertyId?.title || 'Digital Property', fieldValueX, currentY - underlineYOffset, {
-        width: underlineLength,
-        ellipsis: true
-      });
+    // Helper for rows
+    const drawRow = (label, value, isBold = false) => {
+      doc.fontSize(11).font('Helvetica').fillColor('#2C2C2C').text(label, contentX + 10, currentY);
+      doc.fontSize(11).font(isBold ? 'Helvetica-Bold' : 'Helvetica').fillColor(primaryTextColor)
+        .text(value || 'N/A', contentX + 140, currentY - 1, { width: contentWidth - 150 });
 
-    currentY += 30;
+      // Underline
+      doc.moveTo(contentX + 140, currentY + 11)
+        .lineTo(contentX + contentWidth - 10, currentY + 11)
+        .lineWidth(0.3).strokeColor('#CCCCCC').stroke();
 
-    // Purchase Amount field
-    doc.fontSize(12)
-      .font('Times-Roman')
-      .text('Purchase Amount:', fieldLabelX, currentY);
-    
-    doc.moveTo(fieldValueX, currentY + 12)
-      .lineTo(fieldValueX + underlineLength, currentY + 12)
-      .lineWidth(0.5)
-      .strokeColor('#2c1810')
-      .stroke();
-    
-    // Use actual amount invested, ensure it's a valid number
-    const amountInvested = holding.amountInvested && typeof holding.amountInvested === 'number' && holding.amountInvested > 0 
-      ? holding.amountInvested 
-      : (holding.amountInvested || 0);
-    const formattedAmount = `₹${formatCurrency(amountInvested)}`;
-    doc.fontSize(12)
-      .font('Times-Roman')
-      .text(formattedAmount, fieldValueX, currentY - underlineYOffset, {
-        width: underlineLength,
-        ellipsis: true
-      });
+      currentY += 28;
+    };
 
-    currentY += 30;
+    drawRow('Owner Name:', holding.userId.name, true);
+    drawRow('Mobile Number:', holding.userId.phone);
+    drawRow('Email Address:', holding.userId.email);
 
-    // Date of Purchase field
-    doc.fontSize(12)
-      .font('Times-Roman')
-      .text('Date of Purchase:', fieldLabelX, currentY);
-    
-    doc.moveTo(fieldValueX, currentY + 12)
-      .lineTo(fieldValueX + underlineLength, currentY + 12)
-      .lineWidth(0.5)
-      .strokeColor('#2c1810')
-      .stroke();
-    
-    doc.fontSize(12)
-      .font('Times-Roman')
-      .text(formatDate(holding.purchaseDate), fieldValueX, currentY - underlineYOffset, {
-        width: underlineLength,
-        ellipsis: true
-      });
+    currentY += 5; // Minimal gap after owner rows
 
-    currentY += 50;
+    // 5. Paragraph (Realigned Left)
+    doc.fontSize(10.5)
+      .font('Helvetica')
+      .fillColor('#2C2C2C')
+      .text('has successfully purchased the Shaan Estate Digital Property', contentX + 10, currentY, { align: 'left' });
 
-    // Privileges / Benefits Section
-    doc.fontSize(14)
-      .font('Times-Bold')
-      .text('Privileges / Benefits', contentX, currentY, {
-        width: contentWidth,
-        align: 'left'
-      });
+    doc.fontSize(10.5)
+      .font('Helvetica-Bold')
+      .fillColor(goldColor)
+      .text('under the official digital assets program of Shaan Estate Pvt. Ltd.', contentX + 10, currentY + 15, { align: 'left' });
 
-    currentY += 30;
+    currentY += 45; // Professional margin before next section
 
-    // Bullet points
+    // 6. Certificate Details
+    doc.fontSize(13).font('Helvetica-Bold').fillColor(primaryTextColor).text('Certificate Details', contentX, currentY);
+    currentY += 25;
+
+    drawRow('Digital Property ID:', holding._id.toString());
+    drawRow('Plan/Category:', holding.propertyId?.title || 'Digital Property');
+    drawRow('Purchase Amount:', `Rs. ${formatCurrency(holding.amountInvested || 0)}`, true);
+    drawRow('Date of Purchase:', formatDate(holding.purchaseDate));
+
+    currentY += 15;
+
+    // 7. Privileges
+    doc.fontSize(13).font('Helvetica-Bold').fillColor(primaryTextColor).text('Privileges / Benefits', contentX, currentY);
+    currentY += 22;
+
     const bulletPoints = [
       'Verified digital property ownership',
       'Exclusive updates and early access to new digital assets',
@@ -431,106 +252,40 @@ export const generateCertificate = async (req, res) => {
       'Eligibility for partner-level privileges (if applicable)'
     ];
 
-    bulletPoints.forEach((point, index) => {
-      doc.fontSize(12)
-        .font('Times-Roman')
-        .text(`• ${point}`, contentX + 15, currentY, {
-          width: contentWidth - 15,
-          align: 'left'
-        });
-      currentY += 22;
+    bulletPoints.forEach(point => {
+      doc.circle(contentX + 15, currentY + 4, 1.5).fillColor(goldColor).fill();
+      doc.fontSize(10).font('Helvetica').fillColor('#2C2C2C').text(point, contentX + 25, currentY, { width: contentWidth - 40 });
+      currentY += 16;
     });
 
-    currentY += 30;
+    // 8. Footer (Signature and Seal Section)
+    const footerY = pageHeight - margin - 120; // Slightly higher from bottom border
 
-    // Authorized Signatory Section
-    doc.fontSize(14)
-      .font('Times-Bold')
-      .text('Authorized Signatory', contentX, currentY, {
-        width: contentWidth,
-        align: 'left'
-      });
+    // Centered alignment for Signatory and Seal
+    const signatureAreaHeight = 65;
+    const sealRadius = 40;
+    const sealX = pageWidth - margin - 65;
+    const sealY = footerY + (signatureAreaHeight / 2) + 5; // Perfectly leveled with the middle of the signature block
 
-    currentY += 40;
+    // Authorized Signatory
+    doc.fontSize(13).font('Helvetica-Bold').fillColor(primaryTextColor).text('Authorized Signatory', contentX, footerY);
+    doc.moveTo(contentX, footerY + 45).lineTo(contentX + 200, footerY + 45).lineWidth(0.8).strokeColor(primaryTextColor).stroke();
+    doc.fontSize(11).font('Helvetica-Bold').text('Director – Shaan Estate Pvt. Ltd.', contentX, footerY + 55);
 
-    // Signature line
-    const signatureLineX = contentX;
-    const signatureLineLength = 200;
-    doc.moveTo(signatureLineX, currentY)
-      .lineTo(signatureLineX + signatureLineLength, currentY)
-      .lineWidth(0.5)
-      .strokeColor('#2c1810')
-      .stroke();
+    // Seal (Drawn at the same horizontal level)
+    doc.circle(sealX, sealY, sealRadius).lineWidth(1.5).strokeColor(goldColor).stroke();
+    doc.circle(sealX, sealY, sealRadius - 4).lineWidth(0.5).strokeColor(accentGold).stroke();
 
-    currentY += 25;
-
-    // Director title - Ensure it stays within border boundaries
-    // Calculate max width to stay within content area (with margin from right border)
-    const rightMargin = 20; // Margin from right border
-    const maxTextWidth = contentWidth - rightMargin;
-    // Ensure text stays above the inner border bottom with some margin
-    const bottomMargin = 15; // Margin from bottom border
-    const maxY = innerBorderBottom - bottomMargin;
-    if (currentY > maxY) {
-      currentY = maxY;
-    }
-    doc.fontSize(12)
-      .font('Times-Roman')
-      .text('Director – Shaan Estate Pvt. Ltd.', contentX, currentY, {
-        width: maxTextWidth,
-        align: 'left',
-        ellipsis: true
-      });
-
-    // Company Seal (bottom right) - Ensure it stays within inner border
-    const sealRadius = 35;
-    const sealMargin = 20; // Margin from inner border
-    const sealX = pageWidth - margin - borderGap - sealMargin - sealRadius;
-    const sealY = innerBorderBottom - sealMargin - sealRadius;
-
-    // Draw circular seal with double border
-    doc.circle(sealX, sealY, sealRadius)
-      .lineWidth(2)
-      .strokeColor(goldColor)
-      .stroke();
-
-    doc.circle(sealX, sealY, sealRadius - 4)
-      .lineWidth(2)
-      .strokeColor(goldColor)
-      .stroke();
-
-    // Add "COMPANY SEAL" text inside circle
-    doc.fontSize(8)
-      .font('Times-Bold')
-      .fillColor('#2c1810')
-      .text('COMPANY', sealX, sealY - 8, {
-        width: sealRadius * 2,
-        align: 'center'
-      });
-
-    // Draw horizontal line in seal
-    doc.moveTo(sealX - sealRadius + 5, sealY)
-      .lineTo(sealX + sealRadius - 5, sealY)
-      .lineWidth(0.5)
-      .strokeColor('#2c1810')
-      .stroke();
-
-    doc.fontSize(8)
-      .font('Times-Bold')
-      .text('SEAL', sealX, sealY + 2, {
-        width: sealRadius * 2,
-        align: 'center'
-      });
+    doc.fontSize(7.5).font('Helvetica-Bold').fillColor(goldColor).text('SHAAN ESTATE', sealX - sealRadius, sealY - 12, { width: sealRadius * 2, align: 'center' });
+    doc.moveTo(sealX - 25, sealY).lineTo(sealX + 25, sealY).lineWidth(0.5).strokeColor(accentGold).stroke();
+    doc.text('OFFICIAL SEAL', sealX - sealRadius, sealY + 4, { width: sealRadius * 2, align: 'center' });
 
     // Finalize PDF
     doc.end();
   } catch (error) {
     console.error('Error generating certificate:', error);
     if (!res.headersSent) {
-      res.status(500).json({
-        success: false,
-        message: error.message || 'Failed to generate certificate',
-      });
+      res.status(500).json({ success: false, message: error.message || 'Failed to generate certificate' });
     }
   }
 };
